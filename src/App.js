@@ -1,17 +1,21 @@
 import React from 'react';
+import { Provider } from 'react-redux';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { store } from './store/store';
+import { SelectingSection, LessonGeneral, ChapterPages } from './features/lessons/pages';
+import './App.css';
 
 function App() {
   return (
-    <div style={{ textAlign: 'center' }}>
-      <header>
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Provider store={store}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<SelectingSection />} />
+          <Route path="/lessons/:lesson" element={<LessonGeneral />} />
+          <Route path="/lessons/chapter/:chapter" element={<ChapterPages />} />
+        </Routes>
+      </BrowserRouter>
+    </Provider>
   );
 }
 
