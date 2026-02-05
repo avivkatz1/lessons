@@ -20,10 +20,16 @@ const InfoCard = (props) => {
   const KaTeXComponent = ({ texExpression }) => {
     const containerRef = useRef();
     useEffect(() => {
-      katex.render(texExpression, containerRef.current, {
-        fontSize: "0.5rem",
-      });
-    }, []);
+      if (containerRef.current) {
+        // Clear old content first to prevent duplication
+        containerRef.current.innerHTML = '';
+
+        // Render new content
+        katex.render(texExpression, containerRef.current, {
+          fontSize: "0.5rem",
+        });
+      }
+    }, [texExpression]); // Re-run when texExpression changes
 
     return <div ref={containerRef} />;
   };

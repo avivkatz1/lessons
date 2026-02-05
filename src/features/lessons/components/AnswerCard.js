@@ -10,10 +10,16 @@ const AnswerCard = (props) => {
   const KaTeXComponent = ({ texExpression }) => {
     const containerRef = useRef();
     useEffect(() => {
-      katex.render(texExpression, containerRef.current, {
-        fontSize: "1em",
-      });
-    }, []);
+      if (containerRef.current) {
+        // Clear old content first to prevent duplication
+        containerRef.current.innerHTML = '';
+
+        // Render new content
+        katex.render(texExpression, containerRef.current, {
+          fontSize: "1em",
+        });
+      }
+    }, [texExpression]); // Re-run when texExpression changes
 
     return <div ref={containerRef} />;
   };
