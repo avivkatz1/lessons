@@ -14,6 +14,7 @@ import RotationalSymmetry from "./RotationalSymmetry";
 import Shapes from "./Shapes";
 import GenericShape from "./GenericShape";
 import Tangent from "./Tangent";
+import TangentLesson from "./TangentLesson";
 import TangentMultiple from "./TangentMultiple";
 import SlopeTriangles from "./SlopeTriangles";
 import Proportions from "./Proportions";
@@ -38,6 +39,7 @@ export {
   Shapes,
   GenericShape,
   Tangent,
+  TangentLesson,
   TangentMultiple,
   SlopeTriangles,
   SlopeTriangle,

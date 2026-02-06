@@ -116,6 +116,9 @@ const SlopeTriangle = lazy(() =>
 const Tangent = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.Tangent }))
 );
+const TangentLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.TangentLesson }))
+);
 const TangentMultiple = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.TangentMultiple }))
 );
@@ -298,7 +301,7 @@ export const DataLesson = {
   },
   tangent: {
     lessonImage: tangent,
-    LessonComponent: [BasicProblemsWordsOnly, Tangent],
+    LessonComponent: [TangentLesson],
   },
   more_tangent: {
     lessonImage: tangent,
