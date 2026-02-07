@@ -10,7 +10,7 @@ const MeasuringSides = () => {
   const { lessonProps } = useLessonState();
   const length = lessonProps.question[0][0].text;
   const [dimensions, setDimensions] = useState({
-    width: window.innerWidth,
+    width: typeof window !== "undefined" ? window.innerWidth : 800,
   });
 
   useEffect(() => {

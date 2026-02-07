@@ -15,7 +15,7 @@ import {
 import { useParams } from "react-router-dom";
 import LessonHeader from "../components/LessonHeader";
 import lessonContext from "../../../api/lessonContext";
-import InstructionComponent from "../../../shared/components/InstructionComponent";
+// Removed InstructionComponent import - no longer used to save vertical space
 import { getCurrentDimensions } from "../../../shared/helpers/functions/getScreenSize";
 import LessonErrorBoundary from "../../../shared/components/LessonErrorBoundary";
 import { logBatchStatus, logLessonResponse } from "../../../utils/batchDebug";
@@ -252,14 +252,8 @@ function LessonGeneral() {
           LessonComponent={LessonComponent}
         />
       </div>
-      {lessonName && (
-        <div className="instructions">
-          <InstructionComponent level={"level1"} />
-        </div>
-      )}
 
-      {/* Phase 2.5: Show progress tracker when in batch mode */}
-      <ProgressTracker />
+      {/* Removed InstructionComponent to save vertical space on iPad */}
 
       {/* <div className="hint-container">
         {hints?.map((hint, index) => {
@@ -292,6 +286,9 @@ function LessonGeneral() {
           </Suspense>
         </LessonErrorBoundary>
       </div>
+
+      {/* Phase 2.5: Progress tracker moved to bottom to save top space */}
+      <ProgressTracker />
 
       {/* Phase 2.5: Show completion modal when batch is finished */}
       <BatchCompletionModal />

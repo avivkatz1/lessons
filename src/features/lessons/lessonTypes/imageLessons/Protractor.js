@@ -9,8 +9,8 @@ const Protractor = () => {
   const { lessonProps } = useLessonState();
 
   const [dimensions, setDimensions] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: typeof window !== "undefined" ? window.innerWidth : 800,
+    height: typeof window !== "undefined" ? window.innerHeight : 600,
   });
 
   useEffect(() => {

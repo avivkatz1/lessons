@@ -196,21 +196,27 @@ const AngleRelationshipsDiagram = ({ triggerNewProblem }) => {
           strokeWidth={strokeWidth}
         />
       );
-      // Add parallel line arrows (positioned on the lines themselves)
+      // Add parallel line arrows (positioned dynamically based on line midpoints)
+      // Calculate midpoints for each parallel line
+      const topLineMidX = (points[0].x + points[1].x) / 2;
+      const topLineMidY = (points[0].y + points[1].y) / 2;
+      const bottomLineMidX = (points[2].x + points[3].x) / 2;
+      const bottomLineMidY = (points[2].y + points[3].y) / 2;
+
       lines.push(
         <Text
           key="arrow1"
           text=">"
-          x={points[1].x - 40}
-          y={points[1].y - 18}
+          x={topLineMidX - 12}
+          y={topLineMidY - 18}
           fontSize={24}
           fill={strokeColor}
         />,
         <Text
           key="arrow2"
           text=">"
-          x={points[3].x - 40}
-          y={points[3].y - 18}
+          x={bottomLineMidX - 12}
+          y={bottomLineMidY - 18}
           fontSize={24}
           fill={strokeColor}
         />
@@ -232,7 +238,7 @@ const AngleRelationshipsDiagram = ({ triggerNewProblem }) => {
           placeholder="x = ?"
         />
 
-        <Stage width={Math.min(window.innerWidth - 20, 500)} height={400}>
+        <Stage width={Math.min((typeof window !== "undefined" ? window.innerWidth : 800) - 20, 500)} height={400}>
           <Layer>
             {/* Question text */}
             <Text
@@ -241,7 +247,7 @@ const AngleRelationshipsDiagram = ({ triggerNewProblem }) => {
               fontSize={16}
               fill="black"
               text={displayedQuestion || ""}
-              width={Math.min(window.innerWidth - 40, 480)}
+              width={Math.min((typeof window !== "undefined" ? window.innerWidth : 800) - 40, 480)}
             />
 
             {/* Render lines */}

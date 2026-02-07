@@ -14,18 +14,13 @@ const newNumbers = () => {
 };
 
 function Perpendicular(props) {
-  const { answer, setAnswer } = props;
-  const [problem, setProblem] = useState(newNumbers()); // Initialize with problem
-
-  // Auto-load problem on mount
-  useEffect(() => {
-    const initialProblem = newNumbers();
-    setProblem(initialProblem);
-  }, []);
+  const [problem, setProblem] = useState(newNumbers); // Initialize with problem function
+  const [showAnswer, setShowAnswer] = useState(false); // Internal state for answer display
 
   const handlePractice = () => {
-    const { equation, problemAnswer } = newNumbers();
-    setProblem({ equation, problemAnswer });
+    const newProblem = newNumbers();
+    setProblem(newProblem);
+    setShowAnswer(false);
   };
 
   return (
@@ -36,15 +31,12 @@ function Perpendicular(props) {
           <AnswerInput
             correctAnswer={problem?.problemAnswer}
             answerType="text"
-            onCorrect={() => setAnswer(true)}
-            onTryAnother={() => {
-              setAnswer(false);
-              handlePractice();
-            }}
-            disabled={answer}
+            onCorrect={() => setShowAnswer(true)}
+            onTryAnother={handlePractice}
+            disabled={showAnswer}
             placeholder="Enter slope"
           />
-          {answer && (
+          {showAnswer && (
             <div>
               <h3>{`The answer is ${problem?.problemAnswer}`}</h3>
             </div>

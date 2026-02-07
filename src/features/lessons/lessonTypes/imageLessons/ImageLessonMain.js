@@ -4,11 +4,13 @@ import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text, Image } 
 import useImage from "use-image";
 
 const ImageLessonMain = ({ child }) => {
+  const width = typeof window !== "undefined" ? window.innerWidth : 800;
+
   return (
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={window.innerWidth} height={100}>
+          <Stage width={width} height={100}>
             <Layer>{child}</Layer>
           </Stage>
         </div>

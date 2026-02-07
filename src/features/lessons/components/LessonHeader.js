@@ -35,10 +35,14 @@ const LessonHeader = (props) => {
       });
       const screenSize = getCurrentDimensions();
       // Explicitly include levelNum to ensure component switching works
-      const allProps = { ...answer, ...screenSize, order: [], levelNum: level };
+      const allProps = { ...answer, ...screenSize, order: [], levelNum: parseInt(level) };
       dispatch(changeLessonProps(allProps));
     } catch (error) {
-      // Error loading level - silently fail
+      // Error loading level - show user feedback
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error loading level:", error);
+      }
+      alert(`Unable to load level ${level}. Please try again.`);
     }
   };
 
@@ -56,10 +60,12 @@ const LessonHeader = (props) => {
           {levels.length > 1 &&
             levels.map((level, i) => {
               const levelNumber = i + 1;
+              const currentLevel = lessonProps.levelNum || 1;
+              const isActive = parseInt(currentLevel) === levelNumber;
               return (
                 <div key={levelNumber}>
                   <button
-                    className={"levels-button"}
+                    className={`levels-button ${isActive ? "active" : ""}`}
                     onClick={() => handleLesson(`${levelNumber}`)}
                     name={`level_${levelNumber}`}
                   >{`L${levelNumber}`}</button>
@@ -115,6 +121,8 @@ const Wrapper = styled.div`
     overflow-wrap: break-word;
     white-space: nowrap;
     line-height: 1.2;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
 
     :active {
       border-width: 1px;
@@ -123,6 +131,15 @@ const Wrapper = styled.div`
 
     :focus {
       background-color: #2ad5d0;
+    }
+
+    &.active {
+      background-color: #2ad5d0;
+      font-weight: 600;
+    }
+
+    :hover:not(.active) {
+      background-color: #b8e6e4;
     }
   }
 

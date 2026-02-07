@@ -40,7 +40,7 @@ function TriangleInequality(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={window.innerWidth} height={500} className="stage-background">
+          <Stage width={typeof window !== "undefined" ? window.innerWidth : 800} height={500} className="stage-background">
             <Layer>
               <Text
                 fontSize={30}

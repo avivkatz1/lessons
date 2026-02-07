@@ -80,7 +80,7 @@ function RotationalSymmetry(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={window.innerWidth} height={300}>
+          <Stage width={typeof window !== "undefined" ? window.innerWidth : 800} height={300}>
             <Layer>
               <Text x={355} y={94} fontSize={14} fill={"black"} text={`Press to turn`} />
               <RegularPolygon

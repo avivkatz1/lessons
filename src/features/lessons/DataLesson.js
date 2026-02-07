@@ -122,6 +122,9 @@ const TangentLesson = lazy(() =>
 const TangentMultiple = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.TangentMultiple }))
 );
+const MoreTangentLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.MoreTangentLesson }))
+);
 
 // Angle components
 const Perpendicular = lazy(() =>
@@ -305,7 +308,7 @@ export const DataLesson = {
   },
   more_tangent: {
     lessonImage: tangent,
-    LessonComponent: [TangentMultiple],
+    LessonComponent: [MoreTangentLesson],
   },
   mess_around: {
     lessonImage: reflection_symmetry,

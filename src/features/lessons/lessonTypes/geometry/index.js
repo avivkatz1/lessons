@@ -16,6 +16,7 @@ import GenericShape from "./GenericShape";
 import Tangent from "./Tangent";
 import TangentLesson from "./TangentLesson";
 import TangentMultiple from "./TangentMultiple";
+import MoreTangentLesson from "./MoreTangentLesson";
 import SlopeTriangles from "./SlopeTriangles";
 import Proportions from "./Proportions";
 
@@ -41,6 +42,7 @@ export {
   Tangent,
   TangentLesson,
   TangentMultiple,
+  MoreTangentLesson,
   SlopeTriangles,
   SlopeTriangle,
   Proportions,

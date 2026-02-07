@@ -41,7 +41,8 @@ async function lessonContext({ lesson, levelNum, problemNumber }) {
         ...response.data,
         stars: 1,
         showAnswer: false,
-        level: "level1",
+        level: `level${levelNum}`,
+        levelNum: parseInt(levelNum), // Ensure levelNum is included as integer
       };
 
       return returningResponse;

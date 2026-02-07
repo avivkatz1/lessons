@@ -33,19 +33,18 @@ const NamingAnglesLevelOne = (props) => {
   const handleClick = (e) => {
     const { id } = e.target.attrs;
     if (
-      ((answerArray.length == 0 || answerArray.length == 2) && id == varTwo) ||
-      (answerArray.length == 1 && id !== varTwo)
+      ((answerArray.length === 0 || answerArray.length === 2) && id === varTwo) ||
+      (answerArray.length === 1 && id !== varTwo)
     ) {
       setCorrect(false);
       setAnswerArray([]);
       setTimeout(() => {
         setCorrect(true);
-        setAnswerArray([]);
       }, 2000);
+      return; // Exit early on incorrect click
     }
+    // Only add to answer array if click was correct
     setAnswerArray([...answerArray, id]);
-    if (answerArray == 3) {
-    }
   };
   const highlightMarkers = [];
   return (

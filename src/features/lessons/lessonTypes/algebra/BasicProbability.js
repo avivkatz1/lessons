@@ -8,31 +8,18 @@ const numPattern = 10;
 const initialState = [...Array(numPattern)].map((_, i) => (Math.random() > 0.4 ? "red" : "white"));
 
 function BasicProbability(props) {
-  // const [shape, setShape] = useState();
-
-  //   const [layerX, setLayerX] = useState({ x: 0, y: 0 });
-  const [practice, setPractice] = useState(false);
   const [fillPattern, setFillPattern] = useState(initialState);
 
-  let percentRed = fillPattern
-    .map((good) => (good == "red" ? 1 : 0))
+  // Calculate red count directly from current fillPattern (no redundant state)
+  const redCount = fillPattern
+    .map((color) => (color === "red" ? 1 : 0))
     .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
-
-  const [answer, setAnswer] = useState(percentRed);
-  const handlePractice = () => {
-    setPractice(true);
-  };
 
   const changeFill = () => {
     const newPattern = [...Array(numPattern)].map((_, i) =>
-      Math.random() > 0.2 ? "black" : "red"
+      Math.random() > 0.4 ? "red" : "white"  // Consistent colors with initial state
     );
     setFillPattern(newPattern);
-
-    const newPercentRed = newPattern
-      .map((good) => (good == "red" ? 1 : 0))
-      .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
-    setAnswer(newPercentRed);
   };
 
   //   const newShape =()=>{
@@ -59,7 +46,7 @@ function BasicProbability(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={window.innerWidth} height={300}>
+          <Stage width={typeof window !== "undefined" ? window.innerWidth : 800} height={300}>
             {/* <Layer>
               {[...Array(30)].map((_, indexH) => {
                 let strokeColorH = "lightgray";
@@ -113,9 +100,9 @@ function BasicProbability(props) {
               ))}
             </Layer>
             <Layer>
-              <Text x={150} y={0} fontSize={40} fill={"red"} text={`${answer}/10`} />
-              <Text x={300} y={0} fontSize={40} fill={"red"} text={`${answer}0%`} />
-              <Text x={450} y={0} fontSize={40} fill={"red"} text={`0.${answer}`} />
+              <Text x={150} y={0} fontSize={40} fill={"red"} text={`${redCount}/10`} />
+              <Text x={300} y={0} fontSize={40} fill={"red"} text={`${redCount}0%`} />
+              <Text x={450} y={0} fontSize={40} fill={"red"} text={`0.${redCount}`} />
             </Layer>
           </Stage>
           <button onClick={changeFill}>New Pattern</button>
