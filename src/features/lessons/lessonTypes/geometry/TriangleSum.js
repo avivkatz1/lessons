@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import styled from "styled-components";
-import { useLessonState } from "../../../../hooks";
+import { useLessonState, useWindowDimensions } from "../../../../hooks";
 import numbers from "../../../../shared/helpers/numbers";
 import { AnswerInput } from "../../../../shared/components";
 import { Stage, Layer, Line, Text } from "react-konva";
@@ -76,6 +76,7 @@ const TriangleLine = React.memo(({ points }) => (
 function TriangleSum({ triggerNewProblem }) {
   // Phase 2 - Stage 5: Use shared lesson state hook
   const { showAnswer, revealAnswer, hideAnswer } = useLessonState();
+  const { width } = useWindowDimensions();
 
   // Initialize state only once
   const getInitialState = () => {
@@ -123,23 +124,23 @@ function TriangleSum({ triggerNewProblem }) {
 
   return (
     <Wrapper>
-      <div className="practice-container">
-        <AnswerInput
-          correctAnswer={correctAnswer}
-          answerType="number"
-          onCorrect={revealAnswer}
-          onTryAnother={handleNextProblem}
-          disabled={showAnswer}
-          placeholder="x = ?"
-        />
-        <Stage width={window.innerWidth} height={500} fill={"lightgreen"}>
+      {/* Section 2: QuestionSection - Centered question text */}
+      <QuestionSection>
+        <QuestionText>
+          Find the value of x. (Remember: The sum of angles in a triangle is 180°)
+        </QuestionText>
+      </QuestionSection>
+
+      {/* Section 3: VisualSection - Light background container for triangle */}
+      <VisualSection>
+        <Stage width={Math.min(width - 40, 600)} height={500}>
           <Layer>
             <TriangleLine points={points} />
           </Layer>
           <Layer>
             {terms.map((term, index) => {
               const labelPos = labelPositions[index];
-              if (index == 2 && showAnswer)
+              if (index === 2 && showAnswer)
                 return (
                   <Text
                     key={`dk${index * 23423}`}
@@ -151,7 +152,7 @@ function TriangleSum({ triggerNewProblem }) {
                     y={labelPos.y}
                   />
                 );
-              else if (index == 2 && !showAnswer)
+              else if (index === 2 && !showAnswer)
                 return (
                   <Text
                     key={`dk${index * 23423}`}
@@ -178,11 +179,157 @@ function TriangleSum({ triggerNewProblem }) {
             })}
           </Layer>
         </Stage>
-      </div>
+      </VisualSection>
+
+      {/* Section 4: InteractionSection - Answer input */}
+      <InteractionSection>
+        {!showAnswer && (
+          <AnswerInputContainer>
+            <AnswerInput
+              correctAnswer={correctAnswer}
+              answerType="number"
+              onCorrect={revealAnswer}
+              onTryAnother={handleNextProblem}
+              disabled={showAnswer}
+              placeholder="x = ?"
+            />
+          </AnswerInputContainer>
+        )}
+
+        {/* Section 5: ExplanationSection - Green background on answer reveal */}
+        {showAnswer && (
+          <ExplanationSection>
+            <ExplanationText>
+              <strong>Solution:</strong> Since the sum of angles in a triangle equals 180°, we can write:
+              {terms[0]}° + {terms[1]}° + {coeff}x = 180°
+            </ExplanationText>
+            <ExplanationText>
+              Simplifying: {terms[0] + terms[1]}° + {coeff}x = 180°
+            </ExplanationText>
+            <ExplanationText>
+              Solving for x: {coeff}x = {180 - terms[0] - terms[1]}°
+            </ExplanationText>
+            <ExplanationText>
+              Therefore: x = {correctAnswer}°
+            </ExplanationText>
+          </ExplanationSection>
+        )}
+      </InteractionSection>
     </Wrapper>
   );
 }
 
 export default TriangleSum;
 
-const Wrapper = styled.div``;
+// Styled Components
+
+const Wrapper = styled.div`
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+
+  @media (max-width: 1024px) {
+    padding: 16px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px;
+  }
+`;
+
+const QuestionSection = styled.div`
+  margin-bottom: 20px;
+  text-align: center;
+
+  @media (max-width: 1024px) {
+    margin-bottom: 16px;
+  }
+`;
+
+const QuestionText = styled.h2`
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0;
+
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+  }
+`;
+
+const VisualSection = styled.div`
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 16px;
+
+  @media (max-width: 1024px) {
+    margin: 16px 0;
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 768px) {
+    margin: 12px 0;
+    padding: 8px;
+  }
+`;
+
+const InteractionSection = styled.div`
+  margin-top: 20px;
+
+  @media (max-width: 1024px) {
+    margin-top: 16px;
+  }
+`;
+
+const AnswerInputContainer = styled.div`
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0;
+  flex-wrap: wrap;
+
+  @media (max-width: 1024px) {
+    margin: 12px 0;
+  }
+`;
+
+const ExplanationSection = styled.div`
+  background: #f0fff4;
+  border: 2px solid #68d391;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+
+  @media (max-width: 1024px) {
+    padding: 16px;
+    margin-top: 12px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px;
+  }
+`;
+
+const ExplanationText = styled.p`
+  font-size: 15px;
+  line-height: 1.5;
+  color: #2d3748;
+  margin: 12px 0;
+
+  @media (max-width: 1024px) {
+    font-size: 14px;
+    line-height: 1.4;
+    margin: 10px 0;
+  }
+`;
