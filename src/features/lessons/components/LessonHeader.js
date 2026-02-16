@@ -3,7 +3,9 @@ import styled from "styled-components";
 import HomeButton from "../../../shared/components/HomeButton";
 import Stars from "../../../shared/components/Stars";
 import { IconContext } from "react-icons";
+import { FaSun, FaMoon } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
+import { useTheme } from "../../../hooks";
 import lessonContext from "../../../api/lessonContext";
 import { getCurrentDimensions } from "../../../shared/helpers/functions/getScreenSize";
 import { changeLessonProps } from "../../../store/lessonSlice";
@@ -11,6 +13,7 @@ import { changeLessonProps } from "../../../store/lessonSlice";
 const LessonHeader = (props) => {
   const { lessonImage, lessonName, LessonComponent } = props;
   const dispatch = useDispatch();
+  const { isDark, toggleTheme } = useTheme();
   const lessonProps = useSelector((state) => state.lesson.lessonProps);
   const lessonTitle = useSelector((state) => state.lesson.lessonSelected);
 
@@ -49,8 +52,11 @@ const LessonHeader = (props) => {
   return (
     <Wrapper>
       <div className="header-start">
-        <div>
+        <div className="left-controls">
           <HomeButton />
+          <ToggleButton onClick={toggleTheme} aria-label="Toggle dark mode">
+            {isDark ? <FaSun size={20} /> : <FaMoon size={20} />}
+          </ToggleButton>
         </div>
         <div className="problem-title">
           <h1 className="problem-title-text">{lessonTitle}</h1>
@@ -85,6 +91,33 @@ const LessonHeader = (props) => {
 };
 
 export default LessonHeader;
+
+const ToggleButton = styled.button`
+  background: transparent;
+  border: 2px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  color: ${props => props.theme.colors.textPrimary};
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: ${props => props.theme.colors.hoverBackground};
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (max-width: 768px) {
+    padding: 6px;
+  }
+`;
+
 const Wrapper = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -102,6 +135,12 @@ const Wrapper = styled.div`
     justify-content: space-between;
     padding: 8px;
     gap: 5px;
+  }
+
+  .left-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .levels-div {
