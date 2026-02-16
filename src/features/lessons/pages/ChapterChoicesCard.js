@@ -25,14 +25,15 @@ const ChapterChoicesCard = (props) => {
 export default ChapterChoicesCard;
 
 const Wrapper = styled.div`
-  border: 2px solid black;
+  border: 2px solid ${props => props.theme.colors.border};
   border-radius: 8px;
   padding: 12px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: hsl(206deg 57.59% 87.82%);
+  background-color: ${props => props.theme.colors.cardBackground};
+  color: ${props => props.theme.colors.textPrimary};
   font-family: monospace;
   width: calc(50% - 10px);
   min-height: 60px;
@@ -40,11 +41,14 @@ const Wrapper = styled.div`
   cursor: pointer;
   transition:
     transform 0.2s,
-    box-shadow 0.2s;
+    box-shadow 0.2s,
+    background-color 0.3s,
+    color 0.3s;
 
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    background-color: ${props => props.theme.colors.hoverBackground};
   }
 
   &:active {
@@ -63,6 +67,7 @@ const Wrapper = styled.div`
     text-align: center;
     font-size: clamp(12px, 3vw, 16px);
     word-break: break-word;
+    color: inherit;
   }
 
   @media (min-width: 480px) {
