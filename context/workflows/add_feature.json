@@ -1,0 +1,178 @@
+{
+  "workflow_id": "add_feature",
+  "name": "Add New Feature",
+  "version": "2.0",
+  "description": "Workflow for adding new features to existing lessons or platform",
+  "trigger_patterns": [
+    "add * feature",
+    "implement * functionality",
+    "enhance * with *",
+    "add support for *"
+  ],
+
+  "stages": [
+    {
+      "stage": 1,
+      "name": "Feature Design & Planning",
+      "bot": "architect",
+      "description": "Design feature architecture and integration approach",
+      "inputs": {
+        "required": ["feature_description"],
+        "optional": ["user_requirements", "design_mockups"]
+      },
+      "tasks": [
+        "Understand feature requirements and goals",
+        "Review existing codebase for similar patterns",
+        "Design data structures if needed",
+        "Plan integration points with existing code",
+        "Identify potential conflicts or challenges",
+        "Consider dark mode implications",
+        "Estimate scope and complexity",
+        "Create implementation plan"
+      ],
+      "outputs": ["feature_plan.md", "integration_strategy", "data_design"],
+      "can_spawn_bots": ["backend_specialist", "react_specialist"],
+      "success_criteria": {
+        "plan_detailed": true,
+        "integration_clear": true,
+        "challenges_identified": true
+      },
+      "next_stage_condition": "plan_approved_by_user"
+    },
+
+    {
+      "stage": 2,
+      "name": "Backend Changes (if needed)",
+      "bot": "backend_specialist",
+      "description": "Implement backend support for new feature",
+      "inputs": {
+        "required": ["feature_plan.md"],
+        "optional": ["data_design"]
+      },
+      "tasks": [
+        "Update data models if needed",
+        "Create or modify API endpoints",
+        "Add validation logic",
+        "Generate test data for new fields",
+        "Update database schema if applicable",
+        "Test backend changes independently"
+      ],
+      "outputs": ["backend_changes", "updated_api", "test_data"],
+      "skip_if": "frontend_only_feature",
+      "success_criteria": {
+        "backend_functional": true,
+        "api_tested": true
+      },
+      "next_stage_condition": "backend_ready"
+    },
+
+    {
+      "stage": 3,
+      "name": "Frontend Implementation",
+      "bot": "engineer",
+      "description": "Implement feature in frontend",
+      "inputs": {
+        "required": ["feature_plan.md"],
+        "optional": ["backend_changes", "design_mockups"]
+      },
+      "tasks": [
+        "Implement feature following existing patterns",
+        "Integrate with existing components",
+        "Use theme tokens for all colors (dark mode compatible)",
+        "Add proper TypeScript types if applicable",
+        "Implement responsive design",
+        "Add error handling and edge cases",
+        "Write clear code comments",
+        "Test feature works with real data"
+      ],
+      "outputs": ["feature_code", "updated_components"],
+      "can_spawn_bots": ["react_specialist", "dark_mode_specialist", "konva_specialist"],
+      "success_criteria": {
+        "feature_works": true,
+        "integrates_well": true,
+        "dark_mode_compatible": true,
+        "no_console_errors": true
+      },
+      "next_stage_condition": "feature_functional"
+    },
+
+    {
+      "stage": 4,
+      "name": "Testing & Quality Assurance",
+      "bot": "tester",
+      "description": "Comprehensive feature testing",
+      "inputs": {
+        "required": ["feature_code"],
+        "optional": ["test_plan"]
+      },
+      "tasks": [
+        "Test feature in happy path scenarios",
+        "Test edge cases and error conditions",
+        "Verify dark mode works correctly",
+        "Test on mobile, tablet, desktop",
+        "Verify no regressions in existing features",
+        "Check browser console for errors",
+        "Test with various data inputs",
+        "Verify accessibility if UI feature",
+        "Take screenshots of new feature"
+      ],
+      "outputs": ["test_report", "screenshots", "bug_list"],
+      "success_criteria": {
+        "feature_tested": true,
+        "no_critical_bugs": true,
+        "no_regressions": true,
+        "responsive_works": true
+      },
+      "next_stage_condition": "all_tests_pass"
+    },
+
+    {
+      "stage": 5,
+      "name": "Documentation & Finalization",
+      "bot": "documenter",
+      "description": "Document feature and prepare for deployment",
+      "inputs": {
+        "required": ["feature_code", "test_report"],
+        "optional": ["screenshots"]
+      },
+      "tasks": [
+        "Add inline code comments",
+        "Update user-facing documentation if needed",
+        "Update developer guides if new patterns introduced",
+        "Add feature to CHANGELOG",
+        "Take screenshots showing feature",
+        "Prepare PR description",
+        "Note any configuration needed"
+      ],
+      "outputs": ["documentation", "changelog_entry", "pr_description"],
+      "success_criteria": {
+        "feature_documented": true,
+        "changelog_updated": true
+      },
+      "next_stage_condition": "documentation_complete"
+    }
+  ],
+
+  "completion_criteria": {
+    "all_stages_complete": true,
+    "feature_tested": true,
+    "no_regressions": true,
+    "documentation_complete": true,
+    "ready_for_deployment": true
+  },
+
+  "rollback_strategy": {
+    "on_stage_failure": "notify_user_and_propose_alternative",
+    "on_complexity_increase": "reassess_scope_with_user"
+  },
+
+  "estimated_duration": "1-6 hours depending on feature complexity",
+
+  "notes": [
+    "Always consider dark mode from the start",
+    "Test responsive design on all screen sizes",
+    "Verify no regressions in existing features",
+    "Document new patterns for future reference",
+    "Consider accessibility for UI features"
+  ]
+}

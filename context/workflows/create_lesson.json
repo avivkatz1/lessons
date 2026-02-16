@@ -1,0 +1,175 @@
+{
+  "workflow_id": "create_lesson",
+  "name": "Create New Math Lesson",
+  "version": "2.0",
+  "description": "Complete workflow for creating a new interactive math lesson from concept to deployment",
+  "trigger_patterns": [
+    "create a lesson on *",
+    "new lesson about *",
+    "implement * lesson",
+    "build a lesson for *"
+  ],
+
+  "stages": [
+    {
+      "stage": 1,
+      "name": "Planning & Design",
+      "bot": "architect",
+      "description": "Review existing patterns, design data structure, and create implementation plan",
+      "inputs": {
+        "required": ["user_request", "lesson_topic"],
+        "optional": ["example_lessons", "special_requirements"]
+      },
+      "tasks": [
+        "Review 2-3 similar existing lessons for patterns",
+        "Define backend data contract (JSON structure)",
+        "Sketch visual requirements (if Konva needed)",
+        "List edge cases (small/large values, extreme angles)",
+        "Create detailed implementation plan"
+      ],
+      "outputs": ["lesson_plan.md", "data_contract.json"],
+      "can_spawn_bots": ["geometry_specialist", "backend_specialist"],
+      "success_criteria": {
+        "has_plan": true,
+        "data_contract_defined": true,
+        "edge_cases_identified": true
+      },
+      "next_stage_condition": "plan_approved_by_user"
+    },
+
+    {
+      "stage": 2,
+      "name": "Backend Implementation",
+      "bot": "backend_specialist",
+      "description": "Create lesson data generator and answer validation logic",
+      "inputs": {
+        "required": ["data_contract.json"],
+        "optional": ["edge_case_list"]
+      },
+      "tasks": [
+        "Create lesson data generator function",
+        "Implement answer validation logic",
+        "Generate test data samples (10+ problems)",
+        "Test data matches contract schema",
+        "Create API endpoint (if needed)"
+      ],
+      "outputs": ["backend_code", "test_data.json", "validation_tests"],
+      "success_criteria": {
+        "test_data_valid": true,
+        "validation_works": true,
+        "edge_cases_covered": true
+      },
+      "next_stage_condition": "backend_tests_pass"
+    },
+
+    {
+      "stage": 3,
+      "name": "Frontend Implementation",
+      "bot": "lesson_developer",
+      "description": "Build React component following lesson development checklist",
+      "inputs": {
+        "required": ["lesson_plan.md", "test_data.json"],
+        "optional": ["design_mockups"]
+      },
+      "tasks": [
+        "Create lesson component file in appropriate directory",
+        "Implement using useLessonState() hook pattern (NOT props)",
+        "Use shared AnswerInput component",
+        "Follow 5-section layout (Question, Visual, Interaction, Explanation, Progress)",
+        "Add Konva visualization if needed (spawn konva_specialist)",
+        "Ensure dark mode compatibility (spawn dark_mode_specialist)",
+        "Add styled-components with theme tokens (NEVER hardcoded colors)",
+        "Implement responsive design with media queries",
+        "Test with provided test data"
+      ],
+      "outputs": ["LessonComponent.jsx", "styled_components"],
+      "can_spawn_bots": ["konva_specialist", "dark_mode_specialist", "geometry_specialist"],
+      "success_criteria": {
+        "component_renders": true,
+        "uses_correct_hooks": true,
+        "dark_mode_works": true,
+        "no_console_errors": true
+      },
+      "next_stage_condition": "component_functional"
+    },
+
+    {
+      "stage": 4,
+      "name": "Testing & Quality Assurance",
+      "bot": "tester",
+      "description": "Comprehensive testing across all scenarios and modes",
+      "inputs": {
+        "required": ["LessonComponent.jsx"],
+        "optional": ["edge_case_list"]
+      },
+      "tasks": [
+        "Test all levels load without blank screen",
+        "Test answer validation (correct answers → explanation shown)",
+        "Test answer validation (incorrect answers → feedback shown)",
+        "Test 'Try Another' cycles to new problem",
+        "Test edge cases (small/large values, extreme angles)",
+        "Test dark mode (toggle works, canvas has background, text readable)",
+        "Test responsive design (mobile 375px, tablet 768px, desktop 1920px)",
+        "Test all 8 triangle orientations (if geometry lesson)",
+        "Check browser console for errors",
+        "Take screenshots (light mode and dark mode)"
+      ],
+      "outputs": ["test_report.md", "screenshots", "bug_list"],
+      "success_criteria": {
+        "all_levels_work": true,
+        "answer_validation_correct": true,
+        "dark_mode_verified": true,
+        "responsive_verified": true,
+        "no_critical_bugs": true
+      },
+      "next_stage_condition": "all_tests_pass_or_bugs_fixed"
+    },
+
+    {
+      "stage": 5,
+      "name": "Documentation & Finalization",
+      "bot": "documenter",
+      "description": "Add comments, update indices, and prepare for deployment",
+      "inputs": {
+        "required": ["LessonComponent.jsx", "test_report.md"],
+        "optional": ["screenshots"]
+      },
+      "tasks": [
+        "Add code comments for complex logic",
+        "Update lesson index/routing if needed",
+        "Verify screenshots show light and dark modes",
+        "Document any special patterns or techniques used",
+        "Update CHANGELOG if applicable",
+        "Prepare PR description with testing notes"
+      ],
+      "outputs": ["documented_code", "updated_index", "pr_description"],
+      "success_criteria": {
+        "code_commented": true,
+        "index_updated": true,
+        "screenshots_included": true
+      },
+      "next_stage_condition": "documentation_complete"
+    }
+  ],
+
+  "completion_criteria": {
+    "all_stages_complete": true,
+    "all_tests_pass": true,
+    "user_approval": true,
+    "ready_for_deployment": true
+  },
+
+  "rollback_strategy": {
+    "on_stage_failure": "notify_user_and_propose_fix",
+    "on_critical_error": "rollback_to_last_working_stage"
+  },
+
+  "estimated_duration": "2-4 hours depending on lesson complexity",
+
+  "notes": [
+    "Geometry lessons with Konva take longer (3-5 hours)",
+    "Simple text-only lessons can be completed in 1-2 hours",
+    "Always test in BOTH light and dark modes",
+    "Edge case testing is critical - don't skip it"
+  ]
+}

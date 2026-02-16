@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useWindowDimensions } from "../../../../hooks";
 import styled from "styled-components";
 import numbers from "../../../../shared/helpers/numbers";
 import { Stage, Layer, Shape, Text, Image } from "react-konva";
@@ -15,6 +16,7 @@ function Tangent(props) {
   const [sideLength, setSideLength] = useState(numbers(1, 50)[0] + 1);
   const [solveY, setSolveY] = useState(true);
   const [flash, setFlash] = useState(true);
+  const { width, height } = useWindowDimensions();
 
   const newSlope = () => {
     setAngleDegree(numbers(1, 89)[0]);
@@ -37,7 +39,7 @@ function Tangent(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={window.innerWidth} height={500}>
+          <Stage width={width} height={500}>
             <Layer
             // rotation={40} offsetX={500} offsetY={180} x={500} y ={180}
             >

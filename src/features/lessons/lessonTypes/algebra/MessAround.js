@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useWindowDimensions } from "../../../../hooks";
 import styled from "styled-components";
 import numbers from "../../../../shared/helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
@@ -47,6 +48,7 @@ const initialButtons = {
 
 function MessAround(props) {
   const [buttons, setButtons] = useState(initialButtons);
+  const { width, height } = useWindowDimensions();
   const {
     dottedLine,
     circleArrow,
@@ -80,7 +82,7 @@ function MessAround(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={window.innerWidth} height={700}>
+          <Stage width={width} height={700}>
             <Layer>
               {highlightMarkers?.map((col, i) => {
                 return (

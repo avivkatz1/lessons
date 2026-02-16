@@ -19,6 +19,7 @@ import TangentMultiple from "./TangentMultiple";
 import MoreTangentLesson from "./MoreTangentLesson";
 import SlopeTriangles from "./SlopeTriangles";
 import Proportions from "./Proportions";
+import InverseTrig from "./InverseTrig";
 
 // Export with alias for backwards compatibility
 const SlopeTriangle = SlopeTriangles;
@@ -46,4 +47,5 @@ export {
   SlopeTriangles,
   SlopeTriangle,
   Proportions,
+  InverseTrig,
 };

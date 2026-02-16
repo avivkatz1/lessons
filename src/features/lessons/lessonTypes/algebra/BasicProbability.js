@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import { useWindowDimensions } from "../../../../hooks";
 import numbers from "../../../../shared/helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
 
@@ -8,6 +9,7 @@ const numPattern = 10;
 const initialState = [...Array(numPattern)].map((_, i) => (Math.random() > 0.4 ? "red" : "white"));
 
 function BasicProbability(props) {
+  const { width } = useWindowDimensions();
   const [fillPattern, setFillPattern] = useState(initialState);
 
   // Calculate red count directly from current fillPattern (no redundant state)
@@ -46,7 +48,7 @@ function BasicProbability(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={typeof window !== "undefined" ? window.innerWidth : 800} height={300}>
+          <Stage width={width} height={300}>
             {/* <Layer>
               {[...Array(30)].map((_, indexH) => {
                 let strokeColorH = "lightgray";

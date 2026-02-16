@@ -1,0 +1,146 @@
+{
+  "workflow_id": "fix_bug",
+  "name": "Debug and Fix Issue",
+  "version": "2.0",
+  "description": "Systematic workflow for identifying, diagnosing, and fixing bugs",
+  "trigger_patterns": [
+    "fix bug *",
+    "debug *",
+    "there's an error *",
+    "* is broken",
+    "* not working"
+  ],
+
+  "stages": [
+    {
+      "stage": 1,
+      "name": "Reproduce & Diagnose",
+      "bot": "bug_fixer",
+      "description": "Reproduce the issue and identify root cause",
+      "inputs": {
+        "required": ["bug_description"],
+        "optional": ["error_logs", "steps_to_reproduce", "screenshots"]
+      },
+      "tasks": [
+        "Reproduce the bug following provided steps",
+        "Check browser console for error messages",
+        "Review error stack trace if available",
+        "Identify affected files and components",
+        "Trace code execution to find root cause",
+        "Determine if issue is frontend, backend, or integration",
+        "Check git history for recent related changes",
+        "Test in both light and dark modes (if UI bug)"
+      ],
+      "outputs": ["reproduction_steps", "root_cause_analysis", "affected_files"],
+      "can_spawn_bots": ["dark_mode_specialist", "konva_specialist", "backend_specialist"],
+      "success_criteria": {
+        "bug_reproduced": true,
+        "root_cause_identified": true,
+        "affected_files_known": true
+      },
+      "next_stage_condition": "root_cause_confirmed"
+    },
+
+    {
+      "stage": 2,
+      "name": "Implement Fix",
+      "bot": "engineer",
+      "description": "Implement the fix following best practices",
+      "inputs": {
+        "required": ["root_cause_analysis", "affected_files"],
+        "optional": ["proposed_solution"]
+      },
+      "tasks": [
+        "Implement minimal fix addressing root cause",
+        "Avoid over-engineering or unnecessary refactoring",
+        "Maintain existing patterns and conventions",
+        "Ensure dark mode compatibility (if UI change)",
+        "Add comments explaining the fix if non-obvious",
+        "Update related code if needed",
+        "Follow LESSON_DEVELOPMENT_CHECKLIST if lesson-related"
+      ],
+      "outputs": ["fixed_code", "test_plan"],
+      "can_spawn_bots": ["dark_mode_specialist", "geometry_specialist"],
+      "success_criteria": {
+        "fix_implemented": true,
+        "no_new_errors": true,
+        "follows_conventions": true
+      },
+      "next_stage_condition": "fix_complete"
+    },
+
+    {
+      "stage": 3,
+      "name": "Testing & Verification",
+      "bot": "tester",
+      "description": "Verify fix works and doesn't introduce regressions",
+      "inputs": {
+        "required": ["fixed_code", "reproduction_steps"],
+        "optional": ["test_plan"]
+      },
+      "tasks": [
+        "Verify original bug is fixed",
+        "Test same scenario in light and dark modes",
+        "Test edge cases related to the bug",
+        "Verify no regressions in related functionality",
+        "Check browser console for new errors",
+        "Test on different screen sizes if UI bug",
+        "Run any existing automated tests",
+        "Document testing results"
+      ],
+      "outputs": ["test_results", "verification_report"],
+      "success_criteria": {
+        "original_bug_fixed": true,
+        "no_regressions": true,
+        "no_new_errors": true
+      },
+      "next_stage_condition": "all_tests_pass"
+    },
+
+    {
+      "stage": 4,
+      "name": "Documentation & Deployment",
+      "bot": "documenter",
+      "description": "Document the fix and prepare for deployment",
+      "inputs": {
+        "required": ["fixed_code", "test_results"],
+        "optional": ["screenshots"]
+      },
+      "tasks": [
+        "Add code comments if fix is non-obvious",
+        "Update CHANGELOG with bug fix entry",
+        "Take before/after screenshots if visual bug",
+        "Prepare commit message describing fix",
+        "Update any affected documentation",
+        "Note any known limitations or future improvements"
+      ],
+      "outputs": ["commit_message", "updated_docs"],
+      "success_criteria": {
+        "fix_documented": true,
+        "changelog_updated": true
+      },
+      "next_stage_condition": "documentation_complete"
+    }
+  ],
+
+  "completion_criteria": {
+    "all_stages_complete": true,
+    "bug_verified_fixed": true,
+    "no_regressions": true,
+    "ready_for_commit": true
+  },
+
+  "rollback_strategy": {
+    "on_fix_failure": "revert_changes_and_reassess",
+    "on_regressions": "iterate_on_fix"
+  },
+
+  "estimated_duration": "30 minutes - 2 hours depending on bug complexity",
+
+  "notes": [
+    "Always verify fix in BOTH light and dark modes",
+    "Don't refactor while fixing - keep changes minimal",
+    "Document non-obvious fixes for future reference",
+    "Test edge cases - bugs often hide in edge cases"
+  ]
+}

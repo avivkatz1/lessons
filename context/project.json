@@ -1,0 +1,46 @@
+{
+  "project": {
+    "name": "Math Lessons Platform",
+    "description": "Interactive math education platform with 46 lessons across geometry, algebra, angles, and graphing. React 18 frontend with Redux Toolkit, deployed on Vercel with Heroku backend.",
+    "repository": "https://github.com/avivkatz1/lessons",
+    "live_url": "https://lessons-gamma.vercel.app",
+    "version": "1.0.0",
+    "created": "2026-02-04"
+  },
+  "access_tiers": {
+    "full_access": {
+      "description": "Can read and write all files in the project",
+      "restrictions": []
+    },
+    "code_only": {
+      "description": "Can read and write code files, read-only for configs and docs",
+      "write_access": [
+        "src/",
+        "tests/",
+        "scripts/"
+      ],
+      "read_only": [
+        "docs/",
+        "*.md",
+        "*.env",
+        "config/",
+        "package.json",
+        "requirements.txt"
+      ],
+      "no_access": []
+    },
+    "read_only": {
+      "description": "Can only read files, cannot make modifications",
+      "write_access": [],
+      "read_only": [
+        "*"
+      ],
+      "no_access": []
+    }
+  },
+  "created": "2026-02-16",
+  "last_updated": "2026-02-16",
+  "bot_definitions_location": "/frontends/lessons/docs/bots/",
+  "workflows_location": "/frontends/lessons/context/workflows/",
+  "conversations_location": "/frontends/lessons/context/conversations/"
+}

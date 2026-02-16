@@ -1,13 +1,8 @@
 # Lesson Development Quick Reference
-## Based on TangentLesson Implementation (Feb 2026)
+## Comprehensive Guide for Creating Math Lessons
 
-> **⚠️ DEPRECATED (Feb 2026):** This document has been consolidated into the new documentation structure.
->
-> **Please use instead:**
-> - 🚀 **[../../docs/LESSON_QUICK_START.md](../../docs/LESSON_QUICK_START.md)** - Quick reference & checklists (relocated)
-> - 📘 **[../../docs/LESSON_IMPLEMENTATION_GUIDE.md](../../docs/LESSON_IMPLEMENTATION_GUIDE.md)** - Complete implementation guide
->
-> This file will be archived in a future cleanup.
+**Last Updated:** February 16, 2026
+**Includes:** Dark Mode Requirements, Konva Canvas Patterns, Testing Checklists
 
 ---
 

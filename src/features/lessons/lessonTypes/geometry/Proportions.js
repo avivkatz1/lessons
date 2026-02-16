@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useWindowDimensions } from "../../../../hooks";
 import styled from "styled-components";
 import numbers from "../../../../shared/helpers/numbers";
 import { Stage, Layer, Line, Text } from "react-konva";
@@ -48,6 +49,7 @@ function Proportions(props) {
   const [randomVar, setRandomVar] = useState(randomNum(4));
   const [terms, setTerms] = useState(createNumbers(randomVar));
   const [ratio, setRatio] = useState(false);
+  const { width, height } = useWindowDimensions();
 
   const newProportion = async () => {
     const newRandom = randomNum(4);
@@ -78,7 +80,7 @@ function Proportions(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={window.innerWidth} height={500}>
+          <Stage width={width} height={500}>
             <Layer>
               <Line stroke={"black"} strokeWidth={10} points={[300, 176, 420, 176]} />
               <Line stroke={"black"} strokeWidth={10} points={[501, 176, 621, 176]} />

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useWindowDimensions } from "../../../../hooks";
 import styled from "styled-components";
 import numbers from "../../../../shared/helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
@@ -41,6 +42,7 @@ const initialPositions = {
 function VennDiagram(props) {
   const [venn, setVenn] = useState({ list: vennList[0] });
   const [wordPositions, setWordPositions] = useState(initialPositions);
+  const { width, height } = useWindowDimensions();
   const { answer, setAnswer } = props;
 
   const newVenn = () => {
@@ -61,7 +63,7 @@ function VennDiagram(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={window.innerWidth} height={300}>
+          <Stage width={width} height={300}>
             <Layer>
               <Circle
                 radius={120}

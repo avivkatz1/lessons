@@ -216,7 +216,7 @@ export const validateExpression = (userAnswer, correctAnswer, options = {}) => {
 /**
  * Validates array-type answers (complex lesson-specific format)
  * @param {string} userAnswer - User's answer
- * @param {Array} correctAnswer - Array containing answer data
+ * @param {Array} correctAnswer - Array containing answer data (can have multiple valid answers)
  * @param {object} options - Validation options
  * @param {string} options.lessonName - Lesson name for special handling
  * @returns {boolean} Whether answer is correct
@@ -235,6 +235,45 @@ export const validateArray = (userAnswer, correctAnswer, options = {}) => {
     return validateFraction(userAnswer, firstElement);
   }
 
+  // FIXED: Check if correctAnswer contains simple string/number values (multiple valid answers)
+  // This handles cases like ["15", "20"] where both answers are correct
+  const isSimpleArray = correctAnswer.every(
+    (item) => typeof item === "string" || typeof item === "number"
+  );
+
+  if (isSimpleArray) {
+    const normalizedUser = normalizeInput(userAnswer);
+
+    // Check if user answer matches ANY of the correct answers
+    for (const answer of correctAnswer) {
+      const correctText = normalizeInput(String(answer));
+
+      // Direct string match
+      if (normalizedUser === correctText) {
+        return true;
+      }
+
+      // Try numeric comparison
+      const userNum = parseFloat(normalizedUser);
+      const correctNum = parseFloat(correctText);
+      if (!isNaN(userNum) && !isNaN(correctNum)) {
+        if (validateNumber(userAnswer, correctText)) {
+          return true;
+        }
+      }
+
+      // Try fraction comparison
+      if (normalizedUser.includes("/") || correctText.includes("/")) {
+        if (validateFraction(userAnswer, correctText)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  // Original logic for complex array formats (lesson-specific)
   let correctText;
 
   // Handle fractions in lesson name

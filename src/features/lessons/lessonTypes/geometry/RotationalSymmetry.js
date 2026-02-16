@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import { useWindowDimensions } from "../../../../hooks";
 import numbers from "../../../../shared/helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
 
@@ -37,6 +38,7 @@ const initial_state = {
 };
 
 function RotationalSymmetry(props) {
+  const { width } = useWindowDimensions();
   const [shape, setShape] = useState(initial_state);
   const { answer, setAnswer } = props;
   const newShape = () => {
@@ -80,7 +82,7 @@ function RotationalSymmetry(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={typeof window !== "undefined" ? window.innerWidth : 800} height={300}>
+          <Stage width={width} height={300}>
             <Layer>
               <Text x={355} y={94} fontSize={14} fill={"black"} text={`Press to turn`} />
               <RegularPolygon

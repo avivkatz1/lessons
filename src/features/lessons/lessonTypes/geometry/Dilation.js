@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useWindowDimensions } from "../../../../hooks";
 import styled from "styled-components";
 import numbers from "../../../../shared/helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
@@ -17,6 +18,7 @@ function Translation(props) {
   const [point, setPoint] = useState({ PointX, PointY });
   const [layerX, setLayerX] = useState({ x: 0, y: 0, scaleX: 1, scaleY: 1 });
   const [practice, setPractice] = useState(false);
+  const { width, height } = useWindowDimensions();
   const handlePractice = () => {
     setPractice(true);
   };
@@ -43,7 +45,7 @@ function Translation(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={window.innerWidth} height={500}>
+          <Stage width={width} height={500}>
             <Layer>
               {[...Array(38)].map((_, indexH) => {
                 let strokeColorH = "lightgray";

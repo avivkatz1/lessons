@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useWindowDimensions } from "../../../../hooks";
 import styled from "styled-components";
 import numbers from "../../../../shared/helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
@@ -20,6 +21,7 @@ function TangentMultiple(props) {
   const [offsetYAmount, setOffsetYAmount] = useState(225);
   const [offsetXTextAmount, setOffsetXTextAmount] = useState("");
   const [offsetYTextAmount, setOffsetYTextAmount] = useState("");
+  const { width, height } = useWindowDimensions();
 
   const handlePractice = () => {
     setTriangleParts(rotationData[numbers(1, 37)[0] * 10]);
@@ -63,7 +65,7 @@ function TangentMultiple(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={window.innerWidth} height={500}>
+          <Stage width={width} height={500}>
             <Layer
               rotation={triangleParts.degree}
               offsetX={offsetXAmount}

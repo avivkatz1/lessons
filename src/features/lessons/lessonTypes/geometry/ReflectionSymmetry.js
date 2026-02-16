@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useWindowDimensions } from "../../../../hooks";
 import styled from "styled-components";
 import numbers from "../../../../shared/helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
@@ -20,6 +21,7 @@ const initial_state = {
 
 function ReflectionSymmetry(props) {
   const [lineAttr, setLineAttr] = useState({ color: "black", strokeWidth: 2 });
+  const { width, height } = useWindowDimensions();
 
   const checkDrag = (e) => {
     const lineAttr =
@@ -53,10 +55,10 @@ function ReflectionSymmetry(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={Math.min(window.innerWidth - 20, 600)} height={300}>
+          <Stage width={Math.min(width - 20, 600)} height={300}>
             <Layer>
               <RegularPolygon
-                x={Math.min(window.innerWidth - 20, 600) / 3}
+                x={Math.min(width - 20, 600) / 3}
                 y={150}
                 fill="red"
                 opacity={0.5}
@@ -71,7 +73,7 @@ function ReflectionSymmetry(props) {
                 draggable={true}
                 points={[0, 0, 0, 300]}
                 y={0}
-                x={Math.min(window.innerWidth - 20, 600) / 2}
+                x={Math.min(width - 20, 600) / 2}
                 stroke={lineAttr.color}
                 strokeWidth={lineAttr.strokeWidth}
                 onDragMove={checkDrag}

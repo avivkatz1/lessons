@@ -222,6 +222,23 @@ const lessonSlice = createSlice({
         state.lessonError = null;
       }
     },
+    // Level switching with state reset
+    setLevel(state, action) {
+      const newLevel = action.payload;
+      // Update level in lessonProps
+      state.lessonProps.levelNum = parseInt(newLevel);
+      // Reset batch state when switching levels
+      state.questionAnswerArray = [];
+      state.currentQuestionIndex = 0;
+      state.batchAccuracy = { correct: 0, total: 0 };
+      state.showCompletionModal = false;
+      // Reset answer state
+      state.showAnswer = false;
+      state.userAnswer = "";
+      state.answerFeedback = null;
+      // Reset problem number
+      state.lessonProps.problemNumber = 1;
+    },
   },
 });
 
@@ -246,6 +263,7 @@ export const {
   setLessonError,
   clearLessonError,
   setLessonLoading,
+  setLevel,
 } = lessonSlice.actions;
 
 export default lessonSlice.reducer;

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import { useWindowDimensions } from "../../../../hooks";
 import numbers from "../../../../shared/helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
 
@@ -8,6 +9,7 @@ const randomNum = (max = 5) => {
 };
 
 function TriangleInequality(props) {
+  const { width } = useWindowDimensions();
   const [points, setPoints] = useState([
     { id: 0, x: 328, y: 43 },
     { id: 1, x: 250, y: 190 },
@@ -40,7 +42,7 @@ function TriangleInequality(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={typeof window !== "undefined" ? window.innerWidth : 800} height={500} className="stage-background">
+          <Stage width={width} height={500} className="stage-background">
             <Layer>
               <Text
                 fontSize={30}

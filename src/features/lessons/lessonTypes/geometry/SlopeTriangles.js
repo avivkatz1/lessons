@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useWindowDimensions } from "../../../../hooks";
 import styled from "styled-components";
 import numbers from "../../../../shared/helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
@@ -20,6 +21,7 @@ function SlopeTriangle(props) {
   const [showY, setShowY] = useState(false);
   const [showX, setShowX] = useState(false);
   const [answer, setAnswer] = useState(false);
+  const { width, height } = useWindowDimensions();
   const handlePractice = () => {
     setPractice(true);
   };
@@ -52,7 +54,7 @@ function SlopeTriangle(props) {
     <Wrapper>
       <div className="practice-container">
         <div>
-          <Stage width={window.innerWidth} height={500}>
+          <Stage width={width} height={500}>
             <Layer>
               {[...Array(30)].map((_, indexH) => {
                 let strokeColorH = "lightgray";

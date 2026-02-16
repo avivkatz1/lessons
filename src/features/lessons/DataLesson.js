@@ -125,6 +125,9 @@ const TangentMultiple = lazy(() =>
 const MoreTangentLesson = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.MoreTangentLesson }))
 );
+const InverseTrig = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.InverseTrig }))
+);
 
 // Angle components
 const Perpendicular = lazy(() =>
@@ -284,7 +287,13 @@ export const DataLesson = {
   },
   pythagoreon_theorem: {
     lessonImage: pythagorean_theorem,
-    LessonComponent: [BasicProblemsWordsOnly, PythagoreanTheorem],
+    LessonComponent: [
+      PythagoreanTheorem,  // Level 1: Identification
+      PythagoreanTheorem,  // Level 2: Find Hypotenuse
+      PythagoreanTheorem,  // Level 3: Find Leg
+      PythagoreanTheorem,  // Level 4: Mixed
+      PythagoreanTheorem   // Level 5: Word Problems
+    ],
   },
   dilation: {
     lessonImage: dilation,
@@ -320,7 +329,7 @@ export const DataLesson = {
   },
   inverse_trig: {
     lessonImage: inverse_trig,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [InverseTrig, InverseTrig, InverseTrig],
   },
   thirty_sixty_ninety: {
     lessonImage: thirty_sixty_ninety,

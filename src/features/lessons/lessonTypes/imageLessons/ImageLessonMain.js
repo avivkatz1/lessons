@@ -1,10 +1,11 @@
 import React, { useState } from "react";
+import { useWindowDimensions } from "../../../../hooks";
 import styled from "styled-components";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text, Image } from "react-konva";
 import useImage from "use-image";
 
 const ImageLessonMain = ({ child }) => {
-  const width = typeof window !== "undefined" ? window.innerWidth : 800;
+  const { width, height } = useWindowDimensions();
 
   return (
     <Wrapper>
@@ -38,8 +39,5 @@ const Wrapper = styled.div`
     font-size: x-large;
     font-weight: 700;
     text-transform: lowercase;
-  }
-  .ruler-container {
-    padding: 0px 50px;
   }
 `;
