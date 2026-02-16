@@ -153,9 +153,15 @@ const NamingAnglesLevelTwo = lazy(() =>
   import("../lessons/lessonTypes/angles/index").then((m) => ({ default: m.NamingAnglesLevelTwo }))
 );
 
-// Image lesson component
+// Image lesson components
 const ImageLesson = lazy(() =>
   import("../lessons/lessonTypes/imageLessons/index").then((m) => ({ default: m.ImageLesson }))
+);
+const MeasuringSides = lazy(() =>
+  import("../lessons/lessonTypes/imageLessons/index").then((m) => ({ default: m.MeasuringSides }))
+);
+const Protractor = lazy(() =>
+  import("../lessons/lessonTypes/imageLessons/index").then((m) => ({ default: m.Protractor }))
 );
 
 // Algebra components
@@ -352,23 +358,23 @@ export const DataLesson = {
   },
   one_step_equations: {
     lessonImage: one_step_equations,
-    LessonComponent: [Evaluating],
+    LessonComponent: [BasicProblemsWordsOnly],
   },
   adding_integers: {
     lessonImage: adding_integers,
-    LessonComponent: [Evaluating],
+    LessonComponent: [BasicProblemsWordsOnly],
   },
   subtracting_integers: {
     lessonImage: subtracting_integers,
-    LessonComponent: [Evaluating],
+    LessonComponent: [BasicProblemsWordsOnly],
   },
   multiplying_integers: {
     lessonImage: multiplying_integers,
-    LessonComponent: [Evaluating],
+    LessonComponent: [BasicProblemsWordsOnly],
   },
   two_step_equations: {
     lessonImage: two_step_equations,
-    LessonComponent: [Evaluating],
+    LessonComponent: [BasicProblemsWordsOnly],
   },
   rounding: {
     lessonImage: rounding,
@@ -388,11 +394,11 @@ export const DataLesson = {
   },
   measuring_sides: {
     lessonImage: ruler,
-    LessonComponent: [ImageLesson],
+    LessonComponent: [MeasuringSides],
   },
   measuring_angles: {
     lessonImage: protractor,
-    LessonComponent: [ImageLesson],
+    LessonComponent: [Protractor],
   },
   graphing_lines: {
     lessonImage: plotting_points,
