@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import { store } from './store/store';
 import { initializeTheme } from './store/themeSlice';
-import { lightTheme, darkTheme } from './theme';
+import { lightTheme, darkTheme, GlobalStyle } from './theme';
 import { SelectingSection, LessonGeneral, ChapterPages } from './features/lessons/pages';
 import './App.css';
 
@@ -26,6 +26,7 @@ function ThemedApp() {
 
   return (
     <ThemeProvider theme={currentTheme}>
+      <GlobalStyle />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<SelectingSection />} />

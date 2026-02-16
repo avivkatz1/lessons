@@ -70,10 +70,12 @@ const Wrapper = styled.div`
   max-width: 100vw;
   overflow-x: hidden;
   box-sizing: border-box;
+  background-color: ${props => props.theme.colors.pageBackground};
 
   .img-title {
     text-align: center;
     font-size: clamp(14px, 3vw, 18px);
+    color: ${props => props.theme.colors.textPrimary};
   }
 
   .lessons {
@@ -85,7 +87,7 @@ const Wrapper = styled.div`
   }
 
   .footer {
-    background-color: #edd7f7;
+    background-color: ${props => props.theme.colors.cardBackground};
     padding: 10px;
   }
 

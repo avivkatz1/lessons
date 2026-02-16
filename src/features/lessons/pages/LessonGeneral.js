@@ -298,7 +298,7 @@ function LessonGeneral() {
 
 export default LessonGeneral;
 const Wrapper = styled.div`
-  background-color: rgba(215, 224, 229, 0.3);
+  background-color: ${props => props.theme.colors.pageBackground};
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
@@ -383,8 +383,8 @@ const LoadingContainer = styled.div`
 const LoadingSpinner = styled.div`
   width: 50px;
   height: 50px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #4a90e2;
+  border: 4px solid ${props => props.theme.colors.border};
+  border-top: 4px solid ${props => props.theme.colors.info};
   border-radius: 50%;
   animation: spin 1s linear infinite;
 
@@ -401,7 +401,7 @@ const LoadingSpinner = styled.div`
 const LoadingText = styled.p`
   margin-top: 20px;
   font-size: 16px;
-  color: #666;
+  color: ${props => props.theme.colors.textSecondary};
 `;
 
 const ErrorContainer = styled.div`
@@ -422,13 +422,13 @@ const ErrorIcon = styled.div`
 const ErrorTitle = styled.h2`
   font-size: 24px;
   font-weight: 700;
-  color: #333;
+  color: ${props => props.theme.colors.textPrimary};
   margin-bottom: 12px;
 `;
 
 const ErrorMessage = styled.p`
   font-size: 16px;
-  color: #666;
+  color: ${props => props.theme.colors.textSecondary};
   margin-bottom: 32px;
   line-height: 1.5;
   max-width: 500px;
@@ -455,20 +455,20 @@ const Button = styled.button`
 `;
 
 const RetryButton = styled(Button)`
-  background-color: #4a90e2;
-  color: white;
+  background-color: ${props => props.theme.colors.info};
+  color: ${props => props.theme.colors.textInverted};
 
   &:hover {
-    background-color: #357abd;
+    opacity: 0.9;
   }
 `;
 
 const BackButton = styled(Button)`
-  background-color: #e0e0e0;
-  color: #333;
+  background-color: ${props => props.theme.colors.buttonNeutral};
+  color: ${props => props.theme.colors.textInverted};
 
   &:hover {
-    background-color: #d0d0d0;
+    opacity: 0.9;
   }
 `;
 
@@ -491,13 +491,13 @@ const EmptyStateIcon = styled.div`
 const EmptyStateTitle = styled.h2`
   font-size: 28px;
   font-weight: 700;
-  color: #333;
+  color: ${props => props.theme.colors.textPrimary};
   margin-bottom: 16px;
 `;
 
 const EmptyStateMessage = styled.p`
   font-size: 16px;
-  color: #666;
+  color: ${props => props.theme.colors.textSecondary};
   margin-bottom: 32px;
   line-height: 1.6;
   max-width: 500px;
