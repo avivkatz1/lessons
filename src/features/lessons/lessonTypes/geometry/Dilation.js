@@ -1,37 +1,46 @@
 import React, { useState } from "react";
 import { useWindowDimensions } from "../../../../hooks";
 import styled from "styled-components";
-import numbers from "../../../../shared/helpers/numbers";
-import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
+import { Stage, Layer, Rect, Circle, Line } from "react-konva";
 
 const randomNum = (max = 5) => {
   return Math.floor(Math.random() * max);
 };
 
-let PointX = randomNum(60) + 5;
-let PointY = randomNum(10) + 5;
-let OriginH = randomNum(10) + 5;
-let OriginV = randomNum(10) + 10;
+/**
+ * Dilation - Interactive exploration of dilation (scaling) transformations
+ * Students click the transparent square to see it dilate (scale) by 2x from the center of dilation.
+ * Demonstrates how dilation changes size but preserves shape and angles.
+ */
+function Dilation() {
+  const { width } = useWindowDimensions();
 
-function Translation(props) {
-  const [axis, setAxis] = useState({ OriginH, OriginV });
-  const [point, setPoint] = useState({ PointX, PointY });
-  const [layerX, setLayerX] = useState({ x: 0, y: 0, scaleX: 1, scaleY: 1 });
-  const [practice, setPractice] = useState(false);
-  const { width, height } = useWindowDimensions();
-  const handlePractice = () => {
-    setPractice(true);
-  };
+  // Initialize state inside component (was module-level)
+  const [axis, setAxis] = useState(() => ({
+    OriginH: randomNum(10) + 5,
+    OriginV: randomNum(10) + 10
+  }));
+
+  const [point, setPoint] = useState(() => ({
+    PointX: randomNum(10) + 5,
+    PointY: randomNum(10) + 5
+  }));
+
+  const [layerX, setLayerX] = useState({ offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1 });
+
   const newGrid = () => {
-    OriginH = randomNum(10) + 5;
-    OriginV = randomNum(10) + 10;
-    PointX = randomNum(10) + 5;
-    PointY = randomNum(10) + 5;
-    setPoint({ PointX, PointY });
-    setAxis({ OriginH, OriginV });
+    const newOriginH = randomNum(10) + 5;
+    const newOriginV = randomNum(10) + 10;
+    const newPointX = randomNum(10) + 5;
+    const newPointY = randomNum(10) + 5;
+
+    setPoint({ PointX: newPointX, PointY: newPointY });
+    setAxis({ OriginH: newOriginH, OriginV: newOriginV });
     setLayerX({ offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1 });
   };
-  const dragTrack = (e) => {
+
+  const handleDilation = () => {
+    // Apply 2x scale from center of dilation (the origin point)
     const tempAttrs = {
       offsetX: point.PointX,
       offsetY: point.PointY,
@@ -43,180 +52,377 @@ function Translation(props) {
 
   return (
     <Wrapper>
-      <div className="practice-container">
-        <div>
-          <Stage width={width} height={500}>
-            <Layer>
-              {[...Array(38)].map((_, indexH) => {
-                let strokeColorH = "lightgray";
-                let strokeWidthH = 1;
-                if (indexH === axis.OriginH) {
-                  strokeColorH = "darkgray";
-                  strokeWidthH = 2;
-                }
-                return (
-                  <Line
-                    key={`y${indexH}`}
-                    points={[0, 0, 1300, 0]}
-                    stroke={strokeColorH}
-                    strokeWidth={strokeWidthH}
-                    x={0}
-                    y={indexH * 15 + 10}
-                  />
-                );
-              })}
-              {[...Array(110)].map((_, indexV) => {
-                let strokeColorV = "lightgray";
-                let strokeWidthV = 1;
-                if (indexV === axis.OriginV + 20) {
-                  strokeColorV = "darkgray";
-                  strokeWidthV = 2;
-                }
-                return (
-                  <Line
-                    key={`x${indexV}`}
-                    points={[0, 0, 0, 500]}
-                    stroke={strokeColorV}
-                    strokeWidth={strokeWidthV}
-                    x={indexV * 15 + 10}
-                    y={0}
-                  />
-                );
-              })}
-            </Layer>
-            <Layer>
-              <Rect
-                x={point.PointX * 15 + 310}
-                y={point.PointY * 15 + 10}
-                fill="red"
-                opacity={0.5}
-                width={30}
-                height={30}
-                stroke="black"
-              />
-              <Rect
-                x={point.PointX * 15 + 340}
-                y={point.PointY * 15 + 10}
-                fill="blue"
-                opacity={0.5}
-                width={30}
-                height={30}
-                stroke="black"
-              />
-              <Rect
-                x={point.PointX * 15 + 310}
-                y={point.PointY * 15 + 40}
-                fill="green"
-                opacity={0.5}
-                width={30}
-                height={30}
-                stroke="black"
-              />
-              <Rect
-                x={point.PointX * 15 + 340}
-                y={point.PointY * 15 + 40}
-                fill="yellow"
-                opacity={0.5}
-                width={30}
-                height={30}
-                stroke="black"
-              />
-              <Circle
-                x={OriginV * 15 + 310}
-                y={OriginH * 15 + 10}
-                fill="black"
-                opacity={0.5}
-                radius={3}
-                stroke="black"
-              />
-            </Layer>
-            <Layer
-              scaleX={layerX.scaleX}
-              scaleY={layerX.scaleY}
-              onClick={dragTrack}
-              offsetX={layerX.offsetX}
-              offsetY={layerX.offsetY}
-            >
-              <Rect
-                x={point.PointX * 15 + 310}
-                y={point.PointY * 15 + 10}
-                fill="red"
-                opacity={0.2}
-                width={30}
-                height={30}
-                stroke="black"
-              />
-              <Rect
-                x={point.PointX * 15 + 340}
-                y={point.PointY * 15 + 10}
-                fill="blue"
-                opacity={0.2}
-                width={30}
-                height={30}
-                stroke="black"
-              />
-              <Rect
-                x={point.PointX * 15 + 310}
-                y={point.PointY * 15 + 40}
-                fill="green"
-                opacity={0.2}
-                width={30}
-                height={30}
-                stroke="black"
-              />
-              <Rect
-                x={point.PointX * 15 + 340}
-                y={point.PointY * 15 + 40}
-                fill="yellow"
-                opacity={0.2}
-                width={30}
-                height={30}
-                stroke="black"
-              />
-              <Rect x={axis.OriginV * 15 + 310} fill="red" height={20} width={20} y={100} />
-            </Layer>
-          </Stage>
-          <button onClick={newGrid}>Reset Graph</button>
-        </div>
-      </div>
+      {/* 1. QuestionSection - Instructions */}
+      <QuestionSection>
+        <QuestionText>
+          Click the transparent square to dilate it (scale by 2x). Watch how the size changes while the shape stays similar!
+        </QuestionText>
+      </QuestionSection>
+
+      {/* 2. VisualSection - Grid and clickable squares */}
+      <VisualSection>
+        <Stage width={Math.min(width - 40, 1300)} height={500}>
+          {/* Grid Layer */}
+          <Layer>
+            {/* Horizontal grid lines */}
+            {[...Array(38)].map((_, indexH) => {
+              const isAxisLine = indexH === axis.OriginH;
+              return (
+                <Line
+                  key={`y${indexH}`}
+                  points={[0, 0, 1300, 0]}
+                  stroke={isAxisLine ? "darkgray" : "lightgray"}
+                  strokeWidth={isAxisLine ? 2 : 1}
+                  x={0}
+                  y={indexH * 15 + 10}
+                />
+              );
+            })}
+
+            {/* Vertical grid lines */}
+            {[...Array(110)].map((_, indexV) => {
+              const isAxisLine = indexV === axis.OriginV + 20;
+              return (
+                <Line
+                  key={`x${indexV}`}
+                  points={[0, 0, 0, 500]}
+                  stroke={isAxisLine ? "darkgray" : "lightgray"}
+                  strokeWidth={isAxisLine ? 2 : 1}
+                  x={indexV * 15 + 10}
+                  y={0}
+                />
+              );
+            })}
+
+            {/* Center of dilation point */}
+            <Circle
+              x={axis.OriginV * 15 + 310}
+              y={axis.OriginH * 15 + 10}
+              fill="black"
+              opacity={0.5}
+              radius={3}
+              stroke="black"
+            />
+          </Layer>
+
+          {/* Fixed Squares Layer - Original size */}
+          <Layer>
+            <Rect
+              x={point.PointX * 15 + 310}
+              y={point.PointY * 15 + 10}
+              fill="red"
+              opacity={0.5}
+              width={30}
+              height={30}
+              stroke="black"
+            />
+            <Rect
+              x={point.PointX * 15 + 340}
+              y={point.PointY * 15 + 10}
+              fill="blue"
+              opacity={0.5}
+              width={30}
+              height={30}
+              stroke="black"
+            />
+            <Rect
+              x={point.PointX * 15 + 310}
+              y={point.PointY * 15 + 40}
+              fill="green"
+              opacity={0.5}
+              width={30}
+              height={30}
+              stroke="black"
+            />
+            <Rect
+              x={point.PointX * 15 + 340}
+              y={point.PointY * 15 + 40}
+              fill="yellow"
+              opacity={0.5}
+              width={30}
+              height={30}
+              stroke="black"
+            />
+          </Layer>
+
+          {/* Dilatable Squares Layer - Transparent copy that scales */}
+          <Layer
+            scaleX={layerX.scaleX}
+            scaleY={layerX.scaleY}
+            onClick={handleDilation}
+            offsetX={layerX.offsetX}
+            offsetY={layerX.offsetY}
+          >
+            <Rect
+              x={point.PointX * 15 + 310}
+              y={point.PointY * 15 + 10}
+              fill="red"
+              opacity={0.2}
+              width={30}
+              height={30}
+              stroke="black"
+            />
+            <Rect
+              x={point.PointX * 15 + 340}
+              y={point.PointY * 15 + 10}
+              fill="blue"
+              opacity={0.2}
+              width={30}
+              height={30}
+              stroke="black"
+            />
+            <Rect
+              x={point.PointX * 15 + 310}
+              y={point.PointY * 15 + 40}
+              fill="green"
+              opacity={0.2}
+              width={30}
+              height={30}
+              stroke="black"
+            />
+            <Rect
+              x={point.PointX * 15 + 340}
+              y={point.PointY * 15 + 40}
+              fill="yellow"
+              opacity={0.2}
+              width={30}
+              height={30}
+              stroke="black"
+            />
+          </Layer>
+        </Stage>
+      </VisualSection>
+
+      {/* 3. InteractionSection - Control button */}
+      <InteractionSection>
+        <ResetButton onClick={newGrid}>
+          Reset Grid
+        </ResetButton>
+      </InteractionSection>
+
+      {/* 4. ExplanationSection - Educational content */}
+      <ExplanationSection>
+        <ExplanationTitle>Understanding Dilation</ExplanationTitle>
+        <ExplanationText>
+          <strong>Dilation</strong> is a transformation that changes the size of a shape by
+          scaling it from a center point (center of dilation).
+        </ExplanationText>
+        <ExplanationText>
+          <strong>Key Properties:</strong>
+        </ExplanationText>
+        <PropertyList>
+          <li><strong>Changes size:</strong> The shape gets larger or smaller based on the scale factor</li>
+          <li><strong>Preserves shape:</strong> The shape remains similar (same angles, proportions)</li>
+          <li><strong>Preserves angles:</strong> All angles in the shape stay the same</li>
+          <li><strong>Scale factor:</strong> This example uses a scale factor of 2 (doubles the size)</li>
+          <li><strong>Center point:</strong> The black dot is the center of dilation</li>
+        </PropertyList>
+        <ExplanationText>
+          <strong>Scale Factor Concept:</strong>
+        </ExplanationText>
+        <PropertyList>
+          <li>Scale factor &gt; 1: Enlargement (shape gets bigger)</li>
+          <li>Scale factor = 1: No change (original size)</li>
+          <li>0 &lt; Scale factor &lt; 1: Reduction (shape gets smaller)</li>
+        </PropertyList>
+        <ExplanationText>
+          Click the transparent square to see dilation in action. Notice how the shape doubles
+          in size but keeps the same proportions and angles!
+        </ExplanationText>
+      </ExplanationSection>
     </Wrapper>
   );
 }
 
-export default Translation;
+export default Dilation;
+
+// Styled Components - TangentLesson 5-section layout standard
 
 const Wrapper = styled.div`
-  margin-top: 20px;
-  button {
-    background-color: lightgreen;
-    height: 50px;
-    border-radius: 7px;
-    font-size: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+
+  @media (min-width: 768px) {
+    padding: 30px;
   }
 
-  .practice-container {
-    margin-top: 100px;
-    display: flex;
-    justify-content: center;
-  }
-  .problem-text {
-    font-size: x-large;
-    font-weight: 700;
-    text-transform: lowercase;
+  @media (min-width: 1024px) {
+    padding: 40px;
   }
 `;
 
-//not really working yet, loop for react element
+const QuestionSection = styled.div`
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
 
-{
-  /* <Rect  
-    key={9}
-    fill='red'
-    width={30}
-    height={10}
-    stroke='black'
-    strokeWidth={1}
-    x={100*4}
-    y={100}
-    /> */
-}
+  @media (min-width: 768px) {
+    margin-bottom: 30px;
+  }
+`;
+
+const QuestionText = styled.p`
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+  line-height: 1.6;
+  margin: 0;
+
+  @media (min-width: 768px) {
+    font-size: 22px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 24px;
+  }
+`;
+
+const VisualSection = styled.div`
+  width: 100%;
+  background-color: #f7fafc;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: auto;
+
+  @media (min-width: 768px) {
+    padding: 30px;
+    margin-bottom: 30px;
+  }
+
+  @media (min-width: 1024px) {
+    padding: 40px;
+  }
+`;
+
+const InteractionSection = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+
+  @media (min-width: 768px) {
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+`;
+
+const ResetButton = styled.button`
+  background-color: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background-color: #3182ce;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  @media (min-width: 768px) {
+    font-size: 20px;
+    padding: 14px 28px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 22px;
+    padding: 16px 32px;
+  }
+`;
+
+const ExplanationSection = styled.div`
+  width: 100%;
+  background-color: #f0fff4;
+  border-left: 4px solid #68d391;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+
+  @media (min-width: 768px) {
+    padding: 25px;
+    margin-top: 30px;
+  }
+
+  @media (min-width: 1024px) {
+    padding: 30px;
+  }
+`;
+
+const ExplanationTitle = styled.h3`
+  font-size: 20px;
+  font-weight: 700;
+  color: #2f855a;
+  margin: 0 0 15px 0;
+
+  @media (min-width: 768px) {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 24px;
+  }
+`;
+
+const ExplanationText = styled.p`
+  font-size: 16px;
+  color: #2d3748;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  @media (min-width: 768px) {
+    font-size: 17px;
+    margin-bottom: 15px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 18px;
+  }
+`;
+
+const PropertyList = styled.ul`
+  margin: 15px 0;
+  padding-left: 20px;
+
+  li {
+    font-size: 16px;
+    color: #2d3748;
+    line-height: 1.8;
+    margin-bottom: 8px;
+
+    @media (min-width: 768px) {
+      font-size: 17px;
+      margin-bottom: 10px;
+    }
+
+    @media (min-width: 1024px) {
+      font-size: 18px;
+    }
+  }
+`;
