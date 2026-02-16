@@ -26,8 +26,16 @@ function PlottingPoints({ triggerProblem }) {
 
   return (
     <Wrapper>
-      <div className="practice-container">
-        <Stage width={width} height={350}>
+      {/* Section 2: QuestionSection - Centered instruction text */}
+      <QuestionSection>
+        <QuestionText>
+          The point ({PointX}, {PointY}) is plotted on the coordinate plane below.
+        </QuestionText>
+      </QuestionSection>
+
+      {/* Section 3: VisualSection - Light background container for grid */}
+      <VisualSection>
+        <Stage width={Math.min(width - 40, 800)} height={350}>
           <Layer>
             <Rect x={0} y={0} width={width} height={350} fill={konvaTheme.canvasBackground} />
             {[...Array(20)].map((_, indexH) => {
@@ -92,37 +100,128 @@ function PlottingPoints({ triggerProblem }) {
             />
           </Layer>
         </Stage>
-      </div>
+      </VisualSection>
+
+      {/* Section 4 & 5: InteractionSection with educational content */}
+      <InteractionSection>
+        <ExplanationSection>
+          <ExplanationText>
+            <strong>Understanding Coordinate Planes:</strong> A coordinate plane has two perpendicular axes that intersect at the origin (0, 0).
+          </ExplanationText>
+          <ExplanationText>
+            <strong>The x-coordinate</strong> shows how far left or right the point is from the origin. Positive values go right, negative go left.
+          </ExplanationText>
+          <ExplanationText>
+            <strong>The y-coordinate</strong> shows how far up or down the point is from the origin. Positive values go up, negative go down.
+          </ExplanationText>
+          <ExplanationText>
+            The point ({PointX}, {PointY}) means: move {Math.abs(PointX)} unit{Math.abs(PointX) !== 1 ? 's' : ''} {PointX >= 0 ? 'right' : 'left'}, then {Math.abs(PointY)} unit{Math.abs(PointY) !== 1 ? 's' : ''} {PointY >= 0 ? 'up' : 'down'}.
+          </ExplanationText>
+        </ExplanationSection>
+      </InteractionSection>
     </Wrapper>
   );
 }
 
 export default PlottingPoints;
 
-const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  height: 350px;
+// Styled Components
 
-  .practice-container {
-    align-items: center;
+const Wrapper = styled.div`
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+
+  @media (max-width: 1024px) {
+    padding: 16px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px;
   }
 `;
 
-//not really working yet, loop for react element
+const QuestionSection = styled.div`
+  margin-bottom: 20px;
+  text-align: center;
 
-{
-  /* <Rect  
-    key={9}
-    fill='red'
-    width={30}
-    height={10}
-    stroke='black'
-    strokeWidth={1}
-    x={100*4}
-    y={100}
-    /> */
-}
+  @media (max-width: 1024px) {
+    margin-bottom: 16px;
+  }
+`;
+
+const QuestionText = styled.h2`
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0;
+
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+  }
+`;
+
+const VisualSection = styled.div`
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 16px;
+  overflow-x: auto;
+
+  @media (max-width: 1024px) {
+    margin: 16px 0;
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 768px) {
+    margin: 12px 0;
+    padding: 8px;
+  }
+`;
+
+const InteractionSection = styled.div`
+  margin-top: 20px;
+
+  @media (max-width: 1024px) {
+    margin-top: 16px;
+  }
+`;
+
+const ExplanationSection = styled.div`
+  background: #f0fff4;
+  border: 2px solid #68d391;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+
+  @media (max-width: 1024px) {
+    padding: 16px;
+    margin-top: 12px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px;
+  }
+`;
+
+const ExplanationText = styled.p`
+  font-size: 15px;
+  line-height: 1.5;
+  color: #2d3748;
+  margin: 12px 0;
+
+  @media (max-width: 1024px) {
+    font-size: 14px;
+    line-height: 1.4;
+    margin: 10px 0;
+  }
+`;
