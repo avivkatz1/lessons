@@ -7,8 +7,9 @@ const StyledInfoCard = styled.div`
   }
 
   button {
-    background-color: rgba(215, 224, 229, 0.3);
-    border: none;
+    background-color: ${props => props.theme.colors.cardBackground};
+    color: ${props => props.theme.colors.textPrimary};
+    border: 1px solid ${props => props.theme.colors.border};
     padding: 8px 12px;
     min-height: 44px;
     min-width: 44px;
@@ -19,6 +20,7 @@ const StyledInfoCard = styled.div`
     white-space: normal;
     line-height: 1.3;
     text-align: center;
+    transition: background-color 0.2s, color 0.2s;
   }
 
   .answer-text {
@@ -57,12 +59,12 @@ const StyledInfoCard = styled.div`
   .button {
     flex-grow: 3;
     justify-content: flex-end;
-    background-color: lightgreen;
-    color: black;
+    background-color: ${props => props.theme.colors.buttonSuccess};
+    color: ${props => props.theme.colors.textInverted};
   }
 
   .button-3-alert {
-    color: red;
+    color: ${props => props.theme.colors.error};
   }
 
   .middle-container {
@@ -137,7 +139,7 @@ const StyledInfoCard = styled.div`
   }
 
   .alert-container {
-    background-color: red;
+    background-color: ${props => props.theme.colors.error};
   }
 
   @media (max-width: 480px) {

@@ -76,12 +76,15 @@ const Wrapper = styled.div`
   padding: 10px;
   box-sizing: border-box;
   overflow-x: hidden;
+  color: ${props => props.theme.colors.textPrimary};
 
   select {
-    background-color: lightgreen;
+    background-color: ${props => props.theme.colors.buttonSuccess};
+    color: ${props => props.theme.colors.textInverted};
     font-size: clamp(16px, 4vw, 30px);
     padding: 8px;
     border-radius: 4px;
+    border: 1px solid ${props => props.theme.colors.border};
   }
 
   h1 {
@@ -91,6 +94,7 @@ const Wrapper = styled.div`
     flex-wrap: wrap;
     align-items: center;
     gap: 10px;
+    color: ${props => props.theme.colors.textPrimary};
   }
 
   h3 {
@@ -101,9 +105,10 @@ const Wrapper = styled.div`
     cursor: pointer;
     border-radius: 4px;
     transition: background-color 0.2s;
+    color: ${props => props.theme.colors.textPrimary};
 
     &:hover {
-      background-color: rgba(144, 238, 144, 0.3);
+      background-color: ${props => props.theme.colors.hoverBackground};
     }
   }
 
@@ -155,7 +160,7 @@ const Wrapper = styled.div`
     width: 100%;
     max-width: 300px;
     height: auto;
-    border: 2px solid black;
+    border: 2px solid ${props => props.theme.colors.border};
     border-radius: 5px;
   }
 

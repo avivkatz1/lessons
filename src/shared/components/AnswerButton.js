@@ -19,7 +19,8 @@ const AnswerButton = ({
 export default AnswerButton;
 
 const StyledButton = styled.button`
-  background-color: lightgreen;
+  background-color: ${props => props.theme.colors.buttonSuccess};
+  color: ${props => props.theme.colors.textInverted};
   height: 50px;
   border-radius: 7px;
   font-size: 24px;
@@ -28,6 +29,7 @@ const StyledButton = styled.button`
   border: none;
   padding: 0 20px;
   min-width: 200px;
+  transition: opacity 0.2s;
 
   &:hover {
     opacity: 0.9;

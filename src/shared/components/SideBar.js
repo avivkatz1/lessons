@@ -57,7 +57,7 @@ const Wrapper = styled.div`
   gap: 5px;
 
   h3 {
-    color: black;
+    color: ${props => props.theme.colors.chapterText};
     margin: 5px 8px;
     font-size: clamp(12px, 3vw, 16px);
   }
@@ -77,16 +77,17 @@ const Wrapper = styled.div`
     cursor: pointer;
     padding: 5px 8px;
     border-radius: 4px;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, color 0.2s;
+    color: ${props => props.theme.colors.chapterText};
   }
 
   .chapters-select:hover {
-    color: red;
-    background-color: rgba(0, 0, 0, 0.05);
+    color: ${props => props.theme.colors.chapterHover};
+    background-color: ${props => props.theme.colors.hoverBackground};
   }
 
   .chapter-highlight {
-    color: #00bf63;
+    color: ${props => props.theme.colors.chapterHighlight};
     font-size: clamp(14px, 3.5vw, 18px);
     font-weight: bold;
   }

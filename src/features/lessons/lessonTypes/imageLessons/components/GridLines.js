@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Line } from "react-konva";
-import { useLessonState } from "../../../../../hooks";
+import { useLessonState, useKonvaTheme } from "../../../../../hooks";
 
 /**
  * Phase 2 - Stage 4: Optimized GridLines component
@@ -12,6 +12,7 @@ const GridLines = React.memo(({ orientation, stageHeight }) => {
   // Phase 2: Use shared lesson state hook
   const { lessonProps } = useLessonState();
   const { gridDetails, width, height } = lessonProps;
+  const konvaTheme = useKonvaTheme();
 
   // Phase 2 - Stage 4: Memoize grid line calculations
   const gridLines = useMemo(() => {
@@ -35,11 +36,11 @@ const GridLines = React.memo(({ orientation, stageHeight }) => {
       return {
         key: `${orientation}-${index}`,
         points: coord,
-        stroke: isOriginLine ? "red" : "blue",
+        stroke: isOriginLine ? konvaTheme.gridOrigin : konvaTheme.gridRegular,
         strokeWidth: isOriginLine ? 6 : 3,
       };
     });
-  }, [orientation, stageHeight, width, height, gridDetails]);
+  }, [orientation, stageHeight, width, height, gridDetails, konvaTheme]);
 
   return (
     <>

@@ -1,16 +1,21 @@
 import React from "react";
+import { useWindowDimensions } from "../../../../hooks";
 import { Layer, Stage } from "react-konva";
 import Grid from "./components/Grid";
 import styled from "styled-components";
 import LineOnGraph from "./components/LineOnGraph";
 
 const GraphingLines = () => {
+  const { width, height } = useWindowDimensions();
+  const stageWidth = Math.min(width - 40, 600);
+  const stageHeight = 350;
+
   return (
     <Wrapper>
-      <Stage width={Math.min(window.innerWidth - 40, 600)} height={350} className="stage">
+      <Stage width={stageWidth} height={stageHeight} className="stage">
         <Layer>
           <LineOnGraph />
-          <Grid stageHeight={350} />
+          <Grid stageHeight={stageHeight} stageWidth={stageWidth} />
           <LineOnGraph />
         </Layer>
       </Stage>
@@ -28,7 +33,8 @@ const Wrapper = styled.div`
   align-items: center;
   justify-content: center;
   button {
-    background-color: lightgreen;
+    background-color: ${props => props.theme.colors.buttonSuccess};
+    color: ${props => props.theme.colors.textInverted};
     height: 50px;
     border-radius: 7px;
     font-size: 24px;
@@ -44,10 +50,4 @@ const Wrapper = styled.div`
     font-weight: 700;
     text-transform: lowercase;
   }
-  .ruler-container {
-    padding: 0px 50px;
-  }
-  /* .stage{
-    background-color:rgba(215, 224, 229, 0.3);
-  } */
 `;

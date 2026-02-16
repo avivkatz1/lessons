@@ -1,8 +1,12 @@
 import React from "react";
 import { IconContext } from "react-icons";
-import { FaUserCircle, FaSearch } from "react-icons/fa";
+import { FaUserCircle, FaSearch, FaSun, FaMoon } from "react-icons/fa";
 import styled from "styled-components";
+import { useTheme } from "../../hooks";
+
 const Header = () => {
+  const { isDark, toggleTheme, theme } = useTheme();
+
   return (
     <Wrapper className="header">
       <div className="header-group">
@@ -10,7 +14,10 @@ const Header = () => {
           <FaSearch size={28} />
         </IconContext.Provider>
         <input type="text" className="search-bar header-item" />
-        <IconContext.Provider value={{ color: "#00BF63", size: "30px", className: "header-item" }}>
+        <ToggleButton onClick={toggleTheme} aria-label="Toggle dark mode">
+          {isDark ? <FaSun size={24} /> : <FaMoon size={24} />}
+        </ToggleButton>
+        <IconContext.Provider value={{ color: theme.colors.primary, size: "30px", className: "header-item" }}>
           <FaUserCircle />
         </IconContext.Provider>
       </div>
@@ -19,6 +26,29 @@ const Header = () => {
 };
 
 export default Header;
+
+const ToggleButton = styled.button`
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${props => props.theme.colors.textPrimary};
+  transition: background-color 0.2s, color 0.2s;
+  border-radius: 4px;
+  margin: 0 3px;
+
+  &:hover {
+    background-color: ${props => props.theme.colors.hoverBackground};
+  }
+
+  &:focus {
+    outline: 2px solid ${props => props.theme.colors.borderFocus};
+    outline-offset: 2px;
+  }
+`;
 
 const Wrapper = styled.div`
   display: flex;
@@ -48,16 +78,17 @@ const Wrapper = styled.div`
     min-width: 24px;
     min-height: 24px;
     cursor: pointer;
+    color: ${props => props.theme.colors.textPrimary};
   }
 
   .search-icon:hover {
-    background-color: #ddd;
+    background-color: ${props => props.theme.colors.hoverBackground};
     border-radius: 4px;
   }
 
   .search-bar {
-    background-color: #f1efef;
-    border: 1px solid black;
+    background-color: ${props => props.theme.colors.inputBackground};
+    border: 1px solid ${props => props.theme.colors.border};
     border-radius: 4px;
     font-family: monospace;
     padding: 8px 10px;
@@ -65,10 +96,11 @@ const Wrapper = styled.div`
     width: 120px;
     max-width: 40vw;
     transition: width 0.2s;
+    color: ${props => props.theme.colors.textPrimary};
   }
 
   .search-bar:focus {
-    outline: 2px solid #00bf63;
+    outline: 2px solid ${props => props.theme.colors.borderFocus};
     width: 180px;
   }
 

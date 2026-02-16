@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import numbers from "../../../../shared/helpers/numbers";
-import { Stage, Layer, Circle, Line } from "react-konva";
-import { useLessonState } from "../../../../hooks";
+import { Stage, Layer, Circle, Line, Rect } from "react-konva";
+import { useLessonState, useWindowDimensions, useKonvaTheme } from "../../../../hooks";
 
 function PlottingPoints({ triggerProblem }) {
   // Phase 2: Use shared lesson state hook
   const { lessonProps } = useLessonState();
+  const { width, height } = useWindowDimensions();
+  const konvaTheme = useKonvaTheme();
 
   const coordinates = lessonProps.question[0].map((item) => item.text);
-  const height = lessonProps.height;
-  const width = lessonProps.width;
 
   const PointX = coordinates[0];
   const PointY = coordinates[1];
@@ -27,14 +27,15 @@ function PlottingPoints({ triggerProblem }) {
   return (
     <Wrapper>
       <div className="practice-container">
-        <Stage width={window.innerWidth} height={350}>
+        <Stage width={width} height={350}>
           <Layer>
+            <Rect x={0} y={0} width={width} height={350} fill={konvaTheme.canvasBackground} />
             {[...Array(20)].map((_, indexH) => {
-              let strokeColorH = "lightgray";
+              let strokeColorH = konvaTheme.gridRegular;
               let strokeWidthH = 3;
               let zIndex = 5;
               if (indexH === OriginH) {
-                strokeColorH = "red";
+                strokeColorH = konvaTheme.gridOrigin;
                 strokeWidthH = 6;
                 zIndex = 50;
               }
@@ -51,11 +52,11 @@ function PlottingPoints({ triggerProblem }) {
               );
             })}
             {[...Array(20)].map((_, indexV) => {
-              let strokeColorV = "lightgray";
+              let strokeColorV = konvaTheme.gridRegular;
               let strokeWidthV = 3;
               let z2Index = 0;
               if (indexV === OriginV) {
-                strokeColorV = "red";
+                strokeColorV = konvaTheme.gridOrigin;
                 strokeWidthV = 6;
                 z2Index = 50;
               }
@@ -76,18 +77,18 @@ function PlottingPoints({ triggerProblem }) {
             <Circle
               x={OriginV * (width / 20) + 5 + PointX * (width / 20)}
               y={OriginH * (height / 20) + 5 - PointY * (height / 20)}
-              fill="red"
+              fill={konvaTheme.point}
               opacity={1}
               radius={14}
-              stroke="black"
+              stroke={konvaTheme.shapeStroke}
             />
             <Circle
               x={OriginV * (width / 20) + 5}
               y={OriginH * (height / 20) + 5}
-              fill="black"
+              fill={konvaTheme.shapeStroke}
               opacity={1}
               radius={6}
-              stroke="black"
+              stroke={konvaTheme.shapeStroke}
             />
           </Layer>
         </Stage>

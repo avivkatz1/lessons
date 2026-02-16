@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { Stage, Layer, Line, Arc, Text, Rect } from 'react-konva';
-import { useLessonState } from '../../../../hooks';
+import { useLessonState, useKonvaTheme } from '../../../../hooks';
 import { AnswerInput } from '../../../../shared/components';
 
 /**
@@ -122,6 +122,7 @@ function TangentLesson({ triggerNewProblem }) {
  * Can be reused for Sine, Cosine lessons!
  */
 function RightTriangle({ visualData, width = 500, height = 300 }) {
+  const konvaTheme = useKonvaTheme();
   if (!visualData) return null;
 
   const { angle, sides, rightAngle } = visualData;
@@ -166,9 +167,9 @@ function RightTriangle({ visualData, width = 500, height = 300 }) {
     y3 = y1 + oppositeLength * scale;
   }
 
-  const oppositeColor = sides?.opposite?.color || '#EF4444'; // red
-  const adjacentColor = sides?.adjacent?.color || '#3B82F6'; // blue
-  const hypotenuseColor = sides?.hypotenuse?.color || '#9CA3AF'; // gray
+  const oppositeColor = sides?.opposite?.color || konvaTheme.opposite;
+  const adjacentColor = sides?.adjacent?.color || konvaTheme.adjacent;
+  const hypotenuseColor = sides?.hypotenuse?.color || konvaTheme.shapeStroke;
 
   // Calculate dynamic arc radius (proportional to triangle size, max 50px)
   const minSide = Math.min(adjacentLength * scale, oppositeLength * scale);
@@ -219,6 +220,9 @@ function RightTriangle({ visualData, width = 500, height = 300 }) {
   return (
     <Stage width={width} height={height}>
       <Layer>
+        {/* Canvas background */}
+        <Rect x={0} y={0} width={width} height={height} fill={konvaTheme.canvasBackground} />
+
         {/* Draw the three sides of the triangle */}
 
         {/* Adjacent (horizontal) */}
@@ -288,7 +292,7 @@ function RightTriangle({ visualData, width = 500, height = 300 }) {
                   y={externalLabelY}
                   text={angle.label || `${angleValue}°`}
                   fontSize={20}
-                  fill="#333"
+                  fill={konvaTheme.labelText}
                   fontStyle="bold"
                 />
               </>
@@ -299,7 +303,7 @@ function RightTriangle({ visualData, width = 500, height = 300 }) {
                 y={y1 - arcRadius * 0.65 * Math.sin((angleValue / 2) * Math.PI / 180)}
                 text={angle.label || `${angleValue}°`}
                 fontSize={18}
-                fill="#333"
+                fill={konvaTheme.labelText}
                 fontStyle="bold"
                 offsetX={12}
                 offsetY={8}
@@ -311,7 +315,7 @@ function RightTriangle({ visualData, width = 500, height = 300 }) {
                 y={y1 - arcRadius - 10}
                 text={angle.label || `${angleValue}°`}
                 fontSize={20}
-                fill="#333"
+                fill={konvaTheme.labelText}
                 fontStyle="bold"
               />
             )}
@@ -390,7 +394,7 @@ const QuestionSection = styled.div`
 const QuestionText = styled.h2`
   font-size: 22px;
   font-weight: 600;
-  color: #1a202c;
+  color: ${props => props.theme.colors.textPrimary};
   margin: 0;
 
   @media (max-width: 1024px) {
@@ -406,7 +410,7 @@ const VisualSection = styled.div`
   display: flex;
   justify-content: center;
   margin: 20px 0;
-  background: #f7fafc;
+  background: ${props => props.theme.colors.cardBackground};
   border-radius: 12px;
   padding: 16px;
 
@@ -431,12 +435,12 @@ const InteractionSection = styled.div`
 `;
 
 const HintButton = styled.button`
-  background: #edf2f7;
-  border: 2px solid #cbd5e0;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.border};
   border-radius: 8px;
   padding: 10px 20px;
   font-size: 15px;
-  color: #4a5568;
+  color: ${props => props.theme.colors.textSecondary};
   cursor: pointer;
   transition: all 0.2s;
   margin-bottom: 16px;
@@ -448,8 +452,8 @@ const HintButton = styled.button`
   }
 
   &:hover {
-    background: #e2e8f0;
-    border-color: #a0aec0;
+    background: ${props => props.theme.colors.hoverBackground};
+    border-color: ${props => props.theme.colors.borderDark};
   }
 `;
 

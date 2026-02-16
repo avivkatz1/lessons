@@ -181,19 +181,20 @@ const Wrapper = styled.div`
     font-size: 20px;
     padding: 0 15px;
     min-width: 200px;
+    color: ${props => props.theme.colors.textPrimary};
     border: 2px solid
       ${(props) =>
         props.feedback === "correct"
-          ? "#4CAF50"
+          ? props.theme.colors.success
           : props.feedback === "incorrect"
-            ? "#f44336"
-            : "#ccc"};
+            ? props.theme.colors.error
+            : props.theme.colors.border};
     background-color: ${(props) =>
       props.feedback === "correct"
-        ? "#e8f5e9"
+        ? props.theme.colors.successLight
         : props.feedback === "incorrect"
-          ? "#ffebee"
-          : "white"};
+          ? props.theme.colors.errorLight
+          : props.theme.colors.pageBackground};
     outline: none;
     transition:
       border-color 0.3s,
@@ -202,21 +203,24 @@ const Wrapper = styled.div`
     &:focus {
       border-color: ${(props) =>
         props.feedback === "correct"
-          ? "#4CAF50"
+          ? props.theme.colors.success
           : props.feedback === "incorrect"
-            ? "#f44336"
-            : "#2196F3"};
+            ? props.theme.colors.error
+            : props.theme.colors.info};
     }
 
     &:disabled {
-      background-color: ${(props) => (props.feedback === "correct" ? "#e8f5e9" : "#f5f5f5")};
+      background-color: ${(props) =>
+        props.feedback === "correct"
+          ? props.theme.colors.successLight
+          : props.theme.colors.cardBackground};
       cursor: not-allowed;
     }
   }
 
   .submit-button {
-    background-color: #2196f3;
-    color: white;
+    background-color: ${props => props.theme.colors.info};
+    color: ${props => props.theme.colors.textInverted};
     height: 50px;
     border-radius: 7px;
     font-size: 20px;
@@ -232,14 +236,14 @@ const Wrapper = styled.div`
     }
 
     &:disabled {
-      background-color: #ccc;
+      background-color: ${props => props.theme.colors.textDisabled};
       cursor: not-allowed;
     }
   }
 
   .try-again-button {
-    background-color: lightgreen;
-    color: black;
+    background-color: ${props => props.theme.colors.buttonSuccess};
+    color: ${props => props.theme.colors.textInverted};
     height: 50px;
     border-radius: 7px;
     font-size: 20px;
@@ -255,14 +259,14 @@ const Wrapper = styled.div`
     }
 
     &:disabled {
-      background-color: #ccc;
+      background-color: ${props => props.theme.colors.textDisabled};
       cursor: not-allowed;
     }
   }
 
   .retry-button {
-    background-color: #ff9800;
-    color: white;
+    background-color: ${props => props.theme.colors.warning};
+    color: ${props => props.theme.colors.textInverted};
     height: 50px;
     border-radius: 7px;
     font-size: 20px;
@@ -278,7 +282,7 @@ const Wrapper = styled.div`
     }
 
     &:disabled {
-      background-color: #ccc;
+      background-color: ${props => props.theme.colors.textDisabled};
       cursor: not-allowed;
     }
   }
@@ -290,13 +294,13 @@ const Wrapper = styled.div`
     border-radius: 5px;
 
     &.correct {
-      color: #4caf50;
-      background-color: #e8f5e9;
+      color: ${props => props.theme.colors.success};
+      background-color: ${props => props.theme.colors.successLight};
     }
 
     &.incorrect {
-      color: #f44336;
-      background-color: #ffebee;
+      color: ${props => props.theme.colors.error};
+      background-color: ${props => props.theme.colors.errorLight};
     }
   }
 
