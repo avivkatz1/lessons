@@ -130,7 +130,7 @@ const Overlay = styled.div`
 `;
 
 const Modal = styled.div`
-  background-color: white;
+  background-color: ${props => props.theme.colors.cardBackground};
   border-radius: 16px;
   padding: 40px;
   max-width: 500px;
@@ -159,7 +159,7 @@ const Emoji = styled.div`
 const Title = styled.h2`
   font-size: 32px;
   font-weight: bold;
-  color: ${(props) => props.color || "#333"};
+  color: ${(props) => props.color || props.theme.colors.textPrimary};
   margin-bottom: 30px;
 `;
 
@@ -179,20 +179,20 @@ const StatBox = styled.div`
 const StatValue = styled.div`
   font-size: 36px;
   font-weight: bold;
-  color: ${(props) => props.color || "#333"};
+  color: ${(props) => props.color || props.theme.colors.textPrimary};
   margin-bottom: 8px;
 `;
 
 const StatLabel = styled.div`
   font-size: 14px;
-  color: #666;
+  color: ${props => props.theme.colors.textSecondary};
   text-transform: uppercase;
   letter-spacing: 1px;
 `;
 
 const Message = styled.p`
   font-size: 16px;
-  color: #555;
+  color: ${props => props.theme.colors.textSecondary};
   line-height: 1.6;
   margin-bottom: 30px;
 `;

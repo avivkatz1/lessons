@@ -130,18 +130,22 @@ const LessonErrorContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 10px;
 `;
 
 const LessonErrorCard = styled.div`
-  background: white;
+  background: ${props => props.theme.colors.cardBackground};
   border-radius: 12px;
   padding: 40px;
-  max-width: 500px;
+  max-width: 1200px;
   width: 100%;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
-  border: 2px solid #ffa726;
+  border: 2px solid ${props => props.theme.colors.warning};
+
+  @media (max-width: 768px) {
+    padding: 24px;
+  }
 `;
 
 const ErrorIcon = styled.div`
@@ -152,28 +156,28 @@ const ErrorIcon = styled.div`
 const ErrorTitle = styled.h2`
   font-size: 22px;
   font-weight: 700;
-  color: #333;
+  color: ${props => props.theme.colors.textPrimary};
   margin-bottom: 12px;
 `;
 
 const ErrorMessage = styled.p`
   font-size: 15px;
-  color: #666;
+  color: ${props => props.theme.colors.textSecondary};
   margin-bottom: 24px;
   line-height: 1.6;
 `;
 
 const LessonInfo = styled.div`
   font-size: 14px;
-  color: #888;
+  color: ${props => props.theme.colors.textSecondary};
   margin-bottom: 24px;
   padding: 12px;
-  background: #f5f5f5;
+  background: ${props => props.theme.colors.inputBackground};
   border-radius: 6px;
   text-transform: capitalize;
 
   strong {
-    color: #555;
+    color: ${props => props.theme.colors.textPrimary};
   }
 `;
 
@@ -181,7 +185,7 @@ const ErrorDetails = styled.details`
   text-align: left;
   margin: 16px 0;
   padding: 12px;
-  background: #fff3e0;
+  background: ${props => props.theme.colors.warningLight};
   border-radius: 6px;
   font-size: 12px;
   border: 1px solid #ffb74d;

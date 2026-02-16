@@ -97,12 +97,12 @@ const ErrorContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(215, 224, 229, 0.3);
+  background-color: ${props => props.theme.colors.pageBackground};
   padding: 20px;
 `;
 
 const ErrorCard = styled.div`
-  background: white;
+  background: ${props => props.theme.colors.cardBackground};
   border-radius: 12px;
   padding: 40px;
   max-width: 600px;
@@ -119,13 +119,13 @@ const ErrorIcon = styled.div`
 const ErrorTitle = styled.h1`
   font-size: 24px;
   font-weight: 700;
-  color: #333;
+  color: ${props => props.theme.colors.textPrimary};
   margin-bottom: 16px;
 `;
 
 const ErrorMessage = styled.p`
   font-size: 16px;
-  color: #666;
+  color: ${props => props.theme.colors.textSecondary};
   margin-bottom: 32px;
   line-height: 1.5;
 `;
@@ -134,14 +134,14 @@ const ErrorDetails = styled.details`
   text-align: left;
   margin: 20px 0;
   padding: 16px;
-  background: #f5f5f5;
+  background: ${props => props.theme.colors.inputBackground};
   border-radius: 8px;
   font-size: 12px;
 
   summary {
     cursor: pointer;
     font-weight: 600;
-    color: #666;
+    color: ${props => props.theme.colors.textSecondary};
     margin-bottom: 8px;
   }
 

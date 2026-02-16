@@ -657,7 +657,8 @@ function RotatedTriangle({ visualData, width = 500, height = 300, levelNum = 1 }
             fontSize={16}
             fill={hypotenuseColor}
             fontStyle="bold"
-            offsetX={10}
+            rotation={hypotenuseAngle}
+            offsetX={sides.hypotenuse.showLength ? 50 : 40}
             offsetY={8}
           />
         )}
@@ -830,8 +831,8 @@ const ExplanationSection = styled.div`
 `;
 
 const CalculationBox = styled.div`
-  background: white;
-  border: 1px solid #c6f6d5;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 1px solid ${props => props.theme.colors.success};
   border-radius: 8px;
   padding: 14px;
   margin-bottom: 12px;
@@ -844,7 +845,7 @@ const CalculationBox = styled.div`
 
 const CalculationStep = styled.div`
   font-size: 15px;
-  color: #2d3748;
+  color: ${props => props.theme.colors.textPrimary};
   margin: 6px 0;
   font-family: 'Courier New', monospace;
 

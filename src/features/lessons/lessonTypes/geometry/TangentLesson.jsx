@@ -527,8 +527,8 @@ const ExplanationSection = styled.div`
 `;
 
 const CalculationBox = styled.div`
-  background: white;
-  border: 1px solid #c6f6d5;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 1px solid ${props => props.theme.colors.success};
   border-radius: 8px;
   padding: 14px;
   margin-bottom: 12px;
@@ -541,7 +541,7 @@ const CalculationBox = styled.div`
 
 const CalculationStep = styled.div`
   font-size: 15px;
-  color: #2d3748;
+  color: ${props => props.theme.colors.textPrimary};
   margin: 6px 0;
   font-family: 'Courier New', monospace;
 
