@@ -248,7 +248,17 @@ export const DataLesson = {
   },
   translation: {
     lessonImage: translation,
-    LessonComponent: [Translation],
+    LessonComponent: [
+      Translation,  // Level 1: Drag with green outline
+      Translation,  // Level 2: Drag without outline
+      Translation,  // Level 3: Algebraic notation
+      Translation,  // Level 4: Calculate translation
+      Translation,  // Level 5: Complete the rule
+    ],
+  },
+  rotation: {
+    lessonImage: rotation,
+    LessonComponent: [ImageLesson],
   },
   reflection: {
     lessonImage: reflection,
@@ -393,6 +403,11 @@ export const DataLesson = {
     LessonComponent: [BasicProblemsWordsOnly],
   },
   measuring_sides: {
+    lessonImage: ruler,
+    LessonComponent: [MeasuringSides],
+  },
+  // Alias for Chapter 1 navigation
+  sides: {
     lessonImage: ruler,
     LessonComponent: [MeasuringSides],
   },
