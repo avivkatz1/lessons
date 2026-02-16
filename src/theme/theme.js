@@ -5,6 +5,7 @@ export const lightTheme = {
     // Page and Card Backgrounds
     pageBackground: '#ffffff',
     cardBackground: '#f9fafb',
+    imageCardBackground: '#ffffff',  // Lighter for image visibility
     inputBackground: '#f1efef',
     hoverBackground: '#ddd',
 
@@ -91,6 +92,7 @@ export const darkTheme = {
     // Page and Card Backgrounds
     pageBackground: '#1a1a1a',
     cardBackground: '#2d2d2d',
+    imageCardBackground: '#454545',  // Lighter for image visibility
     inputBackground: '#3a3a3a',
     hoverBackground: '#404040',
 

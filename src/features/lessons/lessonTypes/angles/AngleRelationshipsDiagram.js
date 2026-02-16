@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Stage, Layer, Circle, Line, Text, Arc } from "react-konva";
+import { Stage, Layer, Circle, Line, Text, Arc, Rect } from "react-konva";
 import { useParams } from "react-router-dom";
-import { useLessonState } from "../../../../hooks";
+import { useLessonState, useWindowDimensions, useKonvaTheme } from "../../../../hooks";
 
 import numbers from "../../../../shared/helpers/numbers";
 import AngleRelationshipPointsCalculated from "../../../../shared/helpers/AngleRelationshipPointsCalculated";
@@ -46,6 +46,8 @@ const AngleRelationshipsDiagram = ({ triggerNewProblem }) => {
 
   // Phase 2 - Stage 5: Use shared lesson state hook
   const { showAnswer, revealAnswer, hideAnswer } = useLessonState();
+  const { width } = useWindowDimensions();
+  const konvaTheme = useKonvaTheme();
   const [lesson, setLesson] = useState(initialState.lesson);
   const [xVal, setXVal] = useState(initialState.xVal);
   const [points, setPoints] = useState(initialState.points);
@@ -96,7 +98,7 @@ const AngleRelationshipsDiagram = ({ triggerNewProblem }) => {
   const renderLines = () => {
     const lines = [];
     const strokeWidth = 3;
-    const strokeColor = "black";
+    const strokeColor = konvaTheme.shapeStroke;
 
     if (lesson === "complementary_angles") {
       // Vertex is at points[1]
@@ -238,16 +240,25 @@ const AngleRelationshipsDiagram = ({ triggerNewProblem }) => {
           placeholder="x = ?"
         />
 
-        <Stage width={Math.min((typeof window !== "undefined" ? window.innerWidth : 800) - 20, 500)} height={400}>
+        <Stage width={Math.min(width - 20, 500)} height={400}>
           <Layer>
+            {/* Canvas background */}
+            <Rect
+              x={0}
+              y={0}
+              width={Math.min(width - 20, 500)}
+              height={400}
+              fill={konvaTheme.canvasBackground}
+            />
+
             {/* Question text */}
             <Text
               x={10}
               y={10}
               fontSize={16}
-              fill="black"
+              fill={konvaTheme.labelText}
               text={displayedQuestion || ""}
-              width={Math.min((typeof window !== "undefined" ? window.innerWidth : 800) - 40, 480)}
+              width={Math.min(width - 40, 480)}
             />
 
             {/* Render lines */}
@@ -258,7 +269,7 @@ const AngleRelationshipsDiagram = ({ triggerNewProblem }) => {
               <>
                 <Text
                   fontSize={18}
-                  fill={swapLabels ? "green" : "blue"}
+                  fill={swapLabels ? konvaTheme.horizontal : konvaTheme.adjacent}
                   fontStyle="bold"
                   text={swapLabels ? `${xVal}°` : "x°"}
                   x={textPosition[0].x}
@@ -266,7 +277,7 @@ const AngleRelationshipsDiagram = ({ triggerNewProblem }) => {
                 />
                 <Text
                   fontSize={18}
-                  fill={swapLabels ? "blue" : "green"}
+                  fill={swapLabels ? konvaTheme.adjacent : konvaTheme.horizontal}
                   fontStyle="bold"
                   text={swapLabels ? "x°" : `${xVal}°`}
                   x={textPosition[1].x}
@@ -282,7 +293,7 @@ const AngleRelationshipsDiagram = ({ triggerNewProblem }) => {
                 y={360}
                 text={`Answer: x = ${getCorrectAnswer()}°`}
                 fontSize={24}
-                fill="red"
+                fill={konvaTheme.opposite}
                 fontStyle="bold"
               />
             )}

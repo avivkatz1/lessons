@@ -26,7 +26,7 @@ const Wrapper = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: ${props => props.theme.colors.cardBackground};
+  background-color: ${props => props.theme.colors.imageCardBackground};
   color: ${props => props.theme.colors.textPrimary};
   font-family: monospace;
   width: calc(50% - 10px);

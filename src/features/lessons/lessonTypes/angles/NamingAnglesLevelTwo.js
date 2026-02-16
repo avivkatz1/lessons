@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { Stage, Layer, Shape, Circle, Line, Text } from "react-konva";
+import { useWindowDimensions, useKonvaTheme } from "../../../../hooks";
+import { Stage, Layer, Shape, Circle, Line, Text, Rect } from "react-konva";
 import { potentialAnglesNamingAnglesTwo as anglePick } from "../../../../shared/helpers/potentialAngles";
 import { perpendicular } from "../../../../shared/images";
 import { AnswerInput } from "../../../../shared/components";
@@ -72,6 +73,8 @@ const createPoints = () => {
 };
 
 const NamingAnglesLevelTwo = (props) => {
+  const { width } = useWindowDimensions();
+  const konvaTheme = useKonvaTheme();
   const { showAnswer, newProblem, seeAnswer } = props;
 
   // Initialize state - call createPoints() once to set up varLet consistently
@@ -81,10 +84,10 @@ const NamingAnglesLevelTwo = (props) => {
       (angIndex) => varLet[angIndex]
     );
     const points = iPointsOnLines.map((pOnLine, index) => {
-      return { ...pOnLine, text: varLet[index] };
+      return { ...pOnLine, fill: konvaTheme.shapeStroke, text: varLet[index] };
     });
     return { angle, points };
-  }, []);
+  }, [konvaTheme.shapeStroke]);
 
   const [angleAnswer, setAngleAnswer] = useState(initialData.angle);
   const [pointsOnLines, setPointsOnLines] = useState(initialData.points);
@@ -116,7 +119,7 @@ const NamingAnglesLevelTwo = (props) => {
       setRedLine([]);
       let tempPoints = [...pointsOnLines];
       tempPoints = tempPoints.map((p, i) => {
-        return { ...p, fill: "black" };
+        return { ...p, fill: konvaTheme.shapeStroke };
       });
       setPointsOnLines(tempPoints);
       setTimeout(() => {
@@ -128,7 +131,7 @@ const NamingAnglesLevelTwo = (props) => {
       let tempPoints = [...pointsOnLines];
       tempPoints = tempPoints.map((p, i) => {
         if (p.text !== id) return p;
-        else return { ...p, fill: "red" };
+        else return { ...p, fill: konvaTheme.opposite };
       });
       setPointsOnLines(tempPoints);
     }
@@ -137,7 +140,7 @@ const NamingAnglesLevelTwo = (props) => {
   const handleNextProblem = () => {
     createPoints();
     const newPoints = iPointsOnLines.map((pOnLine, index) => {
-      return { ...pOnLine, fill: "black", text: varLet[index] };
+      return { ...pOnLine, fill: konvaTheme.shapeStroke, text: varLet[index] };
     });
 
     setPointsOnLines(newPoints);
@@ -166,10 +169,19 @@ const NamingAnglesLevelTwo = (props) => {
         {/* <button className="problem-button" onClick={newAngle}>
           new angle
         </button> */}
-        <Stage width={typeof window !== "undefined" ? window.innerWidth : 800} height={500}>
+        <Stage width={width} height={500}>
           <Layer>
+            {/* Canvas background */}
+            <Rect
+              x={0}
+              y={0}
+              width={width}
+              height={500}
+              fill={konvaTheme.canvasBackground}
+            />
+
             <Text
-              fill={"black"}
+              fill={konvaTheme.labelText}
               width={800}
               x={180}
               y={0}
@@ -185,17 +197,17 @@ const NamingAnglesLevelTwo = (props) => {
               }
             />
             {longLines.map((eachLine, index) => {
-              return <Line stroke="black" strokeWidth={2} points={eachLine} />;
+              return <Line key={index} stroke={konvaTheme.shapeStroke} strokeWidth={2} points={eachLine} />;
             })}
             {pointsOnLines.map((linePoint, index) => {
               const { x, y, xText, yText, text, fill } = linePoint;
               return (
-                <>
+                <React.Fragment key={index}>
                   <Text
                     id={text}
                     x={xText}
                     y={yText}
-                    fill={"red"}
+                    fill={konvaTheme.opposite}
                     text={`${text}`}
                     fontSize={40}
                     draggable={true}
@@ -206,14 +218,14 @@ const NamingAnglesLevelTwo = (props) => {
                     y={y}
                     radius={10}
                     fill={fill}
-                    stoke={"black"}
+                    stroke={konvaTheme.shapeStroke}
                     onClick={correct ? handlePoint : ""}
                     onTap={correct ? handlePoint : ""}
                   />
-                </>
+                </React.Fragment>
               );
             })}
-            {redLine.length >= 2 && <Line stroke="red" strokeWidth={6} points={redLine.flat()} />}
+            {redLine.length >= 2 && <Line stroke={konvaTheme.opposite} strokeWidth={6} points={redLine.flat()} />}
             {redLine.length > 2 && (
               <Shape
                 sceneFunc={(context, shape) => {
@@ -231,8 +243,8 @@ const NamingAnglesLevelTwo = (props) => {
                   context.closePath();
                   context.fillStrokeShape(shape);
                 }}
-                stroke={"red"}
-                fill={"red"}
+                stroke={konvaTheme.opposite}
+                fill={konvaTheme.opposite}
                 strokeWidth={1}
                 opacity={0.4}
               />

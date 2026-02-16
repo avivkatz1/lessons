@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { useLessonState } from "../../../../hooks";
+import { useLessonState, useWindowDimensions, useKonvaTheme } from "../../../../hooks";
 
 import makingAngle from "../../../../shared/helpers/makingAngle";
-import { Stage, Layer, Line, Text } from "react-konva";
+import { Stage, Layer, Line, Text, Rect } from "react-konva";
 
 const NamingAnglesLevelOne = (props) => {
   // Initialize state with lazy initializer function to avoid module-level errors
@@ -17,6 +17,8 @@ const NamingAnglesLevelOne = (props) => {
 
   // Phase 2 - Stage 5: Use shared lesson state hook
   const { showAnswer, revealAnswer, hideAnswer } = useLessonState();
+  const { width } = useWindowDimensions();
+  const konvaTheme = useKonvaTheme();
 
   const varOne = lettersArray[0].name;
   const varTwo = lettersArray[1].name;
@@ -51,12 +53,22 @@ const NamingAnglesLevelOne = (props) => {
     <Wrapper>
       <div className="practice-container">
         <button onClick={newAngle}>Another Angle</button>
-        <Stage width={typeof window !== "undefined" ? window.innerWidth : 800} height={500}>
+        <Stage width={width} height={500}>
           <Layer>
+            {/* Canvas background */}
+            <Rect
+              x={0}
+              y={0}
+              width={width}
+              height={500}
+              fill={konvaTheme.canvasBackground}
+            />
+
             <Text
               x={180}
               y={0}
               fontSize={20}
+              fill={konvaTheme.labelText}
               text={
                 correct && answerArray.length === 3
                   ? `Well done! ∠${answerArray.join(
@@ -79,7 +91,7 @@ const NamingAnglesLevelOne = (props) => {
                   key={index}
                   x={line.x}
                   y={line.y}
-                  stroke={"black"}
+                  stroke={konvaTheme.shapeStroke}
                   points={[x1, y1, x2, y2, x3, y3]}
                 />
               );
@@ -116,7 +128,8 @@ const Wrapper = styled.div`
   margin-top: 20px;
 
   button {
-    background-color: lightgreen;
+    background-color: ${props => props.theme.colors.buttonSuccess};
+    color: ${props => props.theme.colors.textInverted};
     height: 50px;
     border-radius: 7px;
     font-size: 24px;
