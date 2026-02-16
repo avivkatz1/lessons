@@ -10,27 +10,37 @@ const Answer = () => {
   const wordProblem = useSelector((state) => {
     return state.lesson.lessonProps.wordProblemReturned;
   });
+
+  // Debug logging (only in development)
+  if (process.env.NODE_ENV === "development" && showAnswer) {
+    // eslint-disable-next-line no-console
+    console.log("Answer component - answer:", answer);
+    // eslint-disable-next-line no-console
+    console.log("Answer component - wordProblem:", wordProblem);
+  }
+
   return (
     <Wrapper className={showAnswer ? "visible" : "hidden"}>
       {wordProblem !== "plotting_points" &&
         wordProblem !== "measuring_angles" &&
         wordProblem !== "patterns" &&
         answer &&
+        Array.isArray(answer) &&
         answer.map((item, index) => {
           const { text } = item;
           return <AnswerCard key={index} text={text} />;
         })}
-      {wordProblem == "plotting_points" && answer && (
+      {wordProblem == "plotting_points" && answer && Array.isArray(answer) && (
         <div>
           <h1 className="plotting_points">{`(${answer[0]} , ${answer[1]})`}</h1>
         </div>
       )}
-      {wordProblem == "measuring_angles" && answer && answer[0] && (
+      {wordProblem == "measuring_angles" && answer && Array.isArray(answer) && answer[0] && (
         <div>
           <h1 className="measuring_angles">{`${answer[0].text}`}</h1>
         </div>
       )}
-      {wordProblem == "patterns" && answer && (
+      {wordProblem == "patterns" && answer && Array.isArray(answer) && (
         <div>
           <h1>{`${answer[4]}`}</h1>
         </div>
