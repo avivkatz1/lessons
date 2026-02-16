@@ -167,6 +167,9 @@ const BasicProblemsWordsOnly = lazy(() =>
 const BasicProbability = lazy(() =>
   import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.BasicProbability }))
 );
+const Evaluating = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.Evaluating }))
+);
 const VennDiagram = lazy(() =>
   import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.VennDiagram }))
 );
@@ -341,31 +344,31 @@ export const DataLesson = {
   },
   order_of_operations: {
     lessonImage: order_of_operations,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [Evaluating],
   },
   evaluating_expressions: {
     lessonImage: evaluating_expressions,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [Evaluating],
   },
   one_step_equations: {
     lessonImage: one_step_equations,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [Evaluating],
   },
   adding_integers: {
     lessonImage: adding_integers,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [Evaluating],
   },
   subtracting_integers: {
     lessonImage: subtracting_integers,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [Evaluating],
   },
   multiplying_integers: {
     lessonImage: multiplying_integers,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [Evaluating],
   },
   two_step_equations: {
     lessonImage: two_step_equations,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [Evaluating],
   },
   rounding: {
     lessonImage: rounding,
