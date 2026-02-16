@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import numbers from "../helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
-import { slope, halfwayPoint, intersectionTwoLines, MakeColoredAngle } from "./";
+import slope from "./slope";
+import halfwayPoint from "./halfwayPoint";
+import intersectionTwoLines from "./intersectionTwoLines";
+import MakeColoredAngle from "./MakeColoredAngle";
 
 const MovablePointsAndLinesSameSideInterior = ({ points, changePosition, handleShapeMoving }) => {
   const [shapeViews, setShapeViews] = useState({ green: false, red: false });
