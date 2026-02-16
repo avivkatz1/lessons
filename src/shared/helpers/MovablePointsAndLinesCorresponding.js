@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import numbers from "../helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
-import { slope, halfwayPoint, intersectionTwoLines, MakeColoredAnglesCorrespond } from "./";
+import slope from "./slope";
+import halfwayPoint from "./halfwayPoint";
+import intersectionTwoLines from "./intersectionTwoLines";
+import MakeColoredAnglesCorrespond from "./MakeColoredAnglesCorrespond";
 
 const MovablePointsAndLinesCorresponding = ({ points, changePosition, handleShapeMoving }) => {
   const startingPosition = {};
