@@ -30,14 +30,15 @@ function BasicProblemsWordsOnly({ triggerNewProblem }) {
   // Phase 2: Use shared lesson state hook
   const { lessonProps, showAnswer, revealAnswer, hideAnswer } = useLessonState();
 
-  // Add null check for lessonProps
+  // React hooks must be called before any conditional returns
+  const [version, setVersion] = useState(initialVersion);
+
+  // Add null check for lessonProps AFTER all hooks
   if (!lessonProps) {
     return <Wrapper><div>Loading...</div></Wrapper>;
   }
 
   const { wordProblemReturned, numbersReturned, problemTypeReturned, answer } = lessonProps;
-
-  const [version, setVersion] = useState(initialVersion);
 
   const handleTryAnother = () => {
     triggerNewProblem();
