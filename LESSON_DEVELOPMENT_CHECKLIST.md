@@ -1,6 +1,16 @@
 # Lesson Development Quick Reference
 ## Based on TangentLesson Implementation (Feb 2026)
 
+> **⚠️ DEPRECATED (Feb 2026):** This document has been consolidated into the new documentation structure.
+>
+> **Please use instead:**
+> - 🚀 **[../../docs/LESSON_QUICK_START.md](../../docs/LESSON_QUICK_START.md)** - Quick reference & checklists (relocated)
+> - 📘 **[../../docs/LESSON_IMPLEMENTATION_GUIDE.md](../../docs/LESSON_IMPLEMENTATION_GUIDE.md)** - Complete implementation guide
+>
+> This file will be archived in a future cleanup.
+
+---
+
 **Use this checklist for every new lesson to avoid common pitfalls!**
 
 ---
@@ -416,6 +426,238 @@ const ExplanationText = styled.p`
 
 ---
 
+## 🌓 Dark Mode Requirements
+### All lessons MUST support dark mode (Feb 2026)
+
+The platform now includes a toggleable dark/light theme system. **All new lessons must be theme-aware from the start.**
+
+#### ✅ Header Integration
+
+**LessonHeader includes theme toggle by default** - No action needed!
+
+All lessons automatically get a theme toggle button in `LessonHeader` next to the HomeButton. Users can switch between light and dark mode from any lesson page.
+
+#### ✅ Styled Components - Use Theme Tokens
+
+**NEVER use hardcoded colors in styled-components.** Always use theme tokens:
+
+```javascript
+// ✅ CORRECT - Theme-aware colors
+const QuestionText = styled.h2`
+  color: ${props => props.theme.colors.textPrimary};
+  background-color: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.border};
+`;
+
+const SubmitButton = styled.button`
+  background-color: ${props => props.theme.colors.buttonSuccess};
+  color: ${props => props.theme.colors.textInverted};
+
+  &:hover {
+    background-color: ${props => props.theme.colors.hoverBackground};
+  }
+`;
+
+// ❌ WRONG - Hardcoded colors (won't change in dark mode)
+const QuestionText = styled.h2`
+  color: #1a202c;
+  background-color: #f9fafb;
+  border: 2px solid #e5e7eb;
+`;
+```
+
+**Available Theme Colors:**
+
+| Token | Purpose | Light Example | Dark Example |
+|-------|---------|---------------|--------------|
+| `textPrimary` | Main text | `#000000` | `#e2e8f0` |
+| `textSecondary` | Secondary text | `#6b7280` | `#94a3b8` |
+| `pageBackground` | Page background | `#ffffff` | `#1a1a1a` |
+| `cardBackground` | Card/section backgrounds | `#f9fafb` | `#2d2d2d` |
+| `imageCardBackground` | Image containers | `#ffffff` | `#454545` |
+| `inputBackground` | Input fields | `#f1efef` | `#3a3a3a` |
+| `border` | Standard borders | `#e5e7eb` | `#404040` |
+| `buttonSuccess` | Success/primary buttons | `lightgreen` | `#4ade80` |
+| `buttonError` | Error/delete buttons | `#ef4444` | `#f87171` |
+| `hoverBackground` | Hover states | `#ddd` | `#404040` |
+
+See `src/theme/theme.js` for complete list.
+
+#### ✅ Konva Canvas - CRITICAL Pattern
+
+**ALL Konva canvas lessons MUST:**
+1. Import `useKonvaTheme` hook
+2. Add background Rect as **first element** in Layer
+3. Use theme colors for all visual elements
+
+```javascript
+// ✅ CORRECT - Dark mode compatible Konva lesson
+import { useKonvaTheme } from '../../../../hooks';
+import { Stage, Layer, Rect, Line, Circle, Text } from 'react-konva';
+
+function MyKonvaLesson({ triggerNewProblem }) {
+  const konvaTheme = useKonvaTheme();
+
+  return (
+    <Stage width={500} height={400}>
+      <Layer>
+        {/* CRITICAL: Background MUST be first element */}
+        <Rect
+          x={0}
+          y={0}
+          width={500}
+          height={400}
+          fill={konvaTheme.canvasBackground}
+        />
+
+        {/* Use theme colors for all shapes */}
+        <Line
+          points={[...]}
+          stroke={konvaTheme.shapeStroke}
+          strokeWidth={3}
+        />
+
+        <Circle
+          x={100}
+          y={100}
+          radius={20}
+          fill={konvaTheme.opposite}  // Semantic color (red)
+          stroke={konvaTheme.shapeStroke}
+        />
+
+        <Text
+          x={50}
+          y={50}
+          text="Label"
+          fill={konvaTheme.labelText}
+          fontSize={16}
+        />
+      </Layer>
+    </Stage>
+  );
+}
+
+// ❌ WRONG - No background, hardcoded colors
+function MyKonvaLesson({ triggerNewProblem }) {
+  return (
+    <Stage width={500} height={400}>
+      <Layer>
+        {/* Missing background - stays white in dark mode! */}
+
+        <Line stroke="black" />  {/* Invisible in dark mode */}
+        <Text fill="black" />    {/* Invisible in dark mode */}
+      </Layer>
+    </Stage>
+  );
+}
+```
+
+**Konva Theme Colors (Semantic):**
+
+| Token | Purpose | Light | Dark (Brighter) |
+|-------|---------|-------|-----------------|
+| `canvasBackground` | Canvas background | `#ffffff` | `#2d2d2d` |
+| `shapeStroke` | Lines, outlines | `#000000` | `#e2e8f0` |
+| `labelText` | Text labels | `#000000` | `#e2e8f0` |
+| `gridRegular` | Grid lines | `#0000ff` | `#5b9cff` |
+| `gridOrigin` | Origin axes | `#ff0000` | `#ff6b6b` |
+| `opposite` | Red (opposite side) | `#EF4444` | `#ff6b6b` |
+| `adjacent` | Blue (adjacent side) | `#3B82F6` | `#5b9cff` |
+| `hypotenuse` | Purple (hypotenuse) | `#8B5CF6` | `#b794f6` |
+| `angle` | Amber (angles) | `#F59E0B` | `#ffa726` |
+| `horizontal` | Green (horizontal) | `#10b981` | `#4ade80` |
+
+**Why brighter in dark mode?**
+- Dark mode uses brighter, more saturated colors for visibility on `#2d2d2d` background
+- Semantic colors (red=opposite, blue=adjacent) are preserved with educational meaning
+- Grid lines and text use lighter shades (`#5b9cff`, `#e2e8f0`) instead of pure colors
+
+#### ✅ Dark Mode Testing Checklist
+
+Before submitting PR, test your lesson in **BOTH** light and dark modes:
+
+**Visual Testing:**
+- [ ] Toggle dark mode - all backgrounds change (not stuck white)
+- [ ] Text is readable in both modes (sufficient contrast)
+- [ ] Konva canvas has visible background (not white in dark mode)
+- [ ] Lines/shapes visible in both modes (not black on dark background)
+- [ ] Labels readable in both modes
+- [ ] Buttons/inputs have proper hover states in both modes
+- [ ] No harsh color clashes in dark mode
+
+**Functional Testing:**
+- [ ] Theme toggle works (top header and lesson header)
+- [ ] Theme persists after page refresh
+- [ ] No console errors when toggling theme
+- [ ] All interactive elements work in both modes
+
+#### Common Dark Mode Mistakes
+
+**1. Missing Konva Background**
+```javascript
+// ❌ Canvas stays white in dark mode
+<Stage width={500} height={300}>
+  <Layer>
+    <Line stroke="black" />  {/* No background! */}
+  </Layer>
+</Stage>
+
+// ✅ Canvas adapts to theme
+<Stage width={500} height={300}>
+  <Layer>
+    <Rect width={500} height={300} fill={konvaTheme.canvasBackground} />
+    <Line stroke={konvaTheme.shapeStroke} />
+  </Layer>
+</Stage>
+```
+
+**2. Hardcoded Colors in Styled Components**
+```javascript
+// ❌ Always shows light blue, even in dark mode
+const Card = styled.div`
+  background-color: #f0f9ff;
+  color: #1e293b;
+`;
+
+// ✅ Adapts to theme
+const Card = styled.div`
+  background-color: ${props => props.theme.colors.cardBackground};
+  color: ${props => props.theme.colors.textPrimary};
+`;
+```
+
+**3. Inline Styles Override Theme**
+```javascript
+// ❌ Inline styles ignore theme
+<div style={{ color: 'black', backgroundColor: 'white' }}>
+  Content
+</div>
+
+// ✅ Use styled-components or theme variables
+<ThemedDiv>Content</ThemedDiv>
+```
+
+**4. Using Black/White Directly**
+```javascript
+// ❌ Black text invisible in dark mode
+<Text fill="black" />
+
+// ✅ Use theme color
+<Text fill={konvaTheme.labelText} />
+```
+
+#### Resources
+
+- **Full Dark Mode Implementation:** See GitHub Issue #16
+- **Theme Definition:** `src/theme/theme.js`
+- **Theme Hooks:** `src/hooks/useTheme.js`, `src/hooks/useKonvaTheme.js`
+- **Example Lessons:**
+  - `src/features/lessons/lessonTypes/geometry/InverseTrig.jsx` (Konva)
+  - `src/features/lessons/lessonTypes/angles/AngleRelationshipsDiagram.js` (Konva)
+  - `src/features/lessons/lessonTypes/graphing/PlottingPoints.js` (Konva + Grid)
+
+---
+
 ## ⚡ One-Minute Checklist
 
 **Before you start coding:**
@@ -424,9 +666,12 @@ const ExplanationText = styled.p`
 3. ✅ Component accepts only `triggerNewProblem` prop
 4. ✅ Answers formatted as array
 5. ✅ Dynamic sizing (not fixed)
-6. ✅ Test edge cases (small/large values)
-7. ✅ Screenshot visual changes
-8. ✅ No console errors
+6. ✅ **All styled-components use theme tokens (NO hardcoded colors)**
+7. ✅ **Konva lessons: background Rect + useKonvaTheme hook**
+8. ✅ **Test in BOTH light and dark modes**
+9. ✅ Test edge cases (small/large values)
+10. ✅ Screenshot visual changes (both themes)
+11. ✅ No console errors
 
 **Follow this and avoid 90% of common bugs!** ✅
 
