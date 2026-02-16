@@ -64,62 +64,65 @@ function InverseTrig({ triggerNewProblem }) {
   // 6. Render
   return (
     <Wrapper>
-      <div className="lesson-container">
-        {/* Rule #5: Hint button in same row as question header */}
-        <HeaderRow>
-          <QuestionText>{question?.[0]?.text || question}</QuestionText>
-          {!showAnswer && !showHint && hint && (
-            <TopHintButton onClick={() => setShowHint(true)}>
-              Need a hint?
-            </TopHintButton>
-          )}
-        </HeaderRow>
+      {/* Section 1: TopHintButton - Fixed position top-right */}
+      {!showAnswer && !showHint && hint && (
+        <TopHintButton onClick={() => setShowHint(true)}>
+          Need a hint?
+        </TopHintButton>
+      )}
 
-        {/* Level 1: Unit Circle Visualization */}
-        {showUnitCircle && visualData && (
-          <VisualSection>
-            <UnitCircleVisualization visualData={visualData} />
-          </VisualSection>
-        )}
+      {/* Section 2: QuestionSection - Centered question text */}
+      <QuestionSection>
+        <QuestionText>{question?.[0]?.text || question}</QuestionText>
+      </QuestionSection>
 
-        {/* Level 2: Right Triangle Visualization */}
-        {showTriangle && visualData && (
-          <VisualSection>
-            <RightTriangleVisualization visualData={visualData} />
-          </VisualSection>
-        )}
+      {/* Section 3: VisualSection - Light background container */}
+      {showUnitCircle && visualData && (
+        <VisualSection>
+          <UnitCircleVisualization visualData={visualData} />
+        </VisualSection>
+      )}
 
-        {/* Level 3: Context Diagram */}
-        {showContext && visualData && (
-          <VisualSection>
-            <ContextDiagram visualData={visualData} />
-          </VisualSection>
-        )}
+      {showTriangle && visualData && (
+        <VisualSection>
+          <RightTriangleVisualization visualData={visualData} />
+        </VisualSection>
+      )}
 
-        {/* Hint display (appears below header when clicked) */}
-        {showHint && hint && (
-          <HintBox>{hint}</HintBox>
-        )}
+      {showContext && visualData && (
+        <VisualSection>
+          <ContextDiagram visualData={visualData} />
+        </VisualSection>
+      )}
 
-        {/* Answer input */}
+      {/* Section 4: InteractionSection - Hint box + answer input */}
+      <InteractionSection>
         {!showAnswer && (
-          <AnswerInput
-            correctAnswer={correctAnswer}
-            answerType="array"
-            onCorrect={revealAnswer}
-            onTryAnother={handleTryAnother}
-            disabled={showAnswer}
-            placeholder="Enter angle in degrees"
-          />
+          <>
+            {showHint && hint && (
+              <HintBox>{hint}</HintBox>
+            )}
+
+            <AnswerInputContainer>
+              <AnswerInput
+                correctAnswer={correctAnswer}
+                answerType="array"
+                onCorrect={revealAnswer}
+                onTryAnother={handleTryAnother}
+                disabled={showAnswer}
+                placeholder="Enter angle in degrees"
+              />
+            </AnswerInputContainer>
+          </>
         )}
 
-        {/* Explanation from backend */}
+        {/* Section 5: ExplanationSection - Green background on answer reveal */}
         {showAnswer && explanation && (
-          <ExplanationBox>
+          <ExplanationSection>
             <ExplanationText>{explanation}</ExplanationText>
-          </ExplanationBox>
+          </ExplanationSection>
         )}
-      </div>
+      </InteractionSection>
     </Wrapper>
   );
 }
@@ -610,32 +613,38 @@ function CraneDiagram({ width, height, measurements }) {
 // ============================================================================
 
 const Wrapper = styled.div`
-  .lesson-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+
+  @media (max-width: 1024px) {
+    padding: 16px;
   }
 
   @media (max-width: 768px) {
-    .lesson-container {
-      padding: 12px;
-    }
+    padding: 12px;
   }
 `;
 
-const HeaderRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+const QuestionSection = styled.div`
   margin-bottom: 20px;
+  text-align: center;
+
+  @media (max-width: 1024px) {
+    margin-bottom: 16px;
+  }
 `;
 
 const QuestionText = styled.h2`
   font-size: 22px;
   font-weight: 600;
-  color: ${props => props.theme.colors.textPrimary};
+  color: #1a202c;
   margin: 0;
+
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
 
   @media (max-width: 768px) {
     font-size: 18px;
@@ -643,19 +652,37 @@ const QuestionText = styled.h2`
 `;
 
 const TopHintButton = styled.button`
-  padding: 8px 16px;
-  background-color: ${props => props.theme.colors.info};
-  color: ${props => props.theme.colors.textInverted};
-  border: none;
-  border-radius: 6px;
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  margin-bottom: 0;
+  z-index: 100;
+  background: #edf2f7;
+  border: 2px solid #cbd5e0;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 15px;
+  color: #4a5568;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  white-space: nowrap;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 
   &:hover {
-    opacity: 0.9;
+    background: #e2e8f0;
+    border-color: #a0aec0;
+  }
+
+  @media (max-width: 1024px) {
+    top: 12px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    top: 10px;
+    right: 12px;
+    padding: 5px 10px;
+    font-size: 12px;
   }
 `;
 
@@ -663,36 +690,88 @@ const VisualSection = styled.div`
   display: flex;
   justify-content: center;
   margin: 20px 0;
-  max-height: 350px;
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 16px;
+
+  @media (max-width: 1024px) {
+    margin: 16px 0;
+    padding: 12px;
+    border-radius: 8px;
+  }
 
   @media (max-width: 768px) {
+    margin: 12px 0;
+    padding: 8px;
+  }
+`;
+
+const InteractionSection = styled.div`
+  margin-top: 20px;
+
+  @media (max-width: 1024px) {
+    margin-top: 16px;
+  }
+`;
+
+const AnswerInputContainer = styled.div`
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0;
+  flex-wrap: wrap;
+
+  @media (max-width: 1024px) {
     margin: 12px 0;
   }
 `;
 
 const HintBox = styled.div`
-  background-color: ${props => props.theme.colors.warningLight};
-  border-left: 4px solid ${props => props.theme.colors.warning};
-  padding: 12px 16px;
-  margin: 16px 0;
+  background: #fff5e6;
+  border-left: 4px solid #f6ad55;
+  padding: 12px;
+  margin-bottom: 16px;
   border-radius: 4px;
-  font-size: 14px;
-  color: ${props => props.theme.colors.textPrimary};
+  font-size: 15px;
+  color: #744210;
+
+  @media (max-width: 1024px) {
+    padding: 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
 `;
 
-const ExplanationBox = styled.div`
-  margin-top: 20px;
-  padding: 16px;
-  background-color: ${props => props.theme.colors.successLight};
-  border-left: 4px solid ${props => props.theme.colors.success};
-  border-radius: 4px;
+const ExplanationSection = styled.div`
+  background: #f0fff4;
+  border: 2px solid #68d391;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+
+  @media (max-width: 1024px) {
+    padding: 16px;
+    margin-top: 12px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px;
+  }
 `;
 
 const ExplanationText = styled.p`
   font-size: 15px;
-  color: ${props => props.theme.colors.textPrimary};
-  margin: 0;
-  line-height: 1.6;
+  line-height: 1.5;
+  color: #2d3748;
+  margin: 12px 0;
+
+  @media (max-width: 1024px) {
+    font-size: 14px;
+    line-height: 1.4;
+    margin: 10px 0;
+  }
 `;
 
 export default InverseTrig;
