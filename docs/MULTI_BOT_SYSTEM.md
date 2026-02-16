@@ -129,6 +129,7 @@ This document describes the multi-bot orchestration system for automated lesson 
 
 **Stages:**
 1. **Planning & Design** (Architect)
+   - Prompt user with any questions to help with plan, or anytime during process
    - Review similar lessons
    - Define data contract
    - Create implementation plan
@@ -139,6 +140,7 @@ This document describes the multi-bot orchestration system for automated lesson 
    - Generate test data
 
 3. **Frontend Implementation** (Lesson Developer)
+   - Prompt user with any questions to help with plan before start, or anytime during process
    - Build React component
    - Use standard patterns
    - Ensure dark mode compatibility
@@ -194,6 +196,7 @@ This document describes the multi-bot orchestration system for automated lesson 
 
 **Stages:**
 1. **Feature Design** (Architect)
+   - Start with prompting user with any questions if you need help planning, and feel free to ask questions throughout if you need clarification
    - Design architecture
    - Plan integration
    - Consider dark mode
@@ -203,6 +206,7 @@ This document describes the multi-bot orchestration system for automated lesson 
    - Modify API endpoints
 
 3. **Frontend Implementation** (Engineer)
+   - Prompt user with any questions if you need help planning throughout the process
    - Implement feature
    - Use theme tokens
    - Responsive design
@@ -331,7 +335,7 @@ Every quarter, Knowledge Extractor:
 
 ## Bot Decision Authority
 
-Each bot has defined decision-making authority:
+Each bot has defined decision-making authority and can ask questions of other bots or prompt user if needed:
 
 ### Can Approve Autonomously
 - Implementation details within their domain
