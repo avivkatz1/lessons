@@ -1,170 +1,234 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import numbers from "../../../../shared/helpers/numbers";
 import { AnswerInput } from "../../../../shared/components";
-import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
-import { useLessonState } from "../../../../hooks";
-
-const randomNum = (max = 5) => {
-  return Math.floor(Math.random() * max);
-};
+import { Stage, Layer, Rect, Text } from "react-konva";
+import { useLessonState, useWindowDimensions } from "../../../../hooks";
 
 const yPosition = 150;
 
-let num = randomNum(5);
-let start = randomNum(5);
-
-function Patterns(props) {
+function Patterns({ triggerNewProblem }) {
   // Phase 2: Use shared lesson state hook
   const { lessonProps } = useLessonState();
-  const { showAnswer, question, answer, hints } = lessonProps;
+  const { width } = useWindowDimensions();
 
-  const questionArray = question[0];
-  const pattern_num = questionArray;
-  const { newProblem, seeAnswer } = props;
+  const [showAnswer, setShowAnswer] = useState(false);
 
-  const handlePractice = () => {
-    newPattern();
-  };
-  const newPattern = () => {
-    const positive = Math.random() * 10 > 5 ? true : false;
-    num = randomNum(5);
-    if (positive) {
-      start = randomNum(4);
-    } else {
-      start = 5 - Math.floor(Math.random() * 4);
-      num = num * -1;
+  // Extract lesson data from props
+  const question = lessonProps?.question?.[0];
+  const answer = lessonProps?.answer?.[0]?.text;
+  const hint = lessonProps?.hint?.[0]?.text;
+  const explanation = lessonProps?.explanation?.[0]?.text;
+
+  // Question should be an array of numbers representing the pattern
+  const patternNumbers = Array.isArray(question) ? question : question?.text || [];
+
+  const handleTryAnother = () => {
+    if (triggerNewProblem) {
+      triggerNewProblem();
+      setShowAnswer(false);
     }
   };
-  const handleNextProblem = () => {
-    seeAnswer();
-    handlePractice();
-    newProblem();
-  };
 
-  const returnReactArray = [];
+  // Show first 4 numbers, or all 5 if answer is revealed
+  const numbersToShow = showAnswer ? patternNumbers : patternNumbers.slice(0, 4);
+
   return (
     <Wrapper>
-      <div className="practice-container">
-        <div>
-          <Stage width={window.innerWidth} height={350}>
-            <Layer>
-              {/* {showAnswer&&<Text
-              text={`The pattern starts with ${pattern_num[0]} and then changes ${pattern_num[1]-pattern_num[0]} each time`}
-              fill="red"
-              x={20}
-              y={20}
-              fontSize={30}
-              width={250}
-              />} */}
-              {pattern_num?.map((occurances, index) => {
-                // if (index >= 4)
-                //   return (
-                //     showAnswer && (
-                //       <>
+      {/* Section 2: QuestionSection - Centered instruction text */}
+      <QuestionSection>
+        <QuestionText>
+          Study the pattern below. What number comes next?
+        </QuestionText>
+      </QuestionSection>
 
-                //         <Text
-                //           x={100 * index + 300}
-                //           y={yPosition}
-                //           fontSize={20}
-                //           fill={"red"}
-                //           text={occurances}
-                //         />
-                //         {/* {[...Array(Math.abs(occurances))].map(
-                //           (num, occurancesIndex) => {
-                //             return (
-                //               <Rect
-                //                 key={`${index}${occurancesIndex}`}
-                //                 fill={occurances < 0 ? "blue" : "red"}
-                //                 width={30}
-                //                 height={10}
-                //                 stroke="black"
-                //                 strokeWidth={1}
-                //                 x={
-                //                   (occurances > 0 && occurancesIndex < 17) ||
-                //                   (occurances < 0 && occurancesIndex < 12)
-                //                     ? 100 * index + 300
-                //                     : 100 * index + 330
-                //                 }
-                //                 y={
-                //                   occurances > 0 && occurancesIndex < 17
-                //                     ? yPosition - 20 + occurancesIndex * -15
-                //                     : occurances > 0 && occurancesIndex >= 17
-                //                     ? yPosition -
-                //                       20 +
-                //                       (occurancesIndex - 17) * -15
-                //                     : occurancesIndex < 12
-                //                     ? yPosition + 30 + occurancesIndex * 15
-                //                     : yPosition +
-                //                       30 +
-                //                       (occurancesIndex - 12) * 15
-                //                 }
-                //               />
-                //             );
-                //           }
-                //         )} */}
-                //       </>
-                //     )
-                // );
-                const indexNum = props.showAnswer == true ? 5 : 4;
-                if (index < indexNum)
-                  return (
-                    <>
-                      <Text
-                        x={100 * index + 100}
-                        y={yPosition}
-                        fontSize={20}
-                        fill={"red"}
-                        text={occurances}
+      {/* Section 3: VisualSection - Pattern visualization */}
+      <VisualSection>
+        <Stage width={Math.min(width - 40, 800)} height={350}>
+          <Layer>
+            {numbersToShow.map((occurances, index) => {
+              const numValue = typeof occurances === 'object' ? occurances.text : occurances;
+              return (
+                <React.Fragment key={index}>
+                  <Text
+                    x={100 * index + 100}
+                    y={yPosition}
+                    fontSize={20}
+                    fill={showAnswer && index === 4 ? "green" : "red"}
+                    text={numValue}
+                  />
+                  {[...Array(Math.abs(Number(numValue)))].map((_, occurancesIndex) => {
+                    return (
+                      <Rect
+                        key={`${index}-${occurancesIndex}`}
+                        fill={Number(numValue) < 0 ? "blue" : "red"}
+                        width={30}
+                        height={10}
+                        stroke="black"
+                        strokeWidth={1}
+                        x={occurancesIndex < 9 ? 100 * index + 100 : 100 * index + 140}
+                        y={
+                          occurancesIndex >= 9 && Number(numValue) < 0
+                            ? yPosition + 30 + (occurancesIndex - 9) * 15
+                            : occurancesIndex >= 9 && Number(numValue) > 0
+                              ? yPosition - 20 + (occurancesIndex - 9) * -15
+                              : Number(numValue) < 0
+                                ? yPosition + 30 + occurancesIndex * 15
+                                : yPosition - 20 + occurancesIndex * -15
+                        }
                       />
-                      {[...Array(Math.abs(occurances))].map((num, occurancesIndex) => {
-                        return (
-                          <Rect
-                            key={`${index}${occurancesIndex}`}
-                            fill={occurances < 0 ? "blue" : "red"}
-                            width={30}
-                            height={10}
-                            stroke="black"
-                            strokeWidth={1}
-                            x={occurancesIndex < 9 ? 100 * index + 100 : 100 * index + 140}
-                            y={
-                              occurancesIndex >= 9 && occurances < 0
-                                ? yPosition + 30 + (occurancesIndex - 9) * 15
-                                : occurancesIndex >= 9 && occurances > 0
-                                  ? yPosition - 20 + (occurancesIndex - 9) * -15
-                                  : occurances < 0
-                                    ? yPosition + 30 + occurancesIndex * 15
-                                    : yPosition - 20 + occurancesIndex * -15
-                            }
-                          />
-                        );
-                      })}
-                    </>
-                  );
-              })}
-            </Layer>
-          </Stage>
-        </div>
-      </div>
+                    );
+                  })}
+                </React.Fragment>
+              );
+            })}
+          </Layer>
+        </Stage>
+      </VisualSection>
+
+      {/* Section 4: InteractionSection - Answer input */}
+      <InteractionSection>
+        {!showAnswer && (
+          <AnswerInputContainer>
+            <AnswerInput
+              correctAnswer={answer}
+              answerType="number"
+              onCorrect={() => setShowAnswer(true)}
+              onTryAnother={handleTryAnother}
+              disabled={showAnswer}
+              placeholder="Enter the next number"
+            />
+          </AnswerInputContainer>
+        )}
+
+        {/* Section 5: ExplanationSection - Shown after correct answer */}
+        {showAnswer && (
+          <ExplanationSection>
+            <ExplanationText>
+              {explanation || (
+                <>
+                  <strong>Correct!</strong> The next number in the pattern is <strong>{answer}</strong>.
+                  <br />
+                  <br />
+                  Look at how the numbers change from one to the next. Do they increase or decrease?
+                  By how much? Finding the pattern helps you predict what comes next!
+                </>
+              )}
+            </ExplanationText>
+          </ExplanationSection>
+        )}
+      </InteractionSection>
     </Wrapper>
   );
 }
 
 export default Patterns;
 
-const Wrapper = styled.div``;
+// Styled Components
 
-//not really working yet, loop for react element
+const Wrapper = styled.div`
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
 
-{
-  /* <Rect  
-    key={9}
-    fill='red'
-    width={30}
-    height={10}
-    stroke='black'
-    strokeWidth={1}
-    x={100*4}
-    y={100}
-    /> */
-}
+  @media (max-width: 1024px) {
+    padding: 16px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px;
+  }
+`;
+
+const QuestionSection = styled.div`
+  margin-bottom: 20px;
+  text-align: center;
+
+  @media (max-width: 1024px) {
+    margin-bottom: 16px;
+  }
+`;
+
+const QuestionText = styled.h2`
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0;
+
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+  }
+`;
+
+const VisualSection = styled.div`
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 16px;
+  overflow-x: auto;
+
+  @media (max-width: 1024px) {
+    margin: 16px 0;
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 768px) {
+    margin: 12px 0;
+    padding: 8px;
+  }
+`;
+
+const InteractionSection = styled.div`
+  margin-top: 20px;
+
+  @media (max-width: 1024px) {
+    margin-top: 16px;
+  }
+`;
+
+const AnswerInputContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+
+  @media (max-width: 1024px) {
+    margin: 16px 0;
+  }
+`;
+
+const ExplanationSection = styled.div`
+  background: #f0fff4;
+  border: 2px solid #68d391;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+
+  @media (max-width: 1024px) {
+    padding: 16px;
+    margin-top: 12px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px;
+  }
+`;
+
+const ExplanationText = styled.p`
+  font-size: 15px;
+  line-height: 1.5;
+  color: #2d3748;
+  margin: 0;
+
+  @media (max-width: 1024px) {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+`;
