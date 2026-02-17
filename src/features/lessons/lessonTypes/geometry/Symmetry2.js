@@ -16,6 +16,9 @@ function Symmetry2({ triggerNewProblem }) {
   ]);
   const [showX, setShowX] = useState(false);
   const [showY, setShowY] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+
+  const hint = "Find the values of x and y. Click on the letters to reveal the answers!";
 
   const handleNewProblem = () => {
     if (triggerNewProblem) {
@@ -27,6 +30,7 @@ function Symmetry2({ triggerNewProblem }) {
       ]);
       setShowX(false);
       setShowY(false);
+      setShowHint(false);
     }
   };
 
@@ -58,11 +62,20 @@ function Symmetry2({ triggerNewProblem }) {
 
   return (
     <Wrapper>
+      {/* TopHintButton - Fixed position top-right */}
+      {!showHint && (
+        <TopHintButton onClick={() => setShowHint(true)}>
+          Need a hint?
+        </TopHintButton>
+      )}
+
       {/* Section 2: QuestionSection - Centered instruction text */}
       <QuestionSection>
-        <QuestionText>
-          Find the values of x and y. Click on the letters to reveal the answers!
-        </QuestionText>
+        {showHint && (
+          <QuestionText>
+            {hint}
+          </QuestionText>
+        )}
       </QuestionSection>
 
       {/* Section 3: VisualSection - Interactive symmetry with measurements */}
@@ -227,25 +240,27 @@ function Symmetry2({ triggerNewProblem }) {
         </ButtonContainer>
 
         {/* Section 5: ExplanationSection - Educational content */}
-        <ExplanationSection>
-          <ExplanationText>
-            <strong>Symmetry and Distance:</strong> In symmetric shapes, corresponding points are the same distance from the
-            line of symmetry.
-          </ExplanationText>
-          <ExplanationText>
-            <strong>x and y represent distances:</strong>
-            <br />• <strong style={{ color: "green" }}>x</strong> is the distance from the blue circle to the symmetry line
-            <br />• <strong style={{ color: "orange" }}>y</strong> is the distance from the red circle to the symmetry line
-          </ExplanationText>
-          <ExplanationText>
-            The transparent shapes on the right mirror the solid shapes on the left. Click on "x" or "y" to reveal the
-            distances and see the arrows showing the measurements!
-          </ExplanationText>
-          <ExplanationText>
-            <strong>Try it:</strong> Drag the yellow circle to different positions and watch how x and y values change while the
-            shapes stay symmetric.
-          </ExplanationText>
-        </ExplanationSection>
+        {showHint && (
+          <ExplanationSection>
+            <ExplanationText>
+              <strong>Symmetry and Distance:</strong> In symmetric shapes, corresponding points are the same distance from the
+              line of symmetry.
+            </ExplanationText>
+            <ExplanationText>
+              <strong>x and y represent distances:</strong>
+              <br />• <strong style={{ color: "green" }}>x</strong> is the distance from the blue circle to the symmetry line
+              <br />• <strong style={{ color: "orange" }}>y</strong> is the distance from the red circle to the symmetry line
+            </ExplanationText>
+            <ExplanationText>
+              The transparent shapes on the right mirror the solid shapes on the left. Click on "x" or "y" to reveal the
+              distances and see the arrows showing the measurements!
+            </ExplanationText>
+            <ExplanationText>
+              <strong>Try it:</strong> Drag the yellow circle to different positions and watch how x and y values change while the
+              shapes stay symmetric.
+            </ExplanationText>
+          </ExplanationSection>
+        )}
       </InteractionSection>
     </Wrapper>
   );
@@ -395,5 +410,40 @@ const ExplanationText = styled.p`
     font-size: 14px;
     line-height: 1.4;
     margin: 10px 0;
+  }
+`;
+
+const TopHintButton = styled.button`
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  margin-bottom: 0;
+  z-index: 100;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 15px;
+  color: ${props => props.theme.colors.textSecondary};
+  cursor: pointer;
+  transition: all 0.2s;
+
+  @media (max-width: 1024px) {
+    top: 12px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    top: 10px;
+    right: 12px;
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  &:hover {
+    background: ${props => props.theme.colors.hoverBackground};
+    border-color: ${props => props.theme.colors.borderDark};
   }
 `;

@@ -8,6 +8,7 @@ const Protractor = () => {
   // Phase 2: Use shared lesson state hook
   const { lessonProps } = useLessonState();
   const { width, height } = useWindowDimensions();
+  const [showHint, setShowHint] = React.useState(false);
 
   function toRadians(angle) {
     return angle * (Math.PI / 180);
@@ -82,11 +83,20 @@ const Protractor = () => {
 
   return (
     <Wrapper>
+      {/* TopHintButton - Fixed position top-right */}
+      {!showHint && (
+        <TopHintButton onClick={() => setShowHint(true)}>
+          Need a hint?
+        </TopHintButton>
+      )}
+
       {/* Section 2: QuestionSection - Centered instruction text */}
       <QuestionSection>
-        <QuestionText>
-          The protractor below shows an angle of {answer}°. The red line is at 0° and the green line shows the angle.
-        </QuestionText>
+        {showHint && (
+          <QuestionText>
+            The protractor below shows an angle of {answer}°. The red line is at 0° and the green line shows the angle.
+          </QuestionText>
+        )}
       </QuestionSection>
 
       {/* Section 3: VisualSection - Protractor with angle visualization */}
@@ -109,23 +119,25 @@ const Protractor = () => {
 
       {/* Section 4 & 5: InteractionSection with ExplanationSection */}
       <InteractionSection>
-        <ExplanationSection>
-          <ExplanationText>
-            <strong>Using a Protractor:</strong> A protractor measures angles in degrees. The scale goes from 0° to 180°.
-          </ExplanationText>
-          <ExplanationText>
-            The <strong style={{ color: "red" }}>red line</strong> shows 0° (horizontal). The{" "}
-            <strong style={{ color: "green" }}>green line</strong> shows {answer}°.
-          </ExplanationText>
-          <ExplanationText>
-            <strong>How to measure:</strong> Place the center point of the protractor at the vertex (corner) of the angle. Line up
-            one side with 0°, then read where the other side crosses the scale.
-          </ExplanationText>
-          <ExplanationText>
-            <strong>Angle types:</strong> Acute angles are less than 90°, right angles are exactly 90°, and obtuse angles are
-            between 90° and 180°.
-          </ExplanationText>
-        </ExplanationSection>
+        {showHint && (
+          <ExplanationSection>
+            <ExplanationText>
+              <strong>Using a Protractor:</strong> A protractor measures angles in degrees. The scale goes from 0° to 180°.
+            </ExplanationText>
+            <ExplanationText>
+              The <strong style={{ color: "red" }}>red line</strong> shows 0° (horizontal). The{" "}
+              <strong style={{ color: "green" }}>green line</strong> shows {answer}°.
+            </ExplanationText>
+            <ExplanationText>
+              <strong>How to measure:</strong> Place the center point of the protractor at the vertex (corner) of the angle. Line up
+              one side with 0°, then read where the other side crosses the scale.
+            </ExplanationText>
+            <ExplanationText>
+              <strong>Angle types:</strong> Acute angles are less than 90°, right angles are exactly 90°, and obtuse angles are
+              between 90° and 180°.
+            </ExplanationText>
+          </ExplanationSection>
+        )}
       </InteractionSection>
     </Wrapper>
   );
@@ -231,5 +243,40 @@ const ExplanationText = styled.p`
     font-size: 14px;
     line-height: 1.4;
     margin: 10px 0;
+  }
+`;
+
+const TopHintButton = styled.button`
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  margin-bottom: 0;
+  z-index: 100;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 15px;
+  color: ${props => props.theme.colors.textSecondary};
+  cursor: pointer;
+  transition: all 0.2s;
+
+  @media (max-width: 1024px) {
+    top: 12px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    top: 10px;
+    right: 12px;
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  &:hover {
+    background: ${props => props.theme.colors.hoverBackground};
+    border-color: ${props => props.theme.colors.borderDark};
   }
 `;

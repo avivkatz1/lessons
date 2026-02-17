@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useWindowDimensions } from "../../../../hooks";
+import { useWindowDimensions, useKonvaTheme } from "../../../../hooks";
 import styled from "styled-components";
 import { Stage, Layer, Rect, Circle, Line } from "react-konva";
 
@@ -14,6 +14,7 @@ const randomNum = (max = 5) => {
  */
 function Dilation() {
   const { width } = useWindowDimensions();
+  const konvaTheme = useKonvaTheme();
 
   // Initialize state inside component (was module-level)
   const [axis, setAxis] = useState(() => ({
@@ -27,6 +28,7 @@ function Dilation() {
   }));
 
   const [layerX, setLayerX] = useState({ offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1 });
+  const [showHint, setShowHint] = useState(false);
 
   const newGrid = () => {
     const newOriginH = randomNum(10) + 5;
@@ -37,6 +39,7 @@ function Dilation() {
     setPoint({ PointX: newPointX, PointY: newPointY });
     setAxis({ OriginH: newOriginH, OriginV: newOriginV });
     setLayerX({ offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1 });
+    setShowHint(false);
   };
 
   const handleDilation = () => {
@@ -50,12 +53,20 @@ function Dilation() {
     setLayerX(tempAttrs);
   };
 
+  const hint = "Click the transparent square to dilate it (scale by 2x). Watch how the size changes while the shape stays similar!";
+
   return (
     <Wrapper>
+      {/* TopHintButton - Fixed position top-right */}
+      {!showHint && hint && (
+        <TopHintButton onClick={() => setShowHint(true)}>
+          Need a hint?
+        </TopHintButton>
+      )}
       {/* 1. QuestionSection - Instructions */}
       <QuestionSection>
         <QuestionText>
-          Click the transparent square to dilate it (scale by 2x). Watch how the size changes while the shape stays similar!
+          {/* Question text hidden until hint button clicked */}
         </QuestionText>
       </QuestionSection>
 
@@ -64,6 +75,15 @@ function Dilation() {
         <Stage width={Math.min(width - 40, 1300)} height={500}>
           {/* Grid Layer */}
           <Layer>
+            {/* Background for dark mode */}
+            <Rect
+              x={0}
+              y={0}
+              width={1300}
+              height={500}
+              fill={konvaTheme.canvasBackground}
+            />
+
             {/* Horizontal grid lines */}
             {[...Array(38)].map((_, indexH) => {
               const isAxisLine = indexH === axis.OriginH;
@@ -71,7 +91,7 @@ function Dilation() {
                 <Line
                   key={`y${indexH}`}
                   points={[0, 0, 1300, 0]}
-                  stroke={isAxisLine ? "darkgray" : "lightgray"}
+                  stroke={isAxisLine ? konvaTheme.gridStroke : konvaTheme.gridStrokeLight}
                   strokeWidth={isAxisLine ? 2 : 1}
                   x={0}
                   y={indexH * 15 + 10}
@@ -86,7 +106,7 @@ function Dilation() {
                 <Line
                   key={`x${indexV}`}
                   points={[0, 0, 0, 500]}
-                  stroke={isAxisLine ? "darkgray" : "lightgray"}
+                  stroke={isAxisLine ? konvaTheme.gridStroke : konvaTheme.gridStrokeLight}
                   strokeWidth={isAxisLine ? 2 : 1}
                   x={indexV * 15 + 10}
                   y={0}
@@ -98,10 +118,10 @@ function Dilation() {
             <Circle
               x={axis.OriginV * 15 + 310}
               y={axis.OriginH * 15 + 10}
-              fill="black"
+              fill={konvaTheme.shapeStroke}
               opacity={0.5}
               radius={3}
-              stroke="black"
+              stroke={konvaTheme.shapeStroke}
             />
           </Layer>
 
@@ -114,7 +134,7 @@ function Dilation() {
               opacity={0.5}
               width={30}
               height={30}
-              stroke="black"
+              stroke={konvaTheme.shapeStroke}
             />
             <Rect
               x={point.PointX * 15 + 340}
@@ -123,7 +143,7 @@ function Dilation() {
               opacity={0.5}
               width={30}
               height={30}
-              stroke="black"
+              stroke={konvaTheme.shapeStroke}
             />
             <Rect
               x={point.PointX * 15 + 310}
@@ -132,7 +152,7 @@ function Dilation() {
               opacity={0.5}
               width={30}
               height={30}
-              stroke="black"
+              stroke={konvaTheme.shapeStroke}
             />
             <Rect
               x={point.PointX * 15 + 340}
@@ -141,7 +161,7 @@ function Dilation() {
               opacity={0.5}
               width={30}
               height={30}
-              stroke="black"
+              stroke={konvaTheme.shapeStroke}
             />
           </Layer>
 
@@ -160,7 +180,7 @@ function Dilation() {
               opacity={0.2}
               width={30}
               height={30}
-              stroke="black"
+              stroke={konvaTheme.shapeStroke}
             />
             <Rect
               x={point.PointX * 15 + 340}
@@ -169,7 +189,7 @@ function Dilation() {
               opacity={0.2}
               width={30}
               height={30}
-              stroke="black"
+              stroke={konvaTheme.shapeStroke}
             />
             <Rect
               x={point.PointX * 15 + 310}
@@ -178,7 +198,7 @@ function Dilation() {
               opacity={0.2}
               width={30}
               height={30}
-              stroke="black"
+              stroke={konvaTheme.shapeStroke}
             />
             <Rect
               x={point.PointX * 15 + 340}
@@ -187,7 +207,7 @@ function Dilation() {
               opacity={0.2}
               width={30}
               height={30}
-              stroke="black"
+              stroke={konvaTheme.shapeStroke}
             />
           </Layer>
         </Stage>
@@ -195,6 +215,9 @@ function Dilation() {
 
       {/* 3. InteractionSection - Control button */}
       <InteractionSection>
+        {showHint && hint && (
+          <HintBox>{hint}</HintBox>
+        )}
         <ResetButton onClick={newGrid}>
           Reset Grid
         </ResetButton>
@@ -270,7 +293,7 @@ const QuestionSection = styled.div`
 const QuestionText = styled.p`
   font-size: 18px;
   font-weight: 600;
-  color: #2d3748;
+  color: ${props => props.theme.colors.textPrimary};
   line-height: 1.6;
   margin: 0;
 
@@ -285,7 +308,7 @@ const QuestionText = styled.p`
 
 const VisualSection = styled.div`
   width: 100%;
-  background-color: #f7fafc;
+  background-color: ${props => props.theme.colors.cardBackground};
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
@@ -293,6 +316,7 @@ const VisualSection = styled.div`
   justify-content: center;
   align-items: center;
   overflow-x: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
   @media (min-width: 768px) {
     padding: 30px;
@@ -319,8 +343,8 @@ const InteractionSection = styled.div`
 `;
 
 const ResetButton = styled.button`
-  background-color: #4299e1;
-  color: white;
+  background-color: ${props => props.theme.colors.buttonSuccess};
+  color: ${props => props.theme.colors.textInverted};
   border: none;
   border-radius: 8px;
   padding: 12px 24px;
@@ -331,7 +355,7 @@ const ResetButton = styled.button`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background-color: #3182ce;
+    background-color: ${props => props.theme.colors.hoverBackground};
     transform: translateY(-1px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
   }
@@ -388,7 +412,7 @@ const ExplanationTitle = styled.h3`
 
 const ExplanationText = styled.p`
   font-size: 16px;
-  color: #2d3748;
+  color: ${props => props.theme.colors.textSecondary};
   line-height: 1.6;
   margin: 0 0 12px 0;
 
@@ -412,7 +436,7 @@ const PropertyList = styled.ul`
 
   li {
     font-size: 16px;
-    color: #2d3748;
+    color: ${props => props.theme.colors.textSecondary};
     line-height: 1.8;
     margin-bottom: 8px;
 
@@ -424,5 +448,56 @@ const PropertyList = styled.ul`
     @media (min-width: 1024px) {
       font-size: 18px;
     }
+  }
+`;
+
+const TopHintButton = styled.button`
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  margin-bottom: 0;
+  z-index: 100;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 15px;
+  color: ${props => props.theme.colors.textSecondary};
+  cursor: pointer;
+  transition: all 0.2s;
+
+  @media (max-width: 1024px) {
+    top: 12px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    top: 10px;
+    right: 12px;
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  &:hover {
+    background: ${props => props.theme.colors.hoverBackground};
+    border-color: ${props => props.theme.colors.borderDark};
+  }
+`;
+
+const HintBox = styled.div`
+  background: #fff5e6;
+  border-left: 4px solid #f6ad55;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  font-size: 15px;
+  color: #744210;
+
+  @media (max-width: 1024px) {
+    padding: 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
   }
 `;

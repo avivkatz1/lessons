@@ -40,13 +40,25 @@ function Angles({ triggerNewProblem }) {
     ]);
   };
 
+  const [showHint, setShowHint] = useState(false);
+  const hint = "Explore angles! Drag the red point to change the angle. The blue area highlights the angle formed by the two lines.";
+
   return (
     <Wrapper>
+      {/* TopHintButton - Fixed position top-right */}
+      {!showHint && (
+        <TopHintButton onClick={() => setShowHint(true)}>
+          Need a hint?
+        </TopHintButton>
+      )}
+
       {/* Section 2: QuestionSection - Centered instruction text */}
       <QuestionSection>
-        <QuestionText>
-          Explore angles! Drag the red point to change the angle. The blue area highlights the angle formed by the two lines.
-        </QuestionText>
+        {showHint && (
+          <QuestionText>
+            {hint}
+          </QuestionText>
+        )}
       </QuestionSection>
 
       {/* Section 3: VisualSection - Interactive angle visualization */}
@@ -114,20 +126,22 @@ function Angles({ triggerNewProblem }) {
         </ButtonContainer>
 
         {/* Section 5: ExplanationSection - Educational content */}
-        <ExplanationSection>
-          <ExplanationText>
-            <strong>What is an Angle?</strong> An angle is formed when two lines (or rays) meet at a common point called the vertex.
-          </ExplanationText>
-          <ExplanationText>
-            The <strong style={{ color: "red" }}>red point</strong> is the vertex of the angle. The two black lines extend from this vertex.
-          </ExplanationText>
-          <ExplanationText>
-            The <strong style={{ color: "#00D2FF" }}>blue area</strong> shows the space between the two lines. This is the angle!
-          </ExplanationText>
-          <ExplanationText>
-            Try dragging the red point or the black points to see how the angle changes.
-          </ExplanationText>
-        </ExplanationSection>
+        {showHint && (
+          <ExplanationSection>
+            <ExplanationText>
+              <strong>What is an Angle?</strong> An angle is formed when two lines (or rays) meet at a common point called the vertex.
+            </ExplanationText>
+            <ExplanationText>
+              The <strong style={{ color: "red" }}>red point</strong> is the vertex of the angle. The two black lines extend from this vertex.
+            </ExplanationText>
+            <ExplanationText>
+              The <strong style={{ color: "#00D2FF" }}>blue area</strong> shows the space between the two lines. This is the angle!
+            </ExplanationText>
+            <ExplanationText>
+              Try dragging the red point or the black points to see how the angle changes.
+            </ExplanationText>
+          </ExplanationSection>
+        )}
       </InteractionSection>
     </Wrapper>
   );
@@ -277,5 +291,40 @@ const ExplanationText = styled.p`
     font-size: 14px;
     line-height: 1.4;
     margin: 10px 0;
+  }
+`;
+
+const TopHintButton = styled.button`
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  margin-bottom: 0;
+  z-index: 100;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 15px;
+  color: ${props => props.theme.colors.textSecondary};
+  cursor: pointer;
+  transition: all 0.2s;
+
+  @media (max-width: 1024px) {
+    top: 12px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    top: 10px;
+    right: 12px;
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  &:hover {
+    background: ${props => props.theme.colors.hoverBackground};
+    border-color: ${props => props.theme.colors.borderDark};
   }
 `;

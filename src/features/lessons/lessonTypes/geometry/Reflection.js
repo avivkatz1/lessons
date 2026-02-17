@@ -38,6 +38,7 @@ function Reflection({ triggerNewProblem }) {
   });
   const [layerX, setLayerX] = useState(0);
   const [fillPattern, setFillPattern] = useState(imageColors);
+  const [showHint, setShowHint] = useState(false);
 
   const newGrid = () => {
     const newPointX = randomNum(10);
@@ -46,6 +47,7 @@ function Reflection({ triggerNewProblem }) {
     const newOriginV = randomNum(10) + 5;
     setPoint({ PointX: newPointX, PointY: newPointY });
     setAxis({ OriginH: newOriginH, OriginV: newOriginV });
+    setShowHint(false);
     setRectPoints([
       { x: newPointX * 15 + 310, y: newPointY * 15 + 10 },
       { x: newPointX * 15 + 340, y: newPointY * 15 + 10 },
@@ -74,14 +76,30 @@ function Reflection({ triggerNewProblem }) {
     setFillPattern(newColorOrder);
   };
 
+  const hint = (
+    <>
+      Explore reflections! Drag the transparent shape to see how it reflects across the axes. Use the buttons to flip the shape.
+      <br/><br/>
+      <strong>About Reflections:</strong> A reflection flips a shape across a line (axis). The reflected shape is the same distance from the axis as the original, but on the opposite side.
+      <br/><br/>
+      <strong>Horizontal Flip:</strong> Flips the shape across the horizontal axis (left ↔ right).
+      <br/><br/>
+      <strong>Vertical Flip:</strong> Flips the shape across the vertical axis (top ↔ bottom).
+    </>
+  );
+
   return (
     <Wrapper>
+      {/* TopHintButton - Fixed position top-right */}
+      {!showHint && hint && (
+        <TopHintButton onClick={() => setShowHint(true)}>
+          Need a hint?
+        </TopHintButton>
+      )}
+
       {/* Section 2: QuestionSection - Centered instruction text */}
       <QuestionSection>
-        <QuestionText>
-          Explore reflections! Drag the transparent shape to see how it reflects across the axes.
-          Use the buttons to flip the shape.
-        </QuestionText>
+        {/* Question text now hidden - shown in hint */}
       </QuestionSection>
 
       {/* Section 3: VisualSection - Light background container for grid and shapes */}
@@ -214,25 +232,15 @@ function Reflection({ triggerNewProblem }) {
 
       {/* Section 4: InteractionSection - Control buttons */}
       <InteractionSection>
+        {showHint && hint && (
+          <HintBox>{hint}</HintBox>
+        )}
+
         <ButtonContainer>
           <ActionButton onClick={newGrid}>Reset Grid</ActionButton>
           <ActionButton onClick={flipHorizon}>Flip Horizontal</ActionButton>
           <ActionButton onClick={flipVertical}>Flip Vertical</ActionButton>
         </ButtonContainer>
-
-        {/* Section 5: ExplanationSection - Educational content */}
-        <ExplanationSection>
-          <ExplanationText>
-            <strong>About Reflections:</strong> A reflection flips a shape across a line (axis).
-            The reflected shape is the same distance from the axis as the original, but on the opposite side.
-          </ExplanationText>
-          <ExplanationText>
-            <strong>Horizontal Flip:</strong> Flips the shape across the horizontal axis (left ↔ right).
-          </ExplanationText>
-          <ExplanationText>
-            <strong>Vertical Flip:</strong> Flips the shape across the vertical axis (top ↔ bottom).
-          </ExplanationText>
-        </ExplanationSection>
       </InteractionSection>
     </Wrapper>
   );
@@ -382,5 +390,56 @@ const ExplanationText = styled.p`
     font-size: 14px;
     line-height: 1.4;
     margin: 10px 0;
+  }
+`;
+
+const TopHintButton = styled.button`
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  margin-bottom: 0;
+  z-index: 100;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 15px;
+  color: ${props => props.theme.colors.textSecondary};
+  cursor: pointer;
+  transition: all 0.2s;
+
+  @media (max-width: 1024px) {
+    top: 12px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    top: 10px;
+    right: 12px;
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  &:hover {
+    background: ${props => props.theme.colors.hoverBackground};
+    border-color: ${props => props.theme.colors.borderDark};
+  }
+`;
+
+const HintBox = styled.div`
+  background: #fff5e6;
+  border-left: 4px solid #f6ad55;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  font-size: 15px;
+  color: #744210;
+
+  @media (max-width: 1024px) {
+    padding: 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
   }
 `;

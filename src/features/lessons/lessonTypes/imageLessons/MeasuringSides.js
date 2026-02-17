@@ -3,11 +3,14 @@ import styled from "styled-components";
 import { Stage, Layer, Line } from "react-konva";
 import { ruler } from "../../../../shared/images";
 import { useLessonState, useWindowDimensions } from "../../../../hooks";
+import { AnswerInput } from "../../../../shared/components";
 
 const MeasuringSides = () => {
   // Phase 2: Use shared lesson state hook
   const { lessonProps } = useLessonState();
   const { width } = useWindowDimensions();
+  const [showHint, setShowHint] = React.useState(false);
+  const [showAnswer, setShowAnswer] = React.useState(false);
 
   // Get length from question data
   const length = lessonProps?.question?.[0]?.[0]?.text || 6;
@@ -23,13 +26,26 @@ const MeasuringSides = () => {
   const rulerWidth = Math.min(width - padding * 2, 800);
   const lineLength = (rulerWidth * length) / 12;
 
+  const hint = (
+    <>
+      <strong>Reading a Ruler:</strong> A standard ruler is divided into inches, with each inch subdivided into smaller units.
+      <br/><br/>
+      <strong>Tip:</strong> Start from 0 and count the inch marks until you reach the end of the red line.
+    </>
+  );
+
   return (
     <Wrapper>
+      {/* TopHintButton - Fixed position top-right */}
+      {!showAnswer && !showHint && hint && (
+        <TopHintButton onClick={() => setShowHint(true)}>
+          Need a hint?
+        </TopHintButton>
+      )}
+
       {/* Section 2: QuestionSection - Centered instruction text */}
       <QuestionSection>
-        <QuestionText>
-          The red line below measures {length} {length === 1 ? "inch" : "inches"} on the ruler.
-        </QuestionText>
+        {/* Question text now hidden - shown in hint */}
       </QuestionSection>
 
       {/* Section 3: VisualSection - Ruler with measurement line */}
@@ -46,20 +62,32 @@ const MeasuringSides = () => {
         </RulerContainer>
       </VisualSection>
 
-      {/* Section 4 & 5: InteractionSection with ExplanationSection */}
+      {/* Section 4: InteractionSection with HintBox and AnswerInput */}
       <InteractionSection>
-        <ExplanationSection>
-          <ExplanationText>
-            <strong>Reading a Ruler:</strong> A standard ruler is divided into inches, with each inch subdivided into smaller units.
-          </ExplanationText>
-          <ExplanationText>
-            The <strong style={{ color: "red" }}>red line</strong> above shows {length} {length === 1 ? "inch" : "inches"} on the ruler.
-            Practice measuring by comparing the line to the ruler markings below it.
-          </ExplanationText>
-          <ExplanationText>
-            <strong>Tip:</strong> Start from 0 and count the inch marks until you reach the end of the red line.
-          </ExplanationText>
-        </ExplanationSection>
+        {!showAnswer && (
+          <>
+            {showHint && hint && (
+              <HintBox>{hint}</HintBox>
+            )}
+            <AnswerInputContainer>
+              <AnswerInput
+                correctAnswer={String(length)}
+                answerType="number"
+                onCorrect={() => setShowAnswer(true)}
+                onTryAnother={() => setShowAnswer(false)}
+                disabled={showAnswer}
+                placeholder="Enter length in inches"
+              />
+            </AnswerInputContainer>
+          </>
+        )}
+        {showAnswer && (
+          <ExplanationSection>
+            <ExplanationText>
+              <strong>Correct!</strong> The red line measures <strong>{length} {length === 1 ? "inch" : "inches"}</strong> on the ruler.
+            </ExplanationText>
+          </ExplanationSection>
+        )}
       </InteractionSection>
     </Wrapper>
   );
@@ -179,4 +207,62 @@ const ExplanationText = styled.p`
     line-height: 1.4;
     margin: 10px 0;
   }
+`;
+
+const TopHintButton = styled.button`
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  margin-bottom: 0;
+  z-index: 100;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 15px;
+  color: ${props => props.theme.colors.textSecondary};
+  cursor: pointer;
+  transition: all 0.2s;
+
+  @media (max-width: 1024px) {
+    top: 12px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    top: 10px;
+    right: 12px;
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  &:hover {
+    background: ${props => props.theme.colors.hoverBackground};
+    border-color: ${props => props.theme.colors.borderDark};
+  }
+`;
+
+const HintBox = styled.div`
+  background: #fff5e6;
+  border-left: 4px solid #f6ad55;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  font-size: 15px;
+  color: #744210;
+
+  @media (max-width: 1024px) {
+    padding: 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+`;
+
+const AnswerInputContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 16px 0;
 `;

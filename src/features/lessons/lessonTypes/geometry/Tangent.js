@@ -3,6 +3,7 @@ import { useWindowDimensions } from "../../../../hooks";
 import styled from "styled-components";
 import numbers from "../../../../shared/helpers/numbers";
 import { Stage, Layer, Shape, Text } from "react-konva";
+import { AnswerInput } from "../../../../shared/components";
 
 const getTanFromDegrees = (degrees) => {
   return Math.tan((degrees * Math.PI) / 180);
@@ -14,49 +15,47 @@ const getTanFromDegrees = (degrees) => {
  * Simpler version focused on basic tangent ratio understanding
  */
 function Tangent() {
-  const [showY, setShowY] = useState(false);
-  const [showX, setShowX] = useState(false);
   const [angleDegree, setAngleDegree] = useState(30);
   const [sideLength, setSideLength] = useState(numbers(1, 50)[0] + 1);
   const [solveY, setSolveY] = useState(true);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const { width } = useWindowDimensions();
 
   const newSlope = () => {
     setAngleDegree(numbers(1, 89)[0]);
     setSideLength(numbers(1, 50)[0] + 1);
-    setShowY(false);
-    setShowX(false);
-    // Randomly decide whether to solve for opposite (y) or adjacent (x)
     setSolveY(numbers(1, 10)[0] > 4);
+    setShowAnswer(false);
+    setShowHint(false);
   };
 
-  const toggleY = () => {
-    setShowY(!showY);
-  };
-
-  const toggleX = () => {
-    setShowX(!showX);
-  };
-
-  const oppositeValue = solveY && showY
+  const correctAnswer = solveY
     ? (getTanFromDegrees(angleDegree) * sideLength).toFixed(2)
-    : solveY && !showY
-    ? "x"
+    : (sideLength / getTanFromDegrees(angleDegree)).toFixed(2);
+
+  const oppositeValue = solveY
+    ? (showAnswer ? correctAnswer : "x")
     : sideLength;
 
   const adjacentValue = solveY
     ? sideLength
-    : showX
-    ? (sideLength / getTanFromDegrees(angleDegree)).toFixed(2)
-    : "x";
+    : (showAnswer ? correctAnswer : "x");
+
+  const hint = "Use the tangent ratio to calculate the missing side. tan(θ) = opposite / adjacent";
 
   return (
     <Wrapper>
+      {/* TopHintButton - Fixed position top-right */}
+      {!showAnswer && !showHint && (
+        <TopHintButton onClick={() => setShowHint(true)}>
+          Need a hint?
+        </TopHintButton>
+      )}
+
       {/* 1. QuestionSection - Instructions */}
       <QuestionSection>
-        <QuestionText>
-          Click on the "x" labels to reveal the missing side lengths using the tangent ratio!
-        </QuestionText>
+        {/* Question text hidden until hint button clicked */}
       </QuestionSection>
 
       {/* 2. VisualSection - Right triangle */}
@@ -103,8 +102,6 @@ function Tangent() {
               x={820}
               y={160}
               opacity={1}
-              onClick={solveY ? toggleY : undefined}
-              style={{ cursor: solveY ? 'pointer' : 'default' }}
             />
 
             {/* Adjacent Side Label (Horizontal) */}
@@ -116,21 +113,37 @@ function Tangent() {
               x={633}
               y={283}
               opacity={1}
-              onClick={solveY ? undefined : toggleX}
-              style={{ cursor: solveY ? 'default' : 'pointer' }}
             />
           </Layer>
         </Stage>
       </VisualSection>
 
-      {/* 3. InteractionSection - Control button */}
+      {/* 3. InteractionSection - Answer input and controls */}
       <InteractionSection>
+        {!showAnswer && (
+          <>
+            {showHint && (
+              <HintBox>{hint}</HintBox>
+            )}
+            <AnswerInputContainer>
+              <AnswerInput
+                correctAnswer={correctAnswer}
+                answerType="number"
+                onCorrect={() => setShowAnswer(true)}
+                onTryAnother={newSlope}
+                disabled={showAnswer}
+                placeholder="x = ?"
+              />
+            </AnswerInputContainer>
+          </>
+        )}
         <NewProblemButton onClick={newSlope}>
           New Triangle
         </NewProblemButton>
       </InteractionSection>
 
-      {/* 4. ExplanationSection - Educational content */}
+      {/* 4. ExplanationSection - Educational content (shown after correct answer) */}
+      {showAnswer && (
       <ExplanationSection>
         <ExplanationTitle>Understanding the Tangent Ratio</ExplanationTitle>
         <ExplanationText>
@@ -157,9 +170,10 @@ function Tangent() {
         <PropertyList>
           <li>The angle is {angleDegree}°</li>
           <li>The blue side is the hypotenuse (not used in tangent)</li>
-          <li>Click the "x" to reveal the unknown side using the tangent ratio!</li>
+          <li>The answer x = {correctAnswer}</li>
         </PropertyList>
       </ExplanationSection>
+      )}
     </Wrapper>
   );
 }
@@ -376,5 +390,66 @@ const PropertyList = styled.ul`
     @media (min-width: 1024px) {
       font-size: 18px;
     }
+  }
+`;
+
+const AnswerInputContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  width: 100%;
+
+  @media (min-width: 768px) {
+    margin: 15px 0;
+  }
+`;
+
+const TopHintButton = styled.button`
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  margin-bottom: 0;
+  z-index: 100;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 15px;
+  color: ${props => props.theme.colors.textSecondary};
+  cursor: pointer;
+  transition: all 0.2s;
+
+  @media (max-width: 1024px) {
+    top: 12px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    top: 10px;
+    right: 12px;
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  &:hover {
+    background: ${props => props.theme.colors.hoverBackground};
+    border-color: ${props => props.theme.colors.borderDark};
+  }
+`;
+
+const HintBox = styled.div`
+  background: #fff5e6;
+  border-left: 4px solid #f6ad55;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  font-size: 15px;
+  color: #744210;
+
+  @media (max-width: 1024px) {
+    padding: 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
   }
 `;

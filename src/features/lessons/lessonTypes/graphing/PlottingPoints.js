@@ -19,18 +19,38 @@ function PlottingPoints({ triggerProblem }) {
   const [axis, setAxis] = useState({ OriginH, OriginV });
   const [point, setPoint] = useState({ PointX, PointY });
   const [practice, setPractice] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const handlePractice = () => {
     setPractice(true);
   };
   const newGrid = () => {};
 
+  const hint = (
+    <>
+      The point ({PointX}, {PointY}) is plotted on the coordinate plane below.
+      <br/><br/>
+      <strong>Understanding Coordinate Planes:</strong> A coordinate plane has two perpendicular axes that intersect at the origin (0, 0).
+      <br/><br/>
+      <strong>The x-coordinate</strong> shows how far left or right the point is from the origin. Positive values go right, negative go left.
+      <br/><br/>
+      <strong>The y-coordinate</strong> shows how far up or down the point is from the origin. Positive values go up, negative go down.
+      <br/><br/>
+      The point ({PointX}, {PointY}) means: move {Math.abs(PointX)} unit{Math.abs(PointX) !== 1 ? 's' : ''} {PointX >= 0 ? 'right' : 'left'}, then {Math.abs(PointY)} unit{Math.abs(PointY) !== 1 ? 's' : ''} {PointY >= 0 ? 'up' : 'down'}.
+    </>
+  );
+
   return (
     <Wrapper>
+      {/* TopHintButton - Fixed position top-right */}
+      {!showHint && hint && (
+        <TopHintButton onClick={() => setShowHint(true)}>
+          Need a hint?
+        </TopHintButton>
+      )}
+
       {/* Section 2: QuestionSection - Centered instruction text */}
       <QuestionSection>
-        <QuestionText>
-          The point ({PointX}, {PointY}) is plotted on the coordinate plane below.
-        </QuestionText>
+        {/* Question text now hidden - shown in hint */}
       </QuestionSection>
 
       {/* Section 3: VisualSection - Light background container for grid */}
@@ -102,22 +122,11 @@ function PlottingPoints({ triggerProblem }) {
         </Stage>
       </VisualSection>
 
-      {/* Section 4 & 5: InteractionSection with educational content */}
+      {/* Section 4: InteractionSection with HintBox */}
       <InteractionSection>
-        <ExplanationSection>
-          <ExplanationText>
-            <strong>Understanding Coordinate Planes:</strong> A coordinate plane has two perpendicular axes that intersect at the origin (0, 0).
-          </ExplanationText>
-          <ExplanationText>
-            <strong>The x-coordinate</strong> shows how far left or right the point is from the origin. Positive values go right, negative go left.
-          </ExplanationText>
-          <ExplanationText>
-            <strong>The y-coordinate</strong> shows how far up or down the point is from the origin. Positive values go up, negative go down.
-          </ExplanationText>
-          <ExplanationText>
-            The point ({PointX}, {PointY}) means: move {Math.abs(PointX)} unit{Math.abs(PointX) !== 1 ? 's' : ''} {PointX >= 0 ? 'right' : 'left'}, then {Math.abs(PointY)} unit{Math.abs(PointY) !== 1 ? 's' : ''} {PointY >= 0 ? 'up' : 'down'}.
-          </ExplanationText>
-        </ExplanationSection>
+        {showHint && hint && (
+          <HintBox>{hint}</HintBox>
+        )}
       </InteractionSection>
     </Wrapper>
   );
@@ -223,5 +232,56 @@ const ExplanationText = styled.p`
     font-size: 14px;
     line-height: 1.4;
     margin: 10px 0;
+  }
+`;
+
+const TopHintButton = styled.button`
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  margin-bottom: 0;
+  z-index: 100;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 15px;
+  color: ${props => props.theme.colors.textSecondary};
+  cursor: pointer;
+  transition: all 0.2s;
+
+  @media (max-width: 1024px) {
+    top: 12px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    top: 10px;
+    right: 12px;
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  &:hover {
+    background: ${props => props.theme.colors.hoverBackground};
+    border-color: ${props => props.theme.colors.borderDark};
+  }
+`;
+
+const HintBox = styled.div`
+  background: #fff5e6;
+  border-left: 4px solid #f6ad55;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  font-size: 15px;
+  color: #744210;
+
+  @media (max-width: 1024px) {
+    padding: 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
   }
 `;

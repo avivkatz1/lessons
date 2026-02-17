@@ -1,76 +1,75 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import styled from 'styled-components';
-import { Stage, Layer, Rect, Line } from 'react-konva';
-import { useLessonState, useWindowDimensions, useKonvaTheme } from '../../../../hooks';
-import { AnswerInput } from '../../../../shared/components';
+import React, { useState, useMemo } from "react";
+import { useLessonState, useWindowDimensions, useKonvaTheme } from "../../../../hooks";
+import styled from "styled-components";
+import { Stage, Layer, Rect, Line } from "react-konva";
+import { AnswerInput } from "../../../../shared/components";
 
-const GRID_SPACING = 20; // Bigger grid spacing (was 15)
-const GRID_OFFSET_X = 40;
-const GRID_OFFSET_Y = 40;
-const TOLERANCE = 15; // pixels tolerance for "correct" positioning
+const GRID_SPACING = 15;
+const GRID_OFFSET_X = 310;
+const GRID_OFFSET_Y = 10;
+const TOLERANCE = 10; // pixels tolerance for "correct" positioning
 
 /**
- * Translation - Multi-level lesson for translation transformations
- *
- * Level 1: Drag to green outline (visual guide)
- * Level 2: Drag without outline (instructions only)
- * Level 3: Apply algebraic notation (x,y) → (x+5, y-3)
- * Level 4: Calculate translation from before/after (type answer)
- * Level 5: Complete the translation rule (x,y) → (x+?, y+?)
+ * Translation - Interactive exploration of translation (sliding) transformations
+ * Students learn translation through 5 progressive levels
+ * - Level 1: Drag with green outline guide
+ * - Level 2: Drag without outline (instructions only)
+ * - Level 3: Apply algebraic notation (x,y) → (x+5, y-3)
+ * - Level 4: Calculate translation from before/after (type answer)
+ * - Level 5: Complete the translation rule (type answer)
  */
 function Translation({ triggerNewProblem }) {
-  // Phase 2 pattern: Use hook for lesson state
+  // Use shared lesson state hook
   const {
     lessonProps,
     showAnswer,
     revealAnswer,
     hideAnswer,
+    questionAnswerArray,
+    currentQuestionIndex,
   } = useLessonState();
 
   const { width } = useWindowDimensions();
   const konvaTheme = useKonvaTheme();
 
-  // Extract problem data from backend
+  // Current problem from backend
+  const currentProblem = questionAnswerArray?.[currentQuestionIndex] || lessonProps;
   const {
-    level = 1,
-    interactionType = 'drag',
-    showOutline = true,
+    interactionType,
+    showOutline,
     question,
+    answer,
+    acceptedAnswers,
+    hint,
+    explanation,
     startX,
     startY,
     dx,
     dy,
     targetX,
     targetY,
-    answer,
-    acceptedAnswers,
-    hint,
-    explanation,
-    visualData,
+    visualData = {},
     secondQuestion
-  } = lessonProps || {};
+  } = currentProblem;
 
-  // Dragging state
+  // Local state for drag interaction
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [isCorrectPosition, setIsCorrectPosition] = useState(false);
+  const [isDragCorrect, setIsDragCorrect] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
-  // Reset drag position when problem changes
-  useEffect(() => {
-    setDragPosition({ x: 0, y: 0 });
-    setIsCorrectPosition(false);
-  }, [startX, startY, dx, dy]);
+  // Format answer for typed input (levels 4-5)
+  const correctAnswer = useMemo(() => {
+    if (acceptedAnswers?.length > 0) return acceptedAnswers;
+    if (Array.isArray(answer)) return answer.map(a => a.text || String(a));
+    return [String(answer)];
+  }, [answer, acceptedAnswers]);
 
-  // Calculate canvas size
-  const canvasWidth = Math.min(width - 80, 900);
-  const canvasHeight = 500;
+  // Check if dragged position is correct
+  const checkDragPosition = (currentDragPos) => {
+    if (dx === undefined || dy === undefined) return false;
 
-  // Check if current drag position is correct
-  const checkDragPosition = () => {
-    if (!startX || !dx === undefined || !dy === undefined) return false;
-
-    const currentX = dragPosition.x / GRID_SPACING;
-    const currentY = -dragPosition.y / GRID_SPACING; // Negative because canvas Y is inverted
+    const currentX = currentDragPos.x / GRID_SPACING;
+    const currentY = -currentDragPos.y / GRID_SPACING; // Negative because canvas Y is inverted
 
     const distanceX = Math.abs(currentX - dx);
     const distanceY = Math.abs(currentY - dy);
@@ -82,91 +81,86 @@ function Translation({ triggerNewProblem }) {
   };
 
   const handleDragEnd = (e) => {
-    const layer = e.target.getStage().findOne('.draggableLayer');
+    const layer = e.target.getLayer();
     const newPos = { x: layer.x(), y: layer.y() };
     setDragPosition(newPos);
-    setIsDragging(false);
 
-    // Check if position is correct for drag levels
-    if (interactionType === 'drag') {
-      const isCorrect = checkDragPosition();
-      setIsCorrectPosition(isCorrect);
+    const isCorrect = checkDragPosition(newPos);
+    setIsDragCorrect(isCorrect);
 
-      if (isCorrect) {
-        // Automatically reveal answer for drag levels
-        setTimeout(() => revealAnswer(), 300);
-      }
+    if (isCorrect && !showAnswer) {
+      revealAnswer();
     }
   };
 
   const handleTryAnother = () => {
     setDragPosition({ x: 0, y: 0 });
-    setIsCorrectPosition(false);
+    setIsDragCorrect(false);
+    setShowHint(false);
     triggerNewProblem();
     hideAnswer();
   };
 
-  // Format correct answer for typing levels
-  const correctAnswer = useMemo(() => {
-    if (interactionType === 'type') {
-      if (acceptedAnswers?.length > 0) return acceptedAnswers;
-      if (Array.isArray(answer)) return answer.map(a => a.text || String(a));
-      return [String(answer)];
-    }
-    return ['correct']; // For drag levels
-  }, [answer, acceptedAnswers, interactionType]);
+  // Render question text from array format
+  const renderQuestion = (questionArray) => {
+    if (!questionArray) return null;
+    if (typeof questionArray === 'string') return questionArray;
 
-  // Render question text
-  const renderQuestion = () => {
-    if (!question) return null;
-
-    return question.map((line, i) => (
+    return questionArray.map((line, i) => (
       <QuestionLine key={i}>
-        {line.map((part, j) => (
-          <span key={j} style={{ fontWeight: part.bold ? 'bold' : 'normal' }}>
-            {part.text}
-          </span>
-        ))}
+        {Array.isArray(line)
+          ? line.map((part, j) => (
+              part.bold ? <strong key={j}>{part.text}</strong> : <span key={j}>{part.text}</span>
+            ))
+          : line.text || line
+        }
       </QuestionLine>
     ));
   };
 
-  // Render second question for level 4
-  const renderSecondQuestion = () => {
-    if (!secondQuestion) return null;
-
-    return secondQuestion.map((line, i) => (
-      <QuestionLine key={i}>
-        {line.map((part, j) => (
-          <span key={j} style={{ fontWeight: part.bold ? 'bold' : 'normal' }}>
-            {part.text}
-          </span>
-        ))}
-      </QuestionLine>
-    ));
-  };
-
-  if (!startX || dx === undefined || dy === undefined) {
-    return <LoadingText>Loading translation problem...</LoadingText>;
+  // Don't render if missing critical data
+  if (startX === undefined || startY === undefined || dx === undefined || dy === undefined) {
+    return (
+      <Wrapper>
+        <QuestionSection>
+          <QuestionText>Loading translation problem...</QuestionText>
+        </QuestionSection>
+      </Wrapper>
+    );
   }
+
+  const canvasWidth = Math.min(width - 40, 1300);
+  const canvasHeight = 500;
+
+  // Extract hint text from question for TopHintButton
+  const questionHint = typeof question === 'string' ? question :
+    (Array.isArray(question) ? question.map(line => {
+      if (Array.isArray(line)) {
+        return line.map(part => part.text).join('');
+      }
+      return line.text || line;
+    }).join(' ') : '');
 
   return (
     <Wrapper>
-      {/* Question Section */}
+      {/* TopHintButton - Fixed position top-right (for all levels) */}
+      {!showAnswer && !showHint && questionHint && (
+        <TopHintButton onClick={() => setShowHint(true)}>
+          Need a hint?
+        </TopHintButton>
+      )}
+
+      {/* 1. QuestionSection - Instructions */}
       <QuestionSection>
-        {renderQuestion()}
-        {isCorrectPosition && interactionType === 'drag' && (
-          <FeedbackText correct>
-            ✓ Correct! You translated the shape perfectly!
-          </FeedbackText>
-        )}
+        {/* Question text now hidden - shown in hint */}
       </QuestionSection>
 
-      {/* Visual Section - Grid with draggable or static shapes */}
+      {/* 2. VisualSection - Grid and draggable/positioned squares */}
       <VisualSection>
         <Stage width={canvasWidth} height={canvasHeight}>
-          {/* Background Layer */}
+          {/* Grid Layer */}
           <Layer>
+            {/* Background for dark mode */}
             <Rect
               x={0}
               y={0}
@@ -174,16 +168,13 @@ function Translation({ triggerNewProblem }) {
               height={canvasHeight}
               fill={konvaTheme.canvasBackground}
             />
-          </Layer>
 
-          {/* Grid Layer */}
-          <Layer>
             {/* Horizontal grid lines */}
-            {[...Array(30)].map((_, indexH) => (
+            {[...Array(35)].map((_, indexH) => (
               <Line
                 key={`y${indexH}`}
-                points={[0, 0, canvasWidth, 0]}
-                stroke={konvaTheme.gridRegular || 'lightgray'}
+                points={[0, 0, 1300, 0]}
+                stroke={konvaTheme.gridRegular}
                 strokeWidth={1}
                 opacity={0.3}
                 x={0}
@@ -192,11 +183,11 @@ function Translation({ triggerNewProblem }) {
             ))}
 
             {/* Vertical grid lines */}
-            {[...Array(45)].map((_, indexV) => (
+            {[...Array(60)].map((_, indexV) => (
               <Line
                 key={`x${indexV}`}
-                points={[0, 0, 0, canvasHeight]}
-                stroke={konvaTheme.gridRegular || 'lightgray'}
+                points={[0, 0, 0, 500]}
+                stroke={konvaTheme.gridRegular}
                 strokeWidth={1}
                 opacity={0.3}
                 x={indexV * GRID_SPACING + GRID_OFFSET_X}
@@ -205,195 +196,194 @@ function Translation({ triggerNewProblem }) {
             ))}
           </Layer>
 
-          {/* Target Outline Layer (Levels 1 with green outline) */}
-          {showOutline && interactionType === 'drag' && (
+          {/* Target Outline Layer - Shows where shape should end up (Level 1 only) */}
+          {showOutline && (
             <Layer>
-              {/* 2x2 grid of outlined squares */}
               <Rect
                 x={targetX * GRID_SPACING + GRID_OFFSET_X}
                 y={targetY * GRID_SPACING + GRID_OFFSET_Y}
                 fill="transparent"
-                width={40}
-                height={40}
+                opacity={0.5}
+                width={30}
+                height={30}
                 stroke="#48BB78"
                 strokeWidth={3}
                 dash={[5, 5]}
-                opacity={0.7}
               />
               <Rect
-                x={targetX * GRID_SPACING + GRID_OFFSET_X + 40}
+                x={targetX * GRID_SPACING + GRID_OFFSET_X + 30}
                 y={targetY * GRID_SPACING + GRID_OFFSET_Y}
                 fill="transparent"
-                width={40}
-                height={40}
+                opacity={0.5}
+                width={30}
+                height={30}
                 stroke="#48BB78"
                 strokeWidth={3}
                 dash={[5, 5]}
-                opacity={0.7}
               />
               <Rect
                 x={targetX * GRID_SPACING + GRID_OFFSET_X}
-                y={targetY * GRID_SPACING + GRID_OFFSET_Y + 40}
+                y={targetY * GRID_SPACING + GRID_OFFSET_Y + 30}
                 fill="transparent"
-                width={40}
-                height={40}
+                opacity={0.5}
+                width={30}
+                height={30}
                 stroke="#48BB78"
                 strokeWidth={3}
                 dash={[5, 5]}
-                opacity={0.7}
               />
               <Rect
-                x={targetX * GRID_SPACING + GRID_OFFSET_X + 40}
-                y={targetY * GRID_SPACING + GRID_OFFSET_Y + 40}
+                x={targetX * GRID_SPACING + GRID_OFFSET_X + 30}
+                y={targetY * GRID_SPACING + GRID_OFFSET_Y + 30}
                 fill="transparent"
-                width={40}
-                height={40}
+                opacity={0.5}
+                width={30}
+                height={30}
                 stroke="#48BB78"
                 strokeWidth={3}
                 dash={[5, 5]}
-                opacity={0.7}
               />
             </Layer>
           )}
 
-          {/* Starting Position Layer (semi-transparent) */}
-          <Layer>
-            <Rect
-              x={startX * GRID_SPACING + GRID_OFFSET_X}
-              y={startY * GRID_SPACING + GRID_OFFSET_Y}
-              fill="red"
-              opacity={interactionType === 'drag' ? 0.2 : 0.4}
-              width={40}
-              height={40}
-              stroke={konvaTheme.shapeStroke || 'black'}
-              strokeWidth={1}
-            />
-            <Rect
-              x={startX * GRID_SPACING + GRID_OFFSET_X + 40}
-              y={startY * GRID_SPACING + GRID_OFFSET_Y}
-              fill="blue"
-              opacity={interactionType === 'drag' ? 0.2 : 0.4}
-              width={40}
-              height={40}
-              stroke={konvaTheme.shapeStroke || 'black'}
-              strokeWidth={1}
-            />
-            <Rect
-              x={startX * GRID_SPACING + GRID_OFFSET_X}
-              y={startY * GRID_SPACING + GRID_OFFSET_Y + 40}
-              fill="green"
-              opacity={interactionType === 'drag' ? 0.2 : 0.4}
-              width={40}
-              height={40}
-              stroke={konvaTheme.shapeStroke || 'black'}
-              strokeWidth={1}
-            />
-            <Rect
-              x={startX * GRID_SPACING + GRID_OFFSET_X + 40}
-              y={startY * GRID_SPACING + GRID_OFFSET_Y + 40}
-              fill="yellow"
-              opacity={interactionType === 'drag' ? 0.2 : 0.4}
-              width={40}
-              height={40}
-              stroke={konvaTheme.shapeStroke || 'black'}
-              strokeWidth={1}
-            />
-          </Layer>
+          {/* Starting Position Layer - Semi-transparent original */}
+          {visualData.showStartingPosition && (
+            <Layer>
+              <Rect
+                x={startX * GRID_SPACING + GRID_OFFSET_X}
+                y={startY * GRID_SPACING + GRID_OFFSET_Y}
+                fill="red"
+                opacity={0.2}
+                width={30}
+                height={30}
+                stroke={konvaTheme.shapeStroke}
+                strokeWidth={1}
+              />
+              <Rect
+                x={startX * GRID_SPACING + GRID_OFFSET_X + 30}
+                y={startY * GRID_SPACING + GRID_OFFSET_Y}
+                fill="blue"
+                opacity={0.2}
+                width={30}
+                height={30}
+                stroke={konvaTheme.shapeStroke}
+                strokeWidth={1}
+              />
+              <Rect
+                x={startX * GRID_SPACING + GRID_OFFSET_X}
+                y={startY * GRID_SPACING + GRID_OFFSET_Y + 30}
+                fill="green"
+                opacity={0.2}
+                width={30}
+                height={30}
+                stroke={konvaTheme.shapeStroke}
+                strokeWidth={1}
+              />
+              <Rect
+                x={startX * GRID_SPACING + GRID_OFFSET_X + 30}
+                y={startY * GRID_SPACING + GRID_OFFSET_Y + 30}
+                fill="yellow"
+                opacity={0.2}
+                width={30}
+                height={30}
+                stroke={konvaTheme.shapeStroke}
+                strokeWidth={1}
+              />
+            </Layer>
+          )}
 
-          {/* Target Position Layer (for typing levels 4-5 showing final position) */}
-          {interactionType === 'type' && (
+          {/* Target Position Layer - Solid for levels 4-5 */}
+          {visualData.showTargetPosition && interactionType === 'type' && (
             <Layer>
               <Rect
                 x={targetX * GRID_SPACING + GRID_OFFSET_X}
                 y={targetY * GRID_SPACING + GRID_OFFSET_Y}
                 fill="red"
-                opacity={0.8}
-                width={40}
-                height={40}
-                stroke={konvaTheme.shapeStroke || 'black'}
+                opacity={0.9}
+                width={30}
+                height={30}
+                stroke={konvaTheme.shapeStroke}
                 strokeWidth={2}
               />
               <Rect
-                x={targetX * GRID_SPACING + GRID_OFFSET_X + 40}
+                x={targetX * GRID_SPACING + GRID_OFFSET_X + 30}
                 y={targetY * GRID_SPACING + GRID_OFFSET_Y}
                 fill="blue"
-                opacity={0.8}
-                width={40}
-                height={40}
-                stroke={konvaTheme.shapeStroke || 'black'}
+                opacity={0.9}
+                width={30}
+                height={30}
+                stroke={konvaTheme.shapeStroke}
                 strokeWidth={2}
               />
               <Rect
                 x={targetX * GRID_SPACING + GRID_OFFSET_X}
-                y={targetY * GRID_SPACING + GRID_OFFSET_Y + 40}
+                y={targetY * GRID_SPACING + GRID_OFFSET_Y + 30}
                 fill="green"
-                opacity={0.8}
-                width={40}
-                height={40}
-                stroke={konvaTheme.shapeStroke || 'black'}
+                opacity={0.9}
+                width={30}
+                height={30}
+                stroke={konvaTheme.shapeStroke}
                 strokeWidth={2}
               />
               <Rect
-                x={targetX * GRID_SPACING + GRID_OFFSET_X + 40}
-                y={targetY * GRID_SPACING + GRID_OFFSET_Y + 40}
+                x={targetX * GRID_SPACING + GRID_OFFSET_X + 30}
+                y={targetY * GRID_SPACING + GRID_OFFSET_Y + 30}
                 fill="yellow"
-                opacity={0.8}
-                width={40}
-                height={40}
-                stroke={konvaTheme.shapeStroke || 'black'}
+                opacity={0.9}
+                width={30}
+                height={30}
+                stroke={konvaTheme.shapeStroke}
                 strokeWidth={2}
               />
             </Layer>
           )}
 
-          {/* Draggable Layer (for drag levels 1-3) */}
+          {/* Draggable Squares Layer - Only for drag levels (1-3) */}
           {interactionType === 'drag' && (
             <Layer
-              name="draggableLayer"
               draggable
               x={dragPosition.x}
               y={dragPosition.y}
-              onDragStart={() => setIsDragging(true)}
               onDragEnd={handleDragEnd}
             >
               <Rect
                 x={startX * GRID_SPACING + GRID_OFFSET_X}
                 y={startY * GRID_SPACING + GRID_OFFSET_Y}
                 fill="red"
-                opacity={isCorrectPosition ? 0.9 : 0.7}
-                width={40}
-                height={40}
-                stroke={konvaTheme.shapeStroke || 'black'}
+                opacity={isDragCorrect ? 0.9 : 0.7}
+                width={30}
+                height={30}
+                stroke={konvaTheme.shapeStroke}
                 strokeWidth={2}
               />
               <Rect
-                x={startX * GRID_SPACING + GRID_OFFSET_X + 40}
+                x={startX * GRID_SPACING + GRID_OFFSET_X + 30}
                 y={startY * GRID_SPACING + GRID_OFFSET_Y}
                 fill="blue"
-                opacity={isCorrectPosition ? 0.9 : 0.7}
-                width={40}
-                height={40}
-                stroke={konvaTheme.shapeStroke || 'black'}
+                opacity={isDragCorrect ? 0.9 : 0.7}
+                width={30}
+                height={30}
+                stroke={konvaTheme.shapeStroke}
                 strokeWidth={2}
               />
               <Rect
                 x={startX * GRID_SPACING + GRID_OFFSET_X}
-                y={startY * GRID_SPACING + GRID_OFFSET_Y + 40}
+                y={startY * GRID_SPACING + GRID_OFFSET_Y + 30}
                 fill="green"
-                opacity={isCorrectPosition ? 0.9 : 0.7}
-                width={40}
-                height={40}
-                stroke={konvaTheme.shapeStroke || 'black'}
+                opacity={isDragCorrect ? 0.9 : 0.7}
+                width={30}
+                height={30}
+                stroke={konvaTheme.shapeStroke}
                 strokeWidth={2}
               />
               <Rect
-                x={startX * GRID_SPACING + GRID_OFFSET_X + 40}
-                y={startY * GRID_SPACING + GRID_OFFSET_Y + 40}
+                x={startX * GRID_SPACING + GRID_OFFSET_X + 30}
+                y={startY * GRID_SPACING + GRID_OFFSET_Y + 30}
                 fill="yellow"
-                opacity={isCorrectPosition ? 0.9 : 0.7}
-                width={40}
-                height={40}
-                stroke={konvaTheme.shapeStroke || 'black'}
+                opacity={isDragCorrect ? 0.9 : 0.7}
+                width={30}
+                height={30}
+                stroke={konvaTheme.shapeStroke}
                 strokeWidth={2}
               />
             </Layer>
@@ -401,75 +391,90 @@ function Translation({ triggerNewProblem }) {
         </Stage>
       </VisualSection>
 
-      {/* Interaction Section */}
+      {/* 3. InteractionSection - Control buttons or answer input */}
       <InteractionSection>
         {interactionType === 'drag' ? (
-          // Drag levels - show hint or next button
+          // Drag interaction (Levels 1-3)
           <>
-            {isCorrectPosition && showAnswer ? (
+            {showHint && questionHint && (
+              <HintBox>{questionHint}</HintBox>
+            )}
+
+            {isDragCorrect ? (
               <NextButton onClick={handleTryAnother}>
-                Next Problem →
+                Try Another →
               </NextButton>
             ) : (
               <HintText>
                 {showOutline
                   ? "Drag the colored shape to the green dashed outline"
-                  : "Drag the colored shape to match the instructions"}
+                  : "Drag the shape to match the translation"}
               </HintText>
             )}
           </>
         ) : (
-          // Typing levels - use AnswerInput component
+          // Type interaction (Levels 4-5)
           <>
-            {!showAnswer && renderSecondQuestion()}
-            <AnswerInputContainer>
-              <AnswerInput
-                correctAnswer={correctAnswer}
-                answerType="array"
-                onCorrect={revealAnswer}
-                onTryAnother={handleTryAnother}
-                disabled={showAnswer}
-                placeholder={level === 4 ? "Enter horizontal, then vertical" : "Enter the numbers"}
-              />
-            </AnswerInputContainer>
+            {!showAnswer && (
+              <>
+                {showHint && questionHint && (
+                  <HintBox>{questionHint}</HintBox>
+                )}
+
+                {showHint && hint && <HintBox>{hint}</HintBox>}
+
+                <AnswerInputContainer>
+                  <AnswerInput
+                    correctAnswer={correctAnswer}
+                    answerType="array"
+                    onCorrect={revealAnswer}
+                    onTryAnother={handleTryAnother}
+                    disabled={showAnswer}
+                    placeholder="Enter your answer"
+                  />
+                </AnswerInputContainer>
+
+                {secondQuestion && (
+                  <SecondQuestionText>{renderQuestion(secondQuestion)}</SecondQuestionText>
+                )}
+              </>
+            )}
+
+            {showAnswer && explanation && (
+              <ExplanationBox>
+                <ExplanationText>{explanation}</ExplanationText>
+                <TryAnotherButton onClick={handleTryAnother}>
+                  Try Another →
+                </TryAnotherButton>
+              </ExplanationBox>
+            )}
           </>
         )}
       </InteractionSection>
-
-      {/* Explanation Section */}
-      {showAnswer && (
-        <ExplanationSection>
-          <ExplanationTitle>Explanation</ExplanationTitle>
-          <ExplanationText>
-            {explanation || `The shape moved ${Math.abs(dx)} spaces ${dx > 0 ? 'right' : 'left'} and ${Math.abs(dy)} spaces ${dy > 0 ? 'down' : 'up'}.`}
-          </ExplanationText>
-          {hint && (
-            <HintBox>
-              <strong>Hint:</strong> {hint}
-            </HintBox>
-          )}
-        </ExplanationSection>
-      )}
     </Wrapper>
   );
 }
 
 export default Translation;
 
-// Styled Components
+// Styled Components - Lesson Development Checklist standard
 
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 1000px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
   box-sizing: border-box;
 
   @media (min-width: 768px) {
     padding: 30px;
+  }
+
+  @media (min-width: 1024px) {
+    padding: 40px;
   }
 `;
 
@@ -483,42 +488,29 @@ const QuestionSection = styled.div`
   }
 `;
 
-const QuestionLine = styled.p`
-  font-size: 18px;
-  font-weight: 600;
-  color: ${props => props.theme?.colors?.textPrimary || '#2d3748'};
+const QuestionText = styled.div`
+  font-size: 20px;
+  font-weight: 700;
+  color: ${props => props.theme.colors.textPrimary};
   line-height: 1.6;
-  margin: 5px 0;
+  margin: 0;
 
   @media (min-width: 768px) {
-    font-size: 20px;
+    font-size: 24px;
   }
 
   @media (min-width: 1024px) {
-    font-size: 22px;
+    font-size: 26px;
   }
 `;
 
-const FeedbackText = styled.p`
-  font-size: 18px;
-  font-weight: 600;
-  color: ${props => props.correct ? '#48BB78' : '#F56565'};
-  margin: 10px 0 0 0;
-  animation: fadeIn 0.3s ease-in;
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @media (min-width: 768px) {
-    font-size: 20px;
-  }
+const QuestionLine = styled.p`
+  margin: 8px 0;
 `;
 
 const VisualSection = styled.div`
   width: 100%;
-  background-color: ${props => props.theme?.colors?.cardBackground || '#f7fafc'};
+  background-color: ${props => props.theme.colors.cardBackground};
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
@@ -531,6 +523,10 @@ const VisualSection = styled.div`
   @media (min-width: 768px) {
     padding: 30px;
     margin-bottom: 30px;
+  }
+
+  @media (min-width: 1024px) {
+    padding: 40px;
   }
 `;
 
@@ -550,19 +546,19 @@ const InteractionSection = styled.div`
 `;
 
 const NextButton = styled.button`
-  background-color: #48BB78;
-  color: white;
+  background-color: ${props => props.theme.colors.buttonSuccess};
+  color: ${props => props.theme.colors.textInverted};
   border: none;
   border-radius: 8px;
   padding: 14px 32px;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background-color: #38A169;
+    background-color: ${props => props.theme.colors.hoverBackground};
     transform: translateY(-1px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
   }
@@ -573,14 +569,19 @@ const NextButton = styled.button`
   }
 
   @media (min-width: 768px) {
-    font-size: 20px;
+    font-size: 22px;
     padding: 16px 36px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 24px;
+    padding: 18px 40px;
   }
 `;
 
 const HintText = styled.p`
   font-size: 16px;
-  color: ${props => props.theme?.colors?.textSecondary || '#718096'};
+  color: ${props => props.theme.colors.textSecondary};
   margin: 0;
   font-style: italic;
 
@@ -589,65 +590,106 @@ const HintText = styled.p`
   }
 `;
 
-const AnswerInputContainer = styled.div`
-  width: 100%;
-  max-width: 500px;
-  display: flex;
-  justify-content: center;
-`;
-
-const ExplanationSection = styled.div`
-  width: 100%;
-  background-color: #f0fff4;
-  border-left: 4px solid #48BB78;
+const TopHintButton = styled.button`
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  margin-bottom: 0;
+  z-index: 100;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.border};
   border-radius: 8px;
-  padding: 20px;
+  padding: 10px 20px;
+  font-size: 15px;
+  color: ${props => props.theme.colors.textSecondary};
+  cursor: pointer;
+  transition: all 0.2s;
 
-  @media (min-width: 768px) {
-    padding: 25px;
+  @media (max-width: 1024px) {
+    top: 12px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 13px;
   }
-`;
 
-const ExplanationTitle = styled.h3`
-  font-size: 18px;
-  font-weight: 700;
-  color: #2f855a;
-  margin: 0 0 10px 0;
-
-  @media (min-width: 768px) {
-    font-size: 20px;
-    margin-bottom: 15px;
+  @media (max-width: 768px) {
+    top: 10px;
+    right: 12px;
+    padding: 5px 10px;
+    font-size: 12px;
   }
-`;
 
-const ExplanationText = styled.p`
-  font-size: 16px;
-  color: #2d3748;
-  line-height: 1.6;
-  margin: 0;
-
-  @media (min-width: 768px) {
-    font-size: 17px;
+  &:hover {
+    background: ${props => props.theme.colors.hoverBackground};
+    border-color: ${props => props.theme.colors.borderDark};
   }
 `;
 
 const HintBox = styled.div`
   background: #fff5e6;
   border-left: 4px solid #f6ad55;
-  padding: 12px 16px;
-  margin-top: 15px;
-  border-radius: 4px;
-  font-size: 15px;
+  padding: 16px;
+  margin-bottom: 20px;
   color: #2d3748;
+  font-size: 16px;
+  line-height: 1.6;
+  border-radius: 4px;
+  max-width: 600px;
+`;
+
+const AnswerInputContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+  width: 100%;
+  max-width: 500px;
+`;
+
+const SecondQuestionText = styled.div`
+  font-size: 18px;
+  font-weight: 600;
+  color: ${props => props.theme.colors.textPrimary};
+  text-align: center;
+  margin: 15px 0;
+`;
+
+const ExplanationBox = styled.div`
+  background: #f0fff4;
+  border: 2px solid #68d391;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 700px;
+  width: 100%;
+`;
+
+const ExplanationText = styled.p`
+  font-size: 16px;
+  line-height: 1.6;
+  color: #2d3748;
+  margin: 0 0 20px 0;
 
   @media (min-width: 768px) {
-    font-size: 16px;
+    font-size: 17px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 18px;
   }
 `;
 
-const LoadingText = styled.p`
-  text-align: center;
+const TryAnotherButton = styled.button`
+  background-color: ${props => props.theme.colors.buttonSuccess};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 28px;
   font-size: 18px;
-  color: ${props => props.theme?.colors?.textSecondary || '#718096'};
-  padding: 40px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #38A169;
+    transform: translateY(-1px);
+  }
 `;

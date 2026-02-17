@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import numbers from "../../../../shared/helpers/numbers";
 import { AnswerInput } from "../../../../shared/components";
-import { useLessonState } from "../../../../hooks";
 
 const newNumbers = () => {
   const equationNumbers = numbers(3, 20);
@@ -11,66 +10,53 @@ const newNumbers = () => {
   const a = b > c ? equationNumbers[0] : equationNumbers[0] * -1;
   const equation = `y = ${a}/${b}x ${a >= 10 ? "+" : "-"} ${c}`;
   const problemAnswer = `${a}/${b}`;
-  return { equation: equation, problemAnswer: problemAnswer };
+  return { equation, problemAnswer };
 };
 
+/**
+ * Parallel - Interactive lesson on parallel line slopes
+ * Students identify the slope of a line parallel to a given equation
+ * Demonstrates that parallel lines have identical slopes
+ */
 function Parallel({ triggerNewProblem }) {
-  // Phase 2: Use shared lesson state hook
-  const { lessonProps } = useLessonState();
-
-  // Get data from lessonProps or generate fallback
   const [problem, setProblem] = useState(() => newNumbers());
   const [showAnswer, setShowAnswer] = useState(false);
   const [showHint, setShowHint] = useState(false);
 
-  // Extract lesson data from props (if available from backend)
-  const question = lessonProps?.question?.[0]?.text;
-  const answer = lessonProps?.answer?.[0]?.text;
-  const hint = lessonProps?.hint?.[0]?.text;
-  const explanation = lessonProps?.explanation?.[0]?.text;
-
   const handlePractice = () => {
-    if (triggerNewProblem) {
-      triggerNewProblem();
-      setShowAnswer(false);
-      setShowHint(false);
-    } else {
-      const newProblem = newNumbers();
-      setProblem(newProblem);
-      setShowAnswer(false);
-      setShowHint(false);
-    }
+    const newProblem = newNumbers();
+    setProblem(newProblem);
+    setShowAnswer(false);
+    setShowHint(false);
   };
 
-  // Use backend answer if available, otherwise use generated problem answer
-  const correctAnswer = answer || problem?.problemAnswer;
-  const questionText = question || `What is the slope of a line parallel to: ${problem?.equation}`;
+  const correctAnswer = problem.problemAnswer;
+  const hint = `What is the slope of a line parallel to: ${problem.equation}?`;
 
   return (
     <Wrapper>
-      {/* Section 1: TopHintButton - Fixed position, only shown when hint available and not revealed */}
+      {/* TopHintButton - Fixed position top-right */}
       {!showAnswer && !showHint && hint && (
         <TopHintButton onClick={() => setShowHint(true)}>
           Need a hint?
         </TopHintButton>
       )}
 
-      {/* Section 2: QuestionSection - Centered instruction text */}
+      {/* 1. QuestionSection - Problem statement */}
       <QuestionSection>
-        <QuestionText>{questionText}</QuestionText>
+        {/* Question text hidden until hint button clicked */}
       </QuestionSection>
 
-      {/* Section 3: VisualSection - Not needed for text-based algebra lesson */}
+      {/* 2. VisualSection - Not needed for text-based algebra */}
 
-      {/* Section 4: InteractionSection - Answer input and hint display */}
+      {/* 3. InteractionSection - Answer input */}
       <InteractionSection>
         {!showAnswer && (
           <>
             {showHint && hint && (
-              <HintBox>
-                <HintText>{hint}</HintText>
-              </HintBox>
+              <HintBox>{hint}</HintBox>
             )}
+
             <AnswerInputContainer>
               <AnswerInput
                 correctAnswer={correctAnswer}
@@ -83,45 +69,223 @@ function Parallel({ triggerNewProblem }) {
             </AnswerInputContainer>
           </>
         )}
-
-        {/* Section 5: ExplanationSection - Shown after correct answer */}
-        {showAnswer && (
-          <ExplanationSection>
-            <ExplanationText>
-              {explanation || (
-                <>
-                  <strong>Correct!</strong> The slope of a line parallel to <strong>{problem?.equation}</strong> is{" "}
-                  <strong>{correctAnswer}</strong>.
-                  <br />
-                  <br />
-                  Parallel lines have the same slope. When a line is in the form y = mx + b, the coefficient
-                  of x (m) is the slope.
-                </>
-              )}
-            </ExplanationText>
-          </ExplanationSection>
-        )}
       </InteractionSection>
+
+      {/* 4. ExplanationSection - Educational content (shown after correct answer) */}
+      {showAnswer && (
+        <ExplanationSection>
+          <ExplanationTitle>Understanding Parallel Lines and Slope</ExplanationTitle>
+          <ExplanationText>
+            <strong>Correct!</strong> The slope of a line parallel to <strong>{problem.equation}</strong> is{" "}
+            <strong>{correctAnswer}</strong>.
+          </ExplanationText>
+          <ExplanationText>
+            <strong>The Parallel Lines Rule:</strong>
+          </ExplanationText>
+          <FormulaBox>
+            Parallel lines have identical slopes
+          </FormulaBox>
+          <ExplanationText>
+            <strong>Why this works:</strong>
+          </ExplanationText>
+          <PropertyList>
+            <li>
+              <strong>Slope-intercept form:</strong> When an equation is written as y = mx + b, the value
+              of m is the slope
+            </li>
+            <li>
+              <strong>Finding slope:</strong> In {problem.equation}, the coefficient of x (the number
+              multiplying x) is the slope: {correctAnswer}
+            </li>
+            <li>
+              <strong>Parallel lines never intersect:</strong> They maintain the same "steepness" or rate
+              of change, which is why they have the same slope
+            </li>
+            <li>
+              <strong>Different y-intercepts:</strong> While parallel lines share the same slope, they have
+              different y-intercepts (the b value), which is why they're at different heights
+            </li>
+          </PropertyList>
+          <ExplanationText>
+            <strong>Key insight:</strong> If two lines are parallel, they rise and run at exactly the same
+            rate. This means if one line goes up 3 units for every 4 units it goes right (slope = 3/4), its
+            parallel line will also go up 3 units for every 4 units right.
+          </ExplanationText>
+          <ExplanationText>
+            <strong>Contrast with perpendicular lines:</strong> Perpendicular lines have slopes that are
+            negative reciprocals. For example, if one line has slope 3/4, a perpendicular line would have
+            slope -4/3.
+          </ExplanationText>
+        </ExplanationSection>
+      )}
     </Wrapper>
   );
 }
 
 export default Parallel;
 
-// Styled Components
+// Styled Components - TangentLesson 5-section layout standard
 
 const Wrapper = styled.div`
-  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  box-sizing: border-box;
 
-  @media (max-width: 1024px) {
-    padding: 16px;
+  @media (min-width: 768px) {
+    padding: 30px;
   }
 
-  @media (max-width: 768px) {
-    padding: 12px;
+  @media (min-width: 1024px) {
+    padding: 40px;
+  }
+`;
+
+const QuestionSection = styled.div`
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+
+  @media (min-width: 768px) {
+    margin-bottom: 30px;
+  }
+`;
+
+const QuestionText = styled.p`
+  font-size: 20px;
+  font-weight: 700;
+  color: ${props => props.theme.colors.textPrimary};
+  line-height: 1.6;
+  margin: 0;
+
+  @media (min-width: 768px) {
+    font-size: 24px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 26px;
+  }
+`;
+
+const InteractionSection = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+
+  @media (min-width: 768px) {
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+`;
+
+const AnswerInputContainer = styled.div`
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  justify-content: center;
+`;
+
+const ExplanationSection = styled.div`
+  width: 100%;
+  background-color: #f0fff4;
+  border-left: 4px solid #68d391;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+
+  @media (min-width: 768px) {
+    padding: 25px;
+    margin-top: 30px;
+  }
+
+  @media (min-width: 1024px) {
+    padding: 30px;
+  }
+`;
+
+const ExplanationTitle = styled.h3`
+  font-size: 20px;
+  font-weight: 700;
+  color: #2f855a;
+  margin: 0 0 15px 0;
+
+  @media (min-width: 768px) {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 24px;
+  }
+`;
+
+const ExplanationText = styled.p`
+  font-size: 16px;
+  color: #2d3748;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  @media (min-width: 768px) {
+    font-size: 17px;
+    margin-bottom: 15px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 18px;
+  }
+`;
+
+const FormulaBox = styled.div`
+  background-color: #e6fffa;
+  border: 2px solid #4299e1;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 15px 0;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  color: #2c5282;
+
+  @media (min-width: 768px) {
+    font-size: 22px;
+    padding: 18px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 24px;
+    padding: 20px;
+  }
+`;
+
+const PropertyList = styled.ul`
+  margin: 15px 0;
+  padding-left: 20px;
+
+  li {
+    font-size: 16px;
+    color: #2d3748;
+    line-height: 1.8;
+    margin-bottom: 8px;
+
+    @media (min-width: 768px) {
+      font-size: 17px;
+      margin-bottom: 10px;
+    }
+
+    @media (min-width: 1024px) {
+      font-size: 18px;
+    }
   }
 `;
 
@@ -129,142 +293,49 @@ const TopHintButton = styled.button`
   position: fixed;
   top: 15px;
   right: 20px;
+  margin-bottom: 0;
   z-index: 100;
-  background: #edf2f7;
-  border: 2px solid #cbd5e0;
-  color: #2d3748;
-  padding: 10px 20px;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.border};
   border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 10px 20px;
+  font-size: 15px;
+  color: ${props => props.theme.colors.textSecondary};
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    background: #e2e8f0;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
 
   @media (max-width: 1024px) {
-    top: 10px;
-    right: 15px;
-    padding: 8px 16px;
+    top: 12px;
+    right: 16px;
+    padding: 6px 12px;
     font-size: 13px;
   }
 
   @media (max-width: 768px) {
-    top: 8px;
-    right: 10px;
-    padding: 6px 12px;
+    top: 10px;
+    right: 12px;
+    padding: 5px 10px;
     font-size: 12px;
   }
-`;
 
-const QuestionSection = styled.div`
-  margin-bottom: 20px;
-  text-align: center;
-
-  @media (max-width: 1024px) {
-    margin-bottom: 16px;
-  }
-`;
-
-const QuestionText = styled.h2`
-  font-size: 22px;
-  font-weight: 600;
-  color: #1a202c;
-  margin: 0;
-
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-
-  @media (max-width: 768px) {
-    font-size: 18px;
-  }
-`;
-
-const InteractionSection = styled.div`
-  margin-top: 20px;
-
-  @media (max-width: 1024px) {
-    margin-top: 16px;
+  &:hover {
+    background: ${props => props.theme.colors.hoverBackground};
+    border-color: ${props => props.theme.colors.borderDark};
   }
 `;
 
 const HintBox = styled.div`
-  background: #fffbeb;
-  border: 2px solid #fbbf24;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
+  background: #fff5e6;
+  border-left: 4px solid #f6ad55;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  font-size: 15px;
+  color: #744210;
 
   @media (max-width: 1024px) {
-    padding: 16px;
-    margin-bottom: 16px;
-    border-radius: 8px;
-  }
-
-  @media (max-width: 768px) {
-    padding: 12px;
+    padding: 10px;
     margin-bottom: 12px;
-  }
-`;
-
-const HintText = styled.p`
-  font-size: 15px;
-  line-height: 1.5;
-  color: #78350f;
-  margin: 0;
-
-  @media (max-width: 1024px) {
     font-size: 14px;
-    line-height: 1.4;
-  }
-`;
-
-const AnswerInputContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
-
-  @media (max-width: 1024px) {
-    margin: 16px 0;
-  }
-`;
-
-const ExplanationSection = styled.div`
-  background: #f0fff4;
-  border: 2px solid #68d391;
-  border-radius: 12px;
-  padding: 20px;
-  margin-top: 16px;
-
-  @media (max-width: 1024px) {
-    padding: 16px;
-    margin-top: 12px;
-    border-radius: 8px;
-  }
-
-  @media (max-width: 768px) {
-    padding: 12px;
-  }
-`;
-
-const ExplanationText = styled.p`
-  font-size: 15px;
-  line-height: 1.5;
-  color: #2d3748;
-  margin: 0;
-
-  @media (max-width: 1024px) {
-    font-size: 14px;
-    line-height: 1.4;
   }
 `;

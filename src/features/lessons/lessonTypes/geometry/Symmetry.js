@@ -18,6 +18,7 @@ function Symmetry({ triggerNewProblem }) {
     { id: 1, x: getRandomX(), y: 20 },
   ]);
   const [lineX, setLineX] = useState(LINE_START_X);
+  const [showHint, setShowHint] = useState(false);
 
   // The correct answer is at points[1].x (the mirror/symmetry line)
   const correctX = points[1].x;
@@ -26,9 +27,11 @@ function Symmetry({ triggerNewProblem }) {
   const handleSeeAnswer = () => {
     setLineX(correctX);
     setShowAnswer(true);
+    setShowHint(false);
   };
 
   const handleTryAnother = () => {
+    setShowHint(false);
     if (triggerNewProblem) {
       triggerNewProblem();
     } else {
@@ -66,12 +69,20 @@ function Symmetry({ triggerNewProblem }) {
   const mirroredLeftX = centerX + (centerX - leftCircleX);
   const mirroredRightX = centerX + (centerX - rightCircleX);
 
+  const hint = "Drag the vertical line to find the line of symmetry (mirror line) between the shapes.";
+
   return (
     <Wrapper>
+      {/* TopHintButton - Fixed position top-right */}
+      {!showHint && hint && (
+        <TopHintButton onClick={() => setShowHint(true)}>
+          Need a hint?
+        </TopHintButton>
+      )}
       {/* Section 2: QuestionSection - Centered instruction text */}
       <QuestionSection>
         <QuestionText>
-          Drag the vertical line to find the line of symmetry (mirror line) between the shapes.
+          {/* Question text hidden until hint button clicked */}
         </QuestionText>
       </QuestionSection>
 
@@ -171,6 +182,9 @@ function Symmetry({ triggerNewProblem }) {
 
       {/* Section 4: InteractionSection - Control buttons and feedback */}
       <InteractionSection>
+        {showHint && hint && (
+          <HintBox>{hint}</HintBox>
+        )}
         <ButtonContainer>
           <ActionButton onClick={handleTryAnother}>New Problem</ActionButton>
           {!showAnswer && <ActionButton onClick={handleSeeAnswer}>Show Answer</ActionButton>}
@@ -183,20 +197,22 @@ function Symmetry({ triggerNewProblem }) {
         )}
 
         {/* Section 5: ExplanationSection - Educational content */}
-        <ExplanationSection>
-          <ExplanationText>
-            <strong>Line of Symmetry:</strong> A line of symmetry (or mirror line) divides a shape into two identical halves.
-            Each point on one side has a matching point on the other side at the same distance from the line.
-          </ExplanationText>
-          <ExplanationText>
-            <strong>How to find it:</strong> Drag the blue vertical line until it's positioned so that the transparent shapes on
-            the right perfectly match the solid shapes on the left. The line will turn <strong style={{ color: "green" }}>green</strong> when you're correct!
-          </ExplanationText>
-          <ExplanationText>
-            You can also drag the yellow circle to create different symmetry problems. Watch how the transparent shapes move
-            to stay symmetric!
-          </ExplanationText>
-        </ExplanationSection>
+        {showHint && (
+          <ExplanationSection>
+            <ExplanationText>
+              <strong>Line of Symmetry:</strong> A line of symmetry (or mirror line) divides a shape into two identical halves.
+              Each point on one side has a matching point on the other side at the same distance from the line.
+            </ExplanationText>
+            <ExplanationText>
+              <strong>How to find it:</strong> Drag the blue vertical line until it's positioned so that the transparent shapes on
+              the right perfectly match the solid shapes on the left. The line will turn <strong style={{ color: "green" }}>green</strong> when you're correct!
+            </ExplanationText>
+            <ExplanationText>
+              You can also drag the yellow circle to create different symmetry problems. Watch how the transparent shapes move
+              to stay symmetric!
+            </ExplanationText>
+          </ExplanationSection>
+        )}
       </InteractionSection>
     </Wrapper>
   );
@@ -363,5 +379,56 @@ const ExplanationText = styled.p`
     font-size: 14px;
     line-height: 1.4;
     margin: 10px 0;
+  }
+`;
+
+const TopHintButton = styled.button`
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  margin-bottom: 0;
+  z-index: 100;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 15px;
+  color: ${props => props.theme.colors.textSecondary};
+  cursor: pointer;
+  transition: all 0.2s;
+
+  @media (max-width: 1024px) {
+    top: 12px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    top: 10px;
+    right: 12px;
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  &:hover {
+    background: ${props => props.theme.colors.hoverBackground};
+    border-color: ${props => props.theme.colors.borderDark};
+  }
+`;
+
+const HintBox = styled.div`
+  background: #fff5e6;
+  border-left: 4px solid #f6ad55;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  font-size: 15px;
+  color: #744210;
+
+  @media (max-width: 1024px) {
+    padding: 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
   }
 `;
