@@ -1,5 +1,106 @@
 {
-  "conversations": [],
-  "last_updated": "2026-02-16T00:00:00Z",
+  "conversations": [
+    {
+      "id": "soe-review-2026-02-17",
+      "title": "System of Equations — Frontend Review & Backend Alignment",
+      "started": "2026-02-17T00:00:00Z",
+      "status": "completed",
+      "participants": ["engineer", "lesson_developer", "backend_specialist", "dark_mode_specialist"],
+      "summary": "Reviewed existing System of Equations lesson (5 levels). Fixed 3 frontend issues and 2 backend misconfigurations.",
+      "changes": [
+        "Fixed hardcoded colors in EqChip (#3B82F6/#EF4444) and HintBox (#f6ad55) to use theme tokens — dark mode compliance",
+        "Restructured SystemBox layout: brace now on left side with equations stacked vertically (standard math notation)",
+        "Fixed Level 4 substitution explanation to properly format negative coefficients (was showing '+ -10y', now shows '− 10y')",
+        "Updated backend config from 1 level to 5 levels with component names",
+        "Updated getLessonDataInitial.js: replaced single BasicProblemsWordsOnly with all 5 SystemOfEquations components and level-specific hints"
+      ],
+      "files_modified": [
+        "frontends/lessons/src/features/lessons/lessonTypes/algebra/SystemOfEquations.jsx",
+        "backend/aqueous-eyrie-54478/config/lessonConfigs/system_of_equations.config.js",
+        "backend/aqueous-eyrie-54478/data/helperFunctions/getLessonDataInitial.js"
+      ]
+    },
+    {
+      "id": "soe-backend-migration-2026-02-17",
+      "title": "System of Equations — Migrate to Backend Data Generation",
+      "started": "2026-02-17T00:00:00Z",
+      "status": "completed",
+      "participants": ["engineer", "backend_specialist", "architect", "lesson_developer"],
+      "summary": "Migrated System of Equations from pure frontend generation to backend data generation, following the PythagoreanTheorem pattern. All 5 level generators moved to backend, frontend refactored to consume data via useLessonState/Redux.",
+      "changes": [
+        "Created backend generator: services/lessonProcessors/questions/systemOfEquationsGenerator.js — 5 level generators + helpers, returns standardized shape with visualData, acceptedAnswers, hint, explanation",
+        "Registered generator in lessonProcessors/index.js — added to getQuestionGenerator() chain and hasCustomGenerator() check",
+        "Updated backend config: skipSteps [3,5,6,7,8,9,10,11], customDataGeneration enabled for all 5 levels with batchSize 10",
+        "Refactored frontend: removed ~280 lines of client-side generation, switched to useLessonState() hook, reads from questionAnswerArray/lessonProps, uses visualData for rendering, answerType='array' with acceptedAnswers for all levels"
+      ],
+      "files_created": [
+        "backend/aqueous-eyrie-54478/services/lessonProcessors/questions/systemOfEquationsGenerator.js"
+      ],
+      "files_modified": [
+        "backend/aqueous-eyrie-54478/services/lessonProcessors/index.js",
+        "backend/aqueous-eyrie-54478/config/lessonConfigs/system_of_equations.config.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/algebra/SystemOfEquations.jsx"
+      ]
+    }
+    ,
+    {
+      "id": "rounding-lesson-2026-02-17",
+      "title": "Rounding — New 4-Level Lesson with Backend Data Generation",
+      "started": "2026-02-17T00:00:00Z",
+      "status": "completed",
+      "participants": ["engineer", "backend_specialist", "lesson_developer"],
+      "summary": "Created new 4-level Rounding lesson from scratch with backend data generation. Level 1: whole number rounding (ones/tens/hundreds/thousands), Level 2: decimal rounding (ones/tenths/hundredths/thousandths), Level 3: mixed + extended place values, Level 4: word problems (money/distance/population/science/temperature).",
+      "changes": [
+        "Created backend generator: roundingGenerator.js — 4 level generators with roundToPlace helper, formatNumber, getBounds, buildAcceptedAnswers, 5 word problem templates",
+        "Created backend config: rounding.config.js — skipSteps [3,5,6,7,8,9,10,11], customDataGeneration enabled for all 4 levels with batchSize 10",
+        "Registered generator in lessonProcessors/index.js and config in lessonConfigs/index.js",
+        "Created frontend component: Rounding.jsx — single component for all 4 levels, useLessonState hook, CSS number line visualization, theme-aware styled components, answerType='array'",
+        "Updated DataLesson.js: lazy-loaded Rounding component for 4 levels",
+        "Updated algebra/index.js exports and getLessonDataInitial.js component names"
+      ],
+      "files_created": [
+        "backend/aqueous-eyrie-54478/services/lessonProcessors/questions/roundingGenerator.js",
+        "backend/aqueous-eyrie-54478/config/lessonConfigs/rounding.config.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/algebra/Rounding.jsx"
+      ],
+      "files_modified": [
+        "backend/aqueous-eyrie-54478/services/lessonProcessors/index.js",
+        "backend/aqueous-eyrie-54478/config/lessonConfigs/index.js",
+        "frontends/lessons/src/features/lessons/DataLesson.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/algebra/index.js",
+        "backend/aqueous-eyrie-54478/data/helperFunctions/getLessonDataInitial.js"
+      ]
+    }
+    ,
+    {
+      "id": "order-of-operations-2026-02-18",
+      "title": "Order of Operations — New 4-Level Interactive Lesson",
+      "started": "2026-02-18T00:00:00Z",
+      "status": "completed",
+      "participants": ["engineer", "backend_specialist", "lesson_developer"],
+      "summary": "Created new 4-level Order of Operations lesson with interactive PEMDAS mechanic. L1-3: students click operators in correct PEMDAS order, expression simplifies step by step. L4: type the final answer. Backend generates token-based expressions with pre-computed evaluation steps.",
+      "changes": [
+        "Created backend generator: orderOfOperationsGenerator.js — PEMDAS engine (computeSteps, findInnermostParenGroup, findHighestPriorityOp, collapseTokens, removeRedundantParens), 4 level generators with guards (clean division, capped exponents, non-negative intermediates, mixed priorities)",
+        "Created backend config: order_of_operations.config.js — skipSteps [3,5,6,7,8,9,10,11], customDataGeneration enabled for all 4 levels with batchSize 10",
+        "Registered generator in lessonProcessors/index.js and config in lessonConfigs/index.js",
+        "Created frontend component: OrderOfOperations.jsx — interactive click-to-evaluate for L1-3 (token display, operator buttons, shake/collapse animations, step log), KaTeX + AnswerInput for L4, theme-aware styled components",
+        "Updated DataLesson.js: lazy-loaded OrderOfOperations component for 4 levels (replaced Evaluating)",
+        "Updated algebra/index.js exports and getLessonDataInitial.js component names"
+      ],
+      "files_created": [
+        "backend/aqueous-eyrie-54478/services/lessonProcessors/questions/orderOfOperationsGenerator.js",
+        "backend/aqueous-eyrie-54478/config/lessonConfigs/order_of_operations.config.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/algebra/OrderOfOperations.jsx"
+      ],
+      "files_modified": [
+        "backend/aqueous-eyrie-54478/services/lessonProcessors/index.js",
+        "backend/aqueous-eyrie-54478/config/lessonConfigs/index.js",
+        "frontends/lessons/src/features/lessons/DataLesson.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/algebra/index.js",
+        "backend/aqueous-eyrie-54478/data/helperFunctions/getLessonDataInitial.js"
+      ]
+    }
+  ],
+  "last_updated": "2026-02-18T00:00:00Z",
   "description": "Active conversations less than 7 days old"
 }

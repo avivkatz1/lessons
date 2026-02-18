@@ -127,17 +127,48 @@ This document describes the multi-bot orchestration system for automated lesson 
 
 **Workflow File:** `/context/workflows/create_lesson.json`
 
+**New Directories:**
+```
+/docs/
+  /bots/core/           - 5 core bot definitions
+  /bots/specialized/    - 15 specialized bot definitions
+  /bots/meta/           - 3 meta bot definitions
+  /guides/              - 8 active documentation files
+  /archived/            - (empty - for future deprecated docs)
+
+/context/
+  project.json          - Lightweight project metadata
+  /conversations/
+    active.json         - Current conversations (<7 days)
+    important.json      - Flagged permanent conversations
+    archived_2026-02.json - February 2026 archive
+    cleanup_queue.json  - Pending deletion review
+  /workflows/
+    create_lesson.json  - Lesson creation workflow
+    fix_bug.json        - Bug fixing workflow
+    add_feature.json    - Feature implementation workflow
+```
+
+**GET HELP WHEN NEEDED**
+At any stage you might need to use one of the core, specialized or meta bots, or any of the guides.  You can go to current conversations too if you want to see what is happening.  Make sure you write in conversations and tag any specialist or any other bot if you believe they might be helpful.
+
+**DOCUMENTATION**
+Head to frontends/lessons/context/conversations/active.json to write down anything to other bots
+
 **Stages:**
 1. **Planning & Design** (Architect)
    - Prompt user with any questions to help with plan, or anytime during process
    - Review similar lessons
    - Define data contract
-   - Create implementation plan
+   - Create implementation plan for this lesson and potential levels
+   - Be mindful of creating good lessons for struggling learners
+   - Go to guides/LESSON_DEVELOPMENT_CHECKLIST.md for direction
 
 2. **Backend Implementation** (Backend Specialist)
    - Create data generator
    - Implement validation
    - Generate test data
+   - Go to ../RESTRUCTURING_SUMMARY.md
 
 3. **Frontend Implementation** (Lesson Developer)
    - Prompt user with any questions to help with plan before start, or anytime during process

@@ -152,6 +152,12 @@ const NamingAnglesLevelOne = lazy(() =>
 const NamingAnglesLevelTwo = lazy(() =>
   import("../lessons/lessonTypes/angles/index").then((m) => ({ default: m.NamingAnglesLevelTwo }))
 );
+const NamingAnglesLevelThree = lazy(() =>
+  import("../lessons/lessonTypes/angles/index").then((m) => ({ default: m.NamingAnglesLevelThree }))
+);
+const NamingAnglesLevelFour = lazy(() =>
+  import("../lessons/lessonTypes/angles/index").then((m) => ({ default: m.NamingAnglesLevelFour }))
+);
 
 // Image lesson components
 const ImageLesson = lazy(() =>
@@ -181,6 +187,27 @@ const VennDiagram = lazy(() =>
 );
 const MessAround = lazy(() =>
   import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.MessAround }))
+);
+const SystemOfEquationsL1 = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.SystemOfEquationsL1 }))
+);
+const SystemOfEquationsL2 = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.SystemOfEquationsL2 }))
+);
+const SystemOfEquationsL3 = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.SystemOfEquationsL3 }))
+);
+const SystemOfEquationsL4 = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.SystemOfEquationsL4 }))
+);
+const SystemOfEquationsL5 = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.SystemOfEquationsL5 }))
+);
+const Rounding = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.Rounding }))
+);
+const OrderOfOperations = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.OrderOfOperations }))
 );
 
 // Export lesson configuration
@@ -232,7 +259,7 @@ export const DataLesson = {
   },
   naming_angles: {
     lessonImage: naming_angles,
-    LessonComponent: [NamingAnglesLevelOne, NamingAnglesLevelTwo, BasicProblemsWordsOnly],
+    LessonComponent: [NamingAnglesLevelOne, NamingAnglesLevelTwo, NamingAnglesLevelThree, NamingAnglesLevelFour],
   },
   patterns: {
     lessonImage: patterns,
@@ -344,7 +371,13 @@ export const DataLesson = {
   },
   system_of_equations: {
     lessonImage: system_of_equations,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      SystemOfEquationsL1, // Level 1: Graphical method (Konva graph)
+      SystemOfEquationsL2, // Level 2: Easy elimination (same coefficient)
+      SystemOfEquationsL3, // Level 3: Substitution (y already solved)
+      SystemOfEquationsL4, // Level 4: Harder (elimination w/ mult or substitution w/ rearranging)
+      SystemOfEquationsL5, // Level 5: Word problems
+    ],
   },
   inverse_trig: {
     lessonImage: inverse_trig,
@@ -360,7 +393,12 @@ export const DataLesson = {
   },
   order_of_operations: {
     lessonImage: order_of_operations,
-    LessonComponent: [Evaluating],
+    LessonComponent: [
+      OrderOfOperations,  // Level 1: Click operators (+ × only, no parens)
+      OrderOfOperations,  // Level 2: Click operators (all 4 ops, with parens)
+      OrderOfOperations,  // Level 3: Click operators (parens + exponents)
+      OrderOfOperations,  // Level 4: Type the final answer
+    ],
   },
   evaluating_expressions: {
     lessonImage: evaluating_expressions,
@@ -388,7 +426,12 @@ export const DataLesson = {
   },
   rounding: {
     lessonImage: rounding,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      Rounding, // Level 1: Whole number rounding
+      Rounding, // Level 2: Decimal rounding
+      Rounding, // Level 3: Mixed + extended
+      Rounding, // Level 4: Word problems
+    ],
   },
   adding_fractions: {
     lessonImage: adding_fractions,

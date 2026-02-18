@@ -9,18 +9,13 @@ const InstructionComponent = () => {
     return state.lesson.lessonProps.level;
   });
 
-  // If no instruction data, show default message
-  if (!instruction) {
-    return (
-      <Wrapper>
-        <p>{"explore"}</p>
-      </Wrapper>
-    );
-  }
+  const text = instruction?.[level]?.text;
+
+  if (!text) return null;
 
   return (
     <Wrapper>
-      <p>{instruction[level]?.text}</p>
+      <p>{text}</p>
     </Wrapper>
   );
 };

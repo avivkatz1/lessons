@@ -15,7 +15,7 @@ import {
 import { useParams } from "react-router-dom";
 import LessonHeader from "../components/LessonHeader";
 import lessonContext from "../../../api/lessonContext";
-// Removed InstructionComponent import - no longer used to save vertical space
+import InstructionComponent from "../../../shared/components/InstructionComponent";
 import { getCurrentDimensions } from "../../../shared/helpers/functions/getScreenSize";
 import LessonErrorBoundary from "../../../shared/components/LessonErrorBoundary";
 import { logBatchStatus, logLessonResponse } from "../../../utils/batchDebug";
@@ -253,7 +253,7 @@ function LessonGeneral() {
         />
       </div>
 
-      {/* Removed InstructionComponent to save vertical space on iPad */}
+      <InstructionComponent />
 
       {/* <div className="hint-container">
         {hints?.map((hint, index) => {
