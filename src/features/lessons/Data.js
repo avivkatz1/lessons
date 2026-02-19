@@ -180,7 +180,6 @@ export const Data = {
         "parallel",
         "perpendicular",
         "rotational symmetry",
-        "reflection symmetry",
         "basic probability",
         "venn diagrams",
       ],
@@ -212,11 +211,6 @@ export const Data = {
           src: rotational_symmetry,
           text: "rotational_symmetry",
           label: "rotational symmetry",
-        },
-        {
-          src: reflection_symmetry,
-          text: "reflection_symmetry",
-          label: "reflection symmetry",
         },
         {
           src: basic_probability,

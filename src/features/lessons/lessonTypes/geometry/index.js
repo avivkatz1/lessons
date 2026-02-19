@@ -9,7 +9,6 @@ import PythagoreanTheorem from "./PythagoreanTheorem";
 import Dilation from "./Dilation";
 import Translation from "./Translation";
 import Reflection from "./Reflection";
-import ReflectionSymmetry from "./ReflectionSymmetry";
 import RotationalSymmetry from "./RotationalSymmetry";
 import Shapes from "./Shapes";
 import GenericShape from "./GenericShape";
@@ -38,7 +37,6 @@ export {
   Dilation,
   Translation,
   Reflection,
-  ReflectionSymmetry,
   RotationalSymmetry,
   Shapes,
   GenericShape,

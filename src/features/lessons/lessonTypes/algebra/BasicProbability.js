@@ -1,198 +1,485 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import styled from "styled-components";
+import { useLessonState } from "../../../../hooks";
 import { useWindowDimensions, useKonvaTheme } from "../../../../hooks";
-import { Stage, Layer, RegularPolygon, Text, Rect } from "react-konva";
+import { AnswerInput } from "../../../../shared/components";
+import { Stage, Layer, Rect, Circle, Text, Line, Wedge, Group } from "react-konva";
 
-const numShapes = 10;
+// ==================== KONVA SUB-RENDERERS ====================
 
-/**
- * BasicProbability - Interactive probability visualization
- * Students observe random patterns and see probability expressed in three formats
- * Demonstrates fraction, percentage, and decimal representations of probability
- */
-function BasicProbability({ triggerNewProblem }) {
-  const { width } = useWindowDimensions();
-  const konvaTheme = useKonvaTheme();
+// Pip layouts for die faces (normalized 0-1 coordinates)
+const PIP_LAYOUTS = {
+  "1": [[0.5, 0.5]],
+  "2": [[0.25, 0.25], [0.75, 0.75]],
+  "3": [[0.25, 0.25], [0.5, 0.5], [0.75, 0.75]],
+  "4": [[0.25, 0.25], [0.75, 0.25], [0.25, 0.75], [0.75, 0.75]],
+  "5": [[0.25, 0.25], [0.75, 0.25], [0.5, 0.5], [0.25, 0.75], [0.75, 0.75]],
+  "6": [[0.25, 0.25], [0.75, 0.25], [0.25, 0.5], [0.75, 0.5], [0.25, 0.75], [0.75, 0.75]],
+};
 
-  // Generate initial random pattern
-  const generatePattern = () =>
-    [...Array(numShapes)].map(() => (Math.random() > 0.4 ? "red" : "white"));
+function MarbleBagVisual({ visualData, canvasWidth, canvasHeight, konvaTheme }) {
+  const { marbles, targetColor, targetHex, total } = visualData;
 
-  const [fillPattern, setFillPattern] = useState(generatePattern);
-  const [showHint, setShowHint] = useState(false);
+  const bagPadding = 30;
+  const bagWidth = canvasWidth - bagPadding * 2;
+  const bagHeight = canvasHeight - 80;
+  const bagX = bagPadding;
+  const bagY = 20;
 
-  // Calculate red count from current pattern
-  const redCount = fillPattern.filter(color => color === "red").length;
+  // Grid layout for marbles
+  const cols = Math.ceil(Math.sqrt(total * 1.5));
+  const rows = Math.ceil(total / cols);
+  const marbleRadius = Math.min(22, (bagWidth - 40) / (cols * 2.8));
+  const spacingX = (bagWidth - 40) / (cols + 1);
+  const spacingY = (bagHeight - 40) / (rows + 1);
 
-  const changeFill = () => {
-    setFillPattern(generatePattern());
-    setShowHint(false);
+  return (
+    <>
+      {/* Bag body */}
+      <Rect
+        x={bagX}
+        y={bagY}
+        width={bagWidth}
+        height={bagHeight}
+        cornerRadius={20}
+        fill={konvaTheme.canvasBackground}
+        stroke={konvaTheme.shapeStroke}
+        strokeWidth={3}
+        opacity={0.9}
+      />
+      {/* Bag opening */}
+      <Line
+        points={[bagX + 30, bagY, bagX + bagWidth - 30, bagY]}
+        stroke={konvaTheme.shapeStroke}
+        strokeWidth={4}
+        lineCap="round"
+      />
+
+      {/* Marbles */}
+      {marbles.map((marble, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const mx = bagX + 20 + spacingX * (col + 1);
+        const my = bagY + 20 + spacingY * (row + 1);
+        const isTarget = marble.color === targetColor;
+
+        return (
+          <Circle
+            key={i}
+            x={mx}
+            y={my}
+            radius={marbleRadius}
+            fill={marble.hex}
+            opacity={0.85}
+            stroke={isTarget ? targetHex : konvaTheme.shapeStroke}
+            strokeWidth={isTarget ? 3 : 1}
+          />
+        );
+      })}
+
+      {/* Legend */}
+      {(() => {
+        const counts = visualData.counts;
+        const colors = Object.keys(counts);
+        const legendY = bagY + bagHeight + 15;
+        const legendWidth = colors.length * 100;
+        const startX = canvasWidth / 2 - legendWidth / 2;
+
+        return colors.map((color, i) => (
+          <Group key={color}>
+            <Circle
+              x={startX + i * 100 + 10}
+              y={legendY}
+              radius={8}
+              fill={visualData.marbles.find((m) => m.color === color)?.hex || "#999"}
+            />
+            <Text
+              x={startX + i * 100 + 22}
+              y={legendY - 7}
+              text={`${color}: ${counts[color]}`}
+              fontSize={13}
+              fill={konvaTheme.labelText}
+            />
+          </Group>
+        ));
+      })()}
+    </>
+  );
+}
+
+function SpinnerVisual({ visualData, canvasWidth, canvasHeight, konvaTheme }) {
+  const { sections, numSections, targetColor, targetHex } = visualData;
+
+  const centerX = canvasWidth / 2;
+  const centerY = canvasHeight / 2 + 10;
+  const spinnerRadius = Math.min(140, (canvasHeight - 80) / 2);
+
+  return (
+    <>
+      {/* Wedge sections */}
+      {sections.map((section, i) => (
+        <Wedge
+          key={i}
+          x={centerX}
+          y={centerY}
+          radius={spinnerRadius}
+          angle={section.sweepAngle}
+          rotation={section.startAngle - 90}
+          fill={section.hex}
+          opacity={section.color === targetColor ? 0.85 : 0.5}
+          stroke={konvaTheme.shapeStroke}
+          strokeWidth={2}
+        />
+      ))}
+
+      {/* Divider lines */}
+      {sections.map((section, i) => {
+        const angleRad = ((section.startAngle - 90) * Math.PI) / 180;
+        const endX = centerX + Math.cos(angleRad) * spinnerRadius;
+        const endY = centerY + Math.sin(angleRad) * spinnerRadius;
+        return (
+          <Line
+            key={`div-${i}`}
+            points={[centerX, centerY, endX, endY]}
+            stroke={konvaTheme.shapeStroke}
+            strokeWidth={2}
+          />
+        );
+      })}
+
+      {/* Center hub */}
+      <Circle
+        x={centerX}
+        y={centerY}
+        radius={8}
+        fill={konvaTheme.shapeStroke}
+      />
+
+      {/* Pointer at top */}
+      <Line
+        points={[
+          centerX,
+          centerY - spinnerRadius - 18,
+          centerX - 10,
+          centerY - spinnerRadius - 4,
+          centerX + 10,
+          centerY - spinnerRadius - 4,
+        ]}
+        fill={konvaTheme.shapeStroke}
+        closed
+      />
+
+      {/* Section labels */}
+      {sections.map((section, i) => {
+        const midAngle = section.startAngle + section.sweepAngle / 2 - 90;
+        const midRad = (midAngle * Math.PI) / 180;
+        const labelDist = spinnerRadius * 0.65;
+        const lx = centerX + Math.cos(midRad) * labelDist;
+        const ly = centerY + Math.sin(midRad) * labelDist;
+        return (
+          <Text
+            key={`lbl-${i}`}
+            x={lx - 15}
+            y={ly - 7}
+            width={30}
+            align="center"
+            text={section.color.charAt(0).toUpperCase()}
+            fontSize={14}
+            fontStyle="bold"
+            fill={konvaTheme.canvasBackground}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+function CoinVisual({ x, y, radius, outcome, isTarget, konvaTheme }) {
+  return (
+    <Group>
+      <Circle
+        x={x}
+        y={y}
+        radius={radius}
+        fill="#F59E0B"
+        stroke={isTarget ? "#EF4444" : konvaTheme.shapeStroke}
+        strokeWidth={isTarget ? 4 : 2}
+      />
+      <Text
+        x={x - radius * 0.35}
+        y={y - radius * 0.4}
+        text={outcome === "heads" ? "H" : "T"}
+        fontSize={radius * 0.8}
+        fontStyle="bold"
+        fill="#78350F"
+      />
+    </Group>
+  );
+}
+
+function DieVisual({ x, y, size, outcome, isTarget, konvaTheme }) {
+  const pips = PIP_LAYOUTS[outcome] || PIP_LAYOUTS["1"];
+  const pipRadius = size * 0.07;
+
+  return (
+    <Group>
+      <Rect
+        x={x}
+        y={y}
+        width={size}
+        height={size}
+        fill={konvaTheme.canvasBackground}
+        stroke={isTarget ? "#EF4444" : konvaTheme.shapeStroke}
+        strokeWidth={isTarget ? 4 : 2}
+        cornerRadius={8}
+      />
+      {pips.map(([px, py], i) => (
+        <Circle
+          key={i}
+          x={x + px * size}
+          y={y + py * size}
+          radius={pipRadius}
+          fill={konvaTheme.shapeStroke}
+        />
+      ))}
+    </Group>
+  );
+}
+
+function IndependentEventsVisual({ visualData, canvasWidth, canvasHeight, konvaTheme }) {
+  const { event1, event2 } = visualData;
+
+  const halfW = canvasWidth / 2;
+  const centerY = canvasHeight / 2;
+
+  const renderEvent = (evt, cx, cy) => {
+    if (evt.type === "coin") {
+      return (
+        <CoinVisual
+          x={cx}
+          y={cy}
+          radius={50}
+          outcome={evt.outcome}
+          isTarget
+          konvaTheme={konvaTheme}
+        />
+      );
+    }
+    // die
+    const dieSize = 90;
+    return (
+      <DieVisual
+        x={cx - dieSize / 2}
+        y={cy - dieSize / 2}
+        size={dieSize}
+        outcome={evt.outcome}
+        isTarget
+        konvaTheme={konvaTheme}
+      />
+    );
   };
 
-  const canvasWidth = Math.min(width - 40, 900);
-  const canvasHeight = 300;
+  return (
+    <>
+      {renderEvent(event1, halfW / 2, centerY)}
 
-  const hint = "Observe the probability of getting a red shape!";
+      {/* "AND" label */}
+      <Text
+        x={halfW - 25}
+        y={centerY - 12}
+        text="AND"
+        fontSize={20}
+        fontStyle="bold"
+        fill={konvaTheme.labelText}
+        width={50}
+        align="center"
+      />
+
+      {renderEvent(event2, halfW + halfW / 2, centerY)}
+
+      {/* Probability labels underneath */}
+      <Text
+        x={halfW / 2 - 30}
+        y={centerY + 65}
+        text={`P = 1/${event1.total}`}
+        fontSize={16}
+        fill={konvaTheme.labelText}
+        width={60}
+        align="center"
+      />
+      <Text
+        x={halfW + halfW / 2 - 30}
+        y={centerY + 65}
+        text={`P = 1/${event2.total}`}
+        fontSize={16}
+        fill={konvaTheme.labelText}
+        width={60}
+        align="center"
+      />
+    </>
+  );
+}
+
+// ==================== LEVEL CONFIG ====================
+
+const LEVEL_INFO = {
+  1: { title: "Marbles in a Bag", instruction: "Express the probability as a fraction." },
+  2: { title: "Spinner Probability", instruction: "Count the colored sections and express the probability as a fraction." },
+  3: { title: "Complementary Events", instruction: "Find the probability of the event NOT happening." },
+  4: { title: "Two Independent Events", instruction: "Multiply the individual probabilities." },
+  5: { title: "Word Problems", instruction: "Read carefully and express the probability as a fraction." },
+};
+
+// ==================== MAIN COMPONENT ====================
+
+function BasicProbability({ triggerNewProblem }) {
+  const {
+    lessonProps,
+    showAnswer,
+    revealAnswer,
+    hideAnswer,
+    questionAnswerArray,
+    currentQuestionIndex,
+  } = useLessonState();
+
+  const { width } = useWindowDimensions();
+  const konvaTheme = useKonvaTheme();
+  const [showHint, setShowHint] = useState(false);
+
+  const currentProblem = questionAnswerArray?.[currentQuestionIndex] || lessonProps;
+  const visualData = currentProblem?.visualData || {};
+  const { level, type } = visualData;
+
+  const hint = currentProblem?.hint || "";
+  const explanation = currentProblem?.explanation || "";
+  const question = currentProblem?.question;
+
+  const correctAnswer = useMemo(() => {
+    if (currentProblem?.acceptedAnswers?.length > 0) return currentProblem.acceptedAnswers;
+    if (Array.isArray(currentProblem?.answer)) return currentProblem.answer;
+    return [String(currentProblem?.answer || "")];
+  }, [currentProblem?.answer, currentProblem?.acceptedAnswers]);
+
+  const handleTryAnother = () => {
+    setShowHint(false);
+    triggerNewProblem();
+    hideAnswer();
+  };
+
+  const levelInfo = LEVEL_INFO[level] || LEVEL_INFO[1];
+  const canvasWidth = Math.min(width - 40, 600);
+  const canvasHeight = type === "independent_events" ? 280 : type === "spinner" ? 380 : 320;
+  const showCanvas = type !== "word_problem";
+
+  const renderVisual = () => {
+    switch (type) {
+      case "marbles":
+        return (
+          <MarbleBagVisual
+            visualData={visualData}
+            canvasWidth={canvasWidth}
+            canvasHeight={canvasHeight}
+            konvaTheme={konvaTheme}
+          />
+        );
+      case "spinner":
+        return (
+          <SpinnerVisual
+            visualData={visualData}
+            canvasWidth={canvasWidth}
+            canvasHeight={canvasHeight}
+            konvaTheme={konvaTheme}
+          />
+        );
+      case "independent_events":
+        return (
+          <IndependentEventsVisual
+            visualData={visualData}
+            canvasWidth={canvasWidth}
+            canvasHeight={canvasHeight}
+            konvaTheme={konvaTheme}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <Wrapper>
-      {/* TopHintButton - Fixed position top-right */}
-      {!showHint && hint && (
+      {/* TopHintButton */}
+      {!showAnswer && !showHint && hint && (
         <TopHintButton onClick={() => setShowHint(true)}>
           Need a hint?
         </TopHintButton>
       )}
-      {/* 1. QuestionSection - Instructions and probability display */}
+
+      {/* Level Header */}
+      <LevelHeader>
+        <LevelBadge>Level {level}</LevelBadge>
+        <LevelTitle>{levelInfo.title}</LevelTitle>
+      </LevelHeader>
+
+      {/* Question */}
       <QuestionSection>
-        <QuestionText>
-          {/* Question text hidden until hint button clicked */}
-        </QuestionText>
-        <ProbabilityDisplay>
-          <ProbabilityFormat>
-            <ProbabilityLabel>Fraction:</ProbabilityLabel>
-            <ProbabilityValue color="#EF4444">{redCount}/10</ProbabilityValue>
-          </ProbabilityFormat>
-          <ProbabilityFormat>
-            <ProbabilityLabel>Percentage:</ProbabilityLabel>
-            <ProbabilityValue color="#EF4444">{redCount}0%</ProbabilityValue>
-          </ProbabilityFormat>
-          <ProbabilityFormat>
-            <ProbabilityLabel>Decimal:</ProbabilityLabel>
-            <ProbabilityValue color="#EF4444">0.{redCount}</ProbabilityValue>
-          </ProbabilityFormat>
-        </ProbabilityDisplay>
+        <QuestionText>{question?.[0]?.text || ""}</QuestionText>
       </QuestionSection>
 
-      {/* 2. VisualSection - Interactive probability visualization */}
-      <VisualSection>
-        <Stage width={canvasWidth} height={canvasHeight}>
-          <Layer>
-            {/* Background for dark mode */}
-            <Rect
-              x={0}
-              y={0}
-              width={canvasWidth}
-              height={canvasHeight}
-              fill={konvaTheme.canvasBackground}
-            />
-
-            {/* Shape pattern */}
-            {[...Array(numShapes)].map((_, index) => (
-              <RegularPolygon
-                key={index}
-                x={100 + (canvasWidth - 200) * (index / (numShapes - 1))}
-                y={150}
-                fill={fillPattern[index]}
-                opacity={0.6}
-                radius={30}
-                stroke={konvaTheme.shapeStroke}
-                sides={5}
-                strokeWidth={3}
+      {/* Visual Section */}
+      {showCanvas && (
+        <VisualSection>
+          <Stage width={canvasWidth} height={canvasHeight}>
+            <Layer>
+              <Rect
+                x={0}
+                y={0}
+                width={canvasWidth}
+                height={canvasHeight}
+                fill={konvaTheme.canvasBackground}
               />
-            ))}
-          </Layer>
-        </Stage>
-      </VisualSection>
+              {renderVisual()}
+            </Layer>
+          </Stage>
+        </VisualSection>
+      )}
 
-      {/* 3. InteractionSection - Control button */}
+      {/* Interaction Section */}
       <InteractionSection>
-        {showHint && hint && (
-          <HintBox>{hint}</HintBox>
-        )}
-        <ActionButton onClick={changeFill}>
-          Generate New Pattern
-        </ActionButton>
-      </InteractionSection>
+        {showHint && hint && <HintBox>{hint}</HintBox>}
 
-      {/* 4. ExplanationSection - Educational content */}
-      {showHint && <ExplanationSection>
-        <ExplanationTitle>Understanding Basic Probability</ExplanationTitle>
-        <ExplanationText>
-          <strong>Probability</strong> is a measure of how likely an event is to occur. It's expressed as
-          a number between 0 (impossible) and 1 (certain).
-        </ExplanationText>
-        <ExplanationText>
-          <strong>Three ways to express probability:</strong>
-        </ExplanationText>
-        <PropertyList>
-          <li>
-            <strong>Fraction:</strong> {redCount}/10 means {redCount} red shapes out of 10 total shapes
-          </li>
-          <li>
-            <strong>Percentage:</strong> {redCount}0% means {redCount}0 out of every 100 (multiply fraction by 100)
-          </li>
-          <li>
-            <strong>Decimal:</strong> 0.{redCount} is the fraction written in decimal form (divide
-            numerator by denominator)
-          </li>
-        </PropertyList>
-        <ExplanationText>
-          <strong>Key formula:</strong>
-        </ExplanationText>
-        <FormulaBox>
-          Probability = (Number of favorable outcomes) / (Total number of outcomes)
-        </FormulaBox>
-        <ExplanationText>
-          <strong>In this example:</strong>
-        </ExplanationText>
-        <PropertyList>
-          <li>
-            <strong>Favorable outcomes:</strong> {redCount} red shapes (the event we're interested in)
-          </li>
-          <li>
-            <strong>Total outcomes:</strong> 10 shapes total
-          </li>
-          <li>
-            <strong>Probability of red:</strong> {redCount}/10 = {redCount}0% = 0.{redCount}
-          </li>
-          <li>
-            <strong>Probability of white:</strong> {10 - redCount}/10 = {(10 - redCount) * 10}% = 0.{10 - redCount}
-          </li>
-        </PropertyList>
-        <ExplanationText>
-          <strong>Important concepts:</strong>
-        </ExplanationText>
-        <PropertyList>
-          <li>
-            <strong>All probabilities add to 1:</strong> The probability of getting red (0.{redCount}) plus
-            the probability of getting white (0.{10 - redCount}) equals 1.0 (or 100%)
-          </li>
-          <li>
-            <strong>Range:</strong> Probability is always between 0 and 1 (or 0% to 100%)
-          </li>
-          <li>
-            <strong>Complementary events:</strong> If P(red) = 0.{redCount}, then P(not red) = 1 - 0.{redCount} = 0.{10 - redCount}
-          </li>
-        </PropertyList>
-        <ExplanationText>
-          <strong>Converting between formats:</strong>
-        </ExplanationText>
-        <PropertyList>
-          <li>
-            <strong>Fraction to decimal:</strong> Divide the numerator by the denominator ({redCount} ÷ 10 = 0.{redCount})
-          </li>
-          <li>
-            <strong>Decimal to percentage:</strong> Multiply by 100 (0.{redCount} × 100 = {redCount}0%)
-          </li>
-          <li>
-            <strong>Percentage to fraction:</strong> Divide by 100 and simplify ({redCount}0% = {redCount}0/100 = {redCount}/10)
-          </li>
-        </PropertyList>
-      </ExplanationSection>}
+        {!showAnswer && (
+          <AnswerInputContainer>
+            <AnswerInput
+              correctAnswer={correctAnswer}
+              answerType="array"
+              onCorrect={revealAnswer}
+              onTryAnother={handleTryAnother}
+              disabled={showAnswer}
+              placeholder="Enter fraction (e.g. 3/8)"
+            />
+          </AnswerInputContainer>
+        )}
+
+        {showAnswer && (
+          <ExplanationSection>
+            <ExplanationText>{explanation}</ExplanationText>
+          </ExplanationSection>
+        )}
+      </InteractionSection>
     </Wrapper>
   );
 }
 
 export default BasicProbability;
 
-// Styled Components - TangentLesson 5-section layout standard
+// ==================== STYLED COMPONENTS ====================
 
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 1400px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 20px;
   box-sizing: border-box;
@@ -200,260 +487,19 @@ const Wrapper = styled.div`
   @media (min-width: 768px) {
     padding: 30px;
   }
-
-  @media (min-width: 1024px) {
-    padding: 40px;
-  }
-`;
-
-const QuestionSection = styled.div`
-  width: 100%;
-  text-align: center;
-  margin-bottom: 20px;
-
-  @media (min-width: 768px) {
-    margin-bottom: 30px;
-  }
-`;
-
-const QuestionText = styled.p`
-  font-size: 20px;
-  font-weight: 700;
-  color: ${props => props.theme.colors.textPrimary};
-  line-height: 1.6;
-  margin: 0 0 20px 0;
-
-  @media (min-width: 768px) {
-    font-size: 24px;
-  }
-
-  @media (min-width: 1024px) {
-    font-size: 26px;
-  }
-`;
-
-const ProbabilityDisplay = styled.div`
-  display: flex;
-  gap: 30px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 20px;
-`;
-
-const ProbabilityFormat = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-`;
-
-const ProbabilityLabel = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-  color: ${props => props.theme.colors.textSecondary};
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  @media (min-width: 768px) {
-    font-size: 16px;
-  }
-`;
-
-const ProbabilityValue = styled.p`
-  font-size: 32px;
-  font-weight: 700;
-  color: ${props => props.color};
-  margin: 0;
-
-  @media (min-width: 768px) {
-    font-size: 36px;
-  }
-
-  @media (min-width: 1024px) {
-    font-size: 40px;
-  }
-`;
-
-const VisualSection = styled.div`
-  width: 100%;
-  background-color: ${props => props.theme.colors.cardBackground};
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow-x: auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-  @media (min-width: 768px) {
-    padding: 30px;
-    margin-bottom: 30px;
-  }
-
-  @media (min-width: 1024px) {
-    padding: 40px;
-  }
-`;
-
-const InteractionSection = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
-
-  @media (min-width: 768px) {
-    gap: 20px;
-    margin-bottom: 30px;
-  }
-`;
-
-const ActionButton = styled.button`
-  background-color: ${props => props.theme.colors.buttonSuccess};
-  color: ${props => props.theme.colors.textInverted};
-  border: none;
-  border-radius: 8px;
-  padding: 14px 28px;
-  font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    background-color: ${props => props.theme.colors.hoverBackground};
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  @media (min-width: 768px) {
-    font-size: 20px;
-    padding: 16px 32px;
-  }
-
-  @media (min-width: 1024px) {
-    font-size: 22px;
-    padding: 18px 36px;
-  }
-`;
-
-const ExplanationSection = styled.div`
-  width: 100%;
-  background-color: #f0fff4;
-  border-left: 4px solid #68d391;
-  border-radius: 8px;
-  padding: 20px;
-  margin-top: 20px;
-
-  @media (min-width: 768px) {
-    padding: 25px;
-    margin-top: 30px;
-  }
-
-  @media (min-width: 1024px) {
-    padding: 30px;
-  }
-`;
-
-const ExplanationTitle = styled.h3`
-  font-size: 20px;
-  font-weight: 700;
-  color: #2f855a;
-  margin: 0 0 15px 0;
-
-  @media (min-width: 768px) {
-    font-size: 22px;
-    margin-bottom: 20px;
-  }
-
-  @media (min-width: 1024px) {
-    font-size: 24px;
-  }
-`;
-
-const ExplanationText = styled.p`
-  font-size: 16px;
-  color: #2d3748;
-  line-height: 1.6;
-  margin: 0 0 12px 0;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-
-  @media (min-width: 768px) {
-    font-size: 17px;
-    margin-bottom: 15px;
-  }
-
-  @media (min-width: 1024px) {
-    font-size: 18px;
-  }
-`;
-
-const FormulaBox = styled.div`
-  background-color: #e6fffa;
-  border: 2px solid #4299e1;
-  border-radius: 8px;
-  padding: 15px;
-  margin: 15px 0;
-  font-size: 20px;
-  font-weight: 700;
-  text-align: center;
-  color: #2c5282;
-
-  @media (min-width: 768px) {
-    font-size: 22px;
-    padding: 18px;
-  }
-
-  @media (min-width: 1024px) {
-    font-size: 24px;
-    padding: 20px;
-  }
-`;
-
-const PropertyList = styled.ul`
-  margin: 15px 0;
-  padding-left: 20px;
-
-  li {
-    font-size: 16px;
-    color: #2d3748;
-    line-height: 1.8;
-    margin-bottom: 8px;
-
-    @media (min-width: 768px) {
-      font-size: 17px;
-      margin-bottom: 10px;
-    }
-
-    @media (min-width: 1024px) {
-      font-size: 18px;
-    }
-  }
 `;
 
 const TopHintButton = styled.button`
   position: fixed;
   top: 15px;
   right: 20px;
-  margin-bottom: 0;
   z-index: 100;
-  background: ${props => props.theme.colors.cardBackground};
-  border: 2px solid ${props => props.theme.colors.border};
+  background: ${(props) => props.theme.colors.cardBackground};
+  border: 2px solid ${(props) => props.theme.colors.border};
   border-radius: 8px;
   padding: 10px 20px;
   font-size: 15px;
-  color: ${props => props.theme.colors.textSecondary};
+  color: ${(props) => props.theme.colors.textSecondary};
   cursor: pointer;
   transition: all 0.2s;
 
@@ -464,31 +510,109 @@ const TopHintButton = styled.button`
     font-size: 13px;
   }
 
-  @media (max-width: 768px) {
-    top: 10px;
-    right: 12px;
-    padding: 5px 10px;
-    font-size: 12px;
-  }
-
   &:hover {
-    background: ${props => props.theme.colors.hoverBackground};
-    border-color: ${props => props.theme.colors.borderDark};
+    background: ${(props) => props.theme.colors.hoverBackground};
   }
 `;
 
-const HintBox = styled.div`
-  background: #fff5e6;
-  border-left: 4px solid #f6ad55;
-  padding: 12px;
+const LevelHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 16px;
+`;
+
+const LevelBadge = styled.span`
+  background: ${(props) => props.theme.colors.buttonSuccess};
+  color: ${(props) => props.theme.colors.textInverted};
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+`;
+
+const LevelTitle = styled.h2`
+  font-size: 20px;
+  font-weight: 700;
+  color: ${(props) => props.theme.colors.textPrimary};
+  margin: 0;
+
+  @media (min-width: 768px) {
+    font-size: 24px;
+  }
+`;
+
+const QuestionSection = styled.div`
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+`;
+
+const QuestionText = styled.p`
+  font-size: 18px;
+  font-weight: 600;
+  color: ${(props) => props.theme.colors.textPrimary};
+  line-height: 1.6;
+  margin: 0;
+
+  @media (min-width: 768px) {
+    font-size: 22px;
+  }
+`;
+
+const VisualSection = styled.div`
+  width: 100%;
+  background-color: ${(props) => props.theme.colors.cardBackground};
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+`;
+
+const InteractionSection = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+`;
+
+const AnswerInputContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  width: 100%;
+`;
+
+const HintBox = styled.div`
+  background: ${(props) => props.theme.colors.cardBackground};
+  border-left: 4px solid #f6ad55;
+  padding: 12px 16px;
   border-radius: 4px;
   font-size: 15px;
-  color: #744210;
+  color: ${(props) => props.theme.colors.textPrimary};
+  width: 100%;
+  max-width: 500px;
+`;
 
-  @media (max-width: 1024px) {
-    padding: 10px;
-    margin-bottom: 12px;
-    font-size: 14px;
+const ExplanationSection = styled.div`
+  width: 100%;
+  max-width: 600px;
+  background-color: ${(props) => props.theme.colors.cardBackground};
+  border: 2px solid ${(props) => props.theme.colors.buttonSuccess};
+  border-radius: 12px;
+  padding: 20px;
+`;
+
+const ExplanationText = styled.p`
+  font-size: 16px;
+  line-height: 1.6;
+  color: ${(props) => props.theme.colors.textPrimary};
+  margin: 0;
+
+  @media (min-width: 768px) {
+    font-size: 17px;
   }
 `;

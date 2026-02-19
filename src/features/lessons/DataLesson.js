@@ -16,7 +16,6 @@ import {
   rotational_symmetry,
   rotation,
   reflection,
-  reflection_symmetry,
   plotting_points,
   perimeter_area,
   perpendicular,
@@ -71,6 +70,7 @@ import {
   reducing_fractions,
   ruler,
   protractor,
+  reflection_symmetry,
 } from "../../shared/images";
 
 // Phase 2 - Stage 4: Lazy-loaded components
@@ -86,14 +86,11 @@ const Translation = lazy(() =>
 const Reflection = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.Reflection }))
 );
-const ReflectionSymmetry = lazy(() =>
-  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.ReflectionSymmetry }))
+const SymmetryLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.SymmetryLesson }))
 );
 const Symmetry = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.Symmetry }))
-);
-const SymmetryLesson = lazy(() =>
-  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.SymmetryLesson }))
 );
 const SymmetryIdentify = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.SymmetryIdentify }))
@@ -295,10 +292,6 @@ export const DataLesson = {
       Translation,  // Level 5: Complete the rule
     ],
   },
-  rotation: {
-    lessonImage: rotation,
-    LessonComponent: [ImageLesson],
-  },
   reflection: {
     lessonImage: reflection,
     LessonComponent: [
@@ -309,13 +302,19 @@ export const DataLesson = {
       SymmetryLesson,  // Level 5: Diagonal reflection
     ],
   },
-  reflection_symmetry: {
-    lessonImage: reflection_symmetry,
-    LessonComponent: [ReflectionSymmetry],
+  rotation: {
+    lessonImage: rotation,
+    LessonComponent: [ImageLesson],
   },
   basic_probability: {
     lessonImage: basic_probability,
-    LessonComponent: [BasicProbability],
+    LessonComponent: [
+      BasicProbability,  // Level 1: Marbles in a bag
+      BasicProbability,  // Level 2: Spinner
+      BasicProbability,  // Level 3: Complementary events
+      BasicProbability,  // Level 4: Independent events
+      BasicProbability,  // Level 5: Word problems
+    ],
   },
   venn_diagrams: {
     lessonImage: venn_diagram,
