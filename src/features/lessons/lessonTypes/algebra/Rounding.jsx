@@ -51,8 +51,8 @@ function NumberLineVisual({ visualData, theme }) {
         <BoundLabel $pos="right">{formatNumber(upperBound)}</BoundLabel>
         <MidpointLine />
         <NumberMarker style={{ left: `${clampedPercent}%` }}>
-          <MarkerDot />
           <MarkerLabel>{formatNumber(originalNumber)}</MarkerLabel>
+          <MarkerDot />
         </NumberMarker>
       </NumberLineTrack>
     </NumberLineContainer>
@@ -356,7 +356,7 @@ const NumberLineContainer = styled.div`
   width: 100%;
   max-width: 500px;
   margin: 12px auto;
-  padding: 28px 20px 24px;
+  padding: 36px 20px 24px;
 `;
 
 const NumberLineTrack = styled.div`
@@ -378,7 +378,7 @@ const BoundLabel = styled.span`
 
 const NumberMarker = styled.div`
   position: absolute;
-  top: -8px;
+  bottom: -8px;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
@@ -398,7 +398,7 @@ const MarkerLabel = styled.span`
   font-size: 13px;
   font-weight: 700;
   color: ${props => props.theme.colors.info || '#3B82F6'};
-  margin-top: 4px;
+  margin-bottom: 4px;
   white-space: nowrap;
 `;
 

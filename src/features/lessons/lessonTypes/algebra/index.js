@@ -19,6 +19,7 @@ import {
 } from "./SystemOfEquations";
 import Rounding from "./Rounding";
 import OrderOfOperations from "./OrderOfOperations";
+import AddingFractions from "./AddingFractions";
 
 // Alias for backwards compatibility
 const BasicProblemsWordsOnly = BasicProblemWordsOnly;
@@ -44,4 +45,5 @@ export {
   SystemOfEquationsL5,
   Rounding,
   OrderOfOperations,
+  AddingFractions,
 };

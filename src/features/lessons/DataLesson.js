@@ -89,6 +89,15 @@ const Reflection = lazy(() =>
 const ReflectionSymmetry = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.ReflectionSymmetry }))
 );
+const Symmetry = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.Symmetry }))
+);
+const SymmetryLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.SymmetryLesson }))
+);
+const SymmetryIdentify = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.SymmetryIdentify }))
+);
 const CompositeShape = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.CompositeShape }))
 );
@@ -209,6 +218,9 @@ const Rounding = lazy(() =>
 const OrderOfOperations = lazy(() =>
   import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.OrderOfOperations }))
 );
+const AddingFractions = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.AddingFractions }))
+);
 
 // Export lesson configuration
 // Components are lazy-loaded arrays - will be loaded on-demand
@@ -289,7 +301,13 @@ export const DataLesson = {
   },
   reflection: {
     lessonImage: reflection,
-    LessonComponent: [Reflection],
+    LessonComponent: [
+      SymmetryLesson,  // Level 1: Vertical reflection
+      SymmetryLesson,  // Level 2: Horizontal reflection
+      SymmetryLesson,  // Level 3: Combined
+      SymmetryLesson,  // Level 4: Plotting coordinates
+      SymmetryLesson,  // Level 5: Diagonal reflection
+    ],
   },
   reflection_symmetry: {
     lessonImage: reflection_symmetry,
@@ -301,7 +319,13 @@ export const DataLesson = {
   },
   venn_diagrams: {
     lessonImage: venn_diagram,
-    LessonComponent: [VennDiagram],
+    LessonComponent: [
+      VennDiagram,  // Level 1: 2-circle drag, 4 items (easy)
+      VennDiagram,  // Level 2: 2-circle drag, 6 items (harder)
+      VennDiagram,  // Level 3: Pre-filled, answer questions
+      VennDiagram,  // Level 4: 3-circle drag
+      VennDiagram,  // Level 5: Set notation
+    ],
   },
   area: {
     lessonImage: perimeter_area,
@@ -313,7 +337,13 @@ export const DataLesson = {
   },
   symmetry: {
     lessonImage: reflection_symmetry,
-    LessonComponent: [ImageLesson],
+    LessonComponent: [
+      SymmetryIdentify,  // Level 1: Yes/No on letters
+      SymmetryIdentify,  // Level 2: Drag line
+      SymmetryIdentify,  // Level 3: Count lines
+      SymmetryIdentify,  // Level 4: Drag line (hard)
+      SymmetryIdentify,  // Level 5: Complete shape
+    ],
   },
   same_side_interior_angles: {
     lessonImage: same_side_interior_angles,
@@ -435,7 +465,12 @@ export const DataLesson = {
   },
   adding_fractions: {
     lessonImage: adding_fractions,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      AddingFractions,  // Level 1: Same denominator
+      AddingFractions,  // Level 2: One denom is a multiple
+      AddingFractions,  // Level 3: Different denominators (LCD)
+      AddingFractions,  // Level 4: Word problems
+    ],
   },
   multiplying_fractions: {
     lessonImage: multiplying_fractions,

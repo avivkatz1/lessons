@@ -20,6 +20,8 @@ import MoreTangentLesson from "./MoreTangentLesson";
 import SlopeTriangles from "./SlopeTriangles";
 import Proportions from "./Proportions";
 import InverseTrig from "./InverseTrig";
+import SymmetryLesson from "./SymmetryLesson";
+import SymmetryIdentify from "./SymmetryIdentify";
 
 // Export with alias for backwards compatibility
 const SlopeTriangle = SlopeTriangles;
@@ -48,4 +50,6 @@ export {
   SlopeTriangle,
   Proportions,
   InverseTrig,
+  SymmetryLesson,
+  SymmetryIdentify,
 };

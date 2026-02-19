@@ -1,3 +1,4 @@
+
 # Geometry Lessons Layout Audit Report
 
 **Audit Date:** 2026-02-16
