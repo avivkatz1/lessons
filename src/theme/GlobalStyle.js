@@ -14,4 +14,16 @@ export const GlobalStyle = createGlobalStyle`
     min-height: 100vh;
     transition: background-color 0.3s ease;
   }
+
+  /* Touch device optimizations */
+  @media (pointer: coarse) {
+    button {
+      touch-action: manipulation;
+    }
+
+    canvas {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+  }
 `;

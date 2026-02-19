@@ -317,6 +317,9 @@ const VisualSection = styled.div`
   border-radius: 12px;
   padding: 16px;
   overflow-x: auto;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 
   @media (max-width: 1024px) {
     margin: 16px 0;

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import numbers from "../helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
+import TouchDragHandle from "./TouchDragHandle";
 import halfwayPoint from "./halfwayPoint";
 import slope from "./slope";
 import intersectionTwoLines from "./intersectionTwoLines";
@@ -69,16 +70,31 @@ const MovablePointsAndLines = ({ points, changePosition, handleShapeMoving }) =>
   return (
     <>
       {newPoints.map((p, i) => {
+        if (i < 2) {
+          return (
+            <TouchDragHandle
+              key={i}
+              id={i}
+              radius={6}
+              stroke={"black"}
+              x={p.x}
+              y={p.y}
+              fill="red"
+              onDragMove={changePosition}
+              affordanceColor="red"
+            />
+          );
+        }
         return (
           <Circle
+            key={i}
             id={i}
-            radius={i < 2 ? 6 : 4}
+            radius={4}
             stroke={"black"}
             x={p.x}
             y={p.y}
-            fill={i < 2 ? "red" : i == 2 ? "green" : "yellow"}
-            draggable={i < 2 ? true : false}
-            onDragMove={changePosition}
+            fill={i === 2 ? "green" : "yellow"}
+            draggable={false}
           />
         );
       })}

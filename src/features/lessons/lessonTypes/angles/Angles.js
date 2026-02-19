@@ -3,6 +3,7 @@ import { useLessonState, useWindowDimensions } from "../../../../hooks";
 import styled from "styled-components";
 import numbers from "../../../../shared/helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
+import TouchDragHandle from "../../../../shared/helpers/TouchDragHandle";
 
 const randomNum = (max = 5) => {
   return Math.floor(Math.random() * max);
@@ -101,7 +102,7 @@ function Angles({ triggerNewProblem }) {
             />
             {points.map((p, i) => {
               return (
-                <Circle
+                <TouchDragHandle
                   key={i}
                   id={i}
                   radius={4}
@@ -110,8 +111,8 @@ function Angles({ triggerNewProblem }) {
                   x={p.x}
                   y={p.y}
                   fill={i === 1 ? "red" : "black"}
-                  draggable={true}
                   onDragMove={changePosition}
+                  affordanceColor={i === 1 ? "red" : "black"}
                 />
               );
             })}
@@ -198,6 +199,9 @@ const VisualSection = styled.div`
   border-radius: 12px;
   padding: 16px;
   overflow-x: auto;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 
   @media (max-width: 1024px) {
     margin: 16px 0;

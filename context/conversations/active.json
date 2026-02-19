@@ -1,4 +1,4 @@
-{
+let'{
   "conversations": [
     {
       "id": "soe-review-2026-02-17",
@@ -98,6 +98,111 @@
         "frontends/lessons/src/features/lessons/DataLesson.js",
         "frontends/lessons/src/features/lessons/lessonTypes/algebra/index.js",
         "backend/aqueous-eyrie-54478/data/helperFunctions/getLessonDataInitial.js"
+      ]
+    }
+    ,
+    {
+      "id": "venn-diagrams-2026-02-18",
+      "title": "Venn Diagrams — 5-Level Interactive Lesson with Answer Checking",
+      "started": "2026-02-18T00:00:00Z",
+      "status": "completed",
+      "participants": ["engineer", "backend_specialist", "lesson_developer"],
+      "summary": "Rewrote Venn Diagrams from a single free-form exploration into a 5-level graded lesson. L1-2: 2-circle drag with answer checking (4 and 6 items). L3: pre-filled Venn with counting questions. L4: 3-circle drag (8 zones). L5: set notation with probability fractions.",
+      "changes": [
+        "Created backend generator: vennDiagramGenerator.js — 16 L1 templates, 15 L2 templates, 8 L3/L5 themes with name pools, 10 L4 3-circle templates, counting + set notation question builders, fraction simplification",
+        "Updated backend config: venn_diagrams.config.js — skipSteps [3,5,6,7,8,9,10,11], customDataGeneration enabled for 5 levels with batchSize 10",
+        "Registered generator in lessonProcessors/index.js",
+        "Rewrote frontend component: VennDiagram.js — 3 modes (drag/questions/notation), Konva canvas with zone detection geometry (2-circle + 3-circle), answer checking with green/red feedback, AnswerInput for typed levels, theme-aware",
+        "Updated DataLesson.js and getLessonDataInitial.js for 5 levels"
+      ],
+      "files_created": [
+        "backend/aqueous-eyrie-54478/services/lessonProcessors/questions/vennDiagramGenerator.js"
+      ],
+      "files_modified": [
+        "backend/aqueous-eyrie-54478/config/lessonConfigs/venn_diagrams.config.js",
+        "backend/aqueous-eyrie-54478/services/lessonProcessors/index.js",
+        "backend/aqueous-eyrie-54478/data/helperFunctions/getLessonDataInitial.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/algebra/VennDiagram.js",
+        "frontends/lessons/src/features/lessons/DataLesson.js"
+      ]
+    },
+    {
+      "id": "basic-probability-2026-02-18",
+      "title": "Basic Probability — 5-Level Interactive Lesson",
+      "started": "2026-02-18T00:00:00Z",
+      "status": "completed",
+      "participants": ["engineer", "backend_specialist", "lesson_developer"],
+      "summary": "Created 5-level basic probability lesson. L1: marbles in bag, L2: spinner, L3: complementary events (P(NOT x)), L4: two independent events (coin+die), L5: word problems. All levels accept both simplified and unsimplified fraction answers.",
+      "files_created": [
+        "backend/aqueous-eyrie-54478/services/lessonProcessors/questions/basicProbabilityGenerator.js"
+      ],
+      "files_modified": [
+        "backend/aqueous-eyrie-54478/config/lessonConfigs/basic_probability.config.js",
+        "backend/aqueous-eyrie-54478/services/lessonProcessors/index.js",
+        "backend/aqueous-eyrie-54478/data/helperFunctions/getLessonDataInitial.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/algebra/BasicProbability.js",
+        "frontends/lessons/src/features/lessons/DataLesson.js"
+      ]
+    },
+    {
+      "id": "remove-reflection-symmetry-2026-02-18",
+      "title": "Remove Reflection Symmetry Lesson",
+      "started": "2026-02-18T00:00:00Z",
+      "status": "completed",
+      "participants": ["engineer"],
+      "summary": "Removed reflection_symmetry lesson (redundant with symmetry). Kept reflection lesson intact and reflection_symmetry.png image (used by symmetry and mess_around).",
+      "files_deleted": [
+        "backend/aqueous-eyrie-54478/config/lessonConfigs/reflection_symmetry.config.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/geometry/ReflectionSymmetry.js"
+      ],
+      "files_modified": [
+        "backend/aqueous-eyrie-54478/config/lessonConfigs/index.js",
+        "backend/aqueous-eyrie-54478/data/helperFunctions/getLessonDataInitial.js",
+        "frontends/lessons/src/features/lessons/Data.js",
+        "frontends/lessons/src/features/lessons/DataLesson.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/geometry/index.js"
+      ]
+    },
+    {
+      "id": "ipad-optimization-2026-02-18",
+      "title": "iPad Optimization — Touch-Friendly Inputs & Drag Handles",
+      "started": "2026-02-18T00:00:00Z",
+      "status": "completed",
+      "participants": ["architect", "engineer", "konva_specialist", "react_specialist"],
+      "github_issue": "https://github.com/avivkatz1/lessons/issues/20",
+      "summary": "iPad touch optimization complete across 5 phases. Phase 1: Created useIsTouchDevice hook, MathKeypad bottom-sheet with stacked fraction display, integrated into AnswerInput (34 consumers get it free). Phase 2: Created TouchDragHandle (22px invisible hit area + affordance ring), updated all 6 MovablePointsAndLines variants + 6 individual lessons (Angles, TriangleInequality, Symmetry, Symmetry2, Translation, Reflection). Phase 3: VennDiagram chips 1.3x larger on touch, zone tolerance 30px, touch-action CSS. Phase 4: Snap-to-grid on Translation.js for touch devices. Phase 5: Safari viewport meta (maximum-scale=1), global touch-action:manipulation on buttons, scroll-into-view when keypad opens.",
+      "tags": ["@konva_specialist", "@react_specialist", "@architect"],
+      "phases_completed": [
+        "Phase 1: useIsTouchDevice hook + MathKeypad + FractionDisplay + AnswerInput integration",
+        "Phase 2: TouchDragHandle component + 6 MovablePointsAndLines + 6 lesson updates",
+        "Phase 3: VennDiagram touch optimization + touchAction CSS on all Stage wrappers",
+        "Phase 4: Snap-to-grid on Translation + tolerance adjustments",
+        "Phase 5: Safari viewport meta, global touch CSS, keypad viewport management"
+      ],
+      "files_created": [
+        "frontends/lessons/src/hooks/useIsTouchDevice.js",
+        "frontends/lessons/src/shared/components/MathKeypad.js",
+        "frontends/lessons/src/shared/components/FractionDisplay.js",
+        "frontends/lessons/src/shared/helpers/TouchDragHandle.js"
+      ],
+      "files_modified": [
+        "frontends/lessons/src/hooks/index.js",
+        "frontends/lessons/src/shared/components/AnswerInput.js",
+        "frontends/lessons/src/shared/helpers/MovablePointsAndLines.js",
+        "frontends/lessons/src/shared/helpers/MovablePointsAndLinesParallel.js",
+        "frontends/lessons/src/shared/helpers/MovablePointsAndLinesAlternateInterior.js",
+        "frontends/lessons/src/shared/helpers/MovablePointsAndLinesCorresponding.js",
+        "frontends/lessons/src/shared/helpers/MovablePointsAndLinesSameSideInterior.js",
+        "frontends/lessons/src/shared/helpers/MovablePointsAndLinesPerpendicular.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/angles/Angles.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/geometry/TriangleInequality.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/geometry/Symmetry.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/geometry/Symmetry2.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/geometry/Translation.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/geometry/Reflection.js",
+        "frontends/lessons/src/features/lessons/lessonTypes/algebra/VennDiagram.js",
+        "frontends/lessons/src/theme/GlobalStyle.js",
+        "frontends/lessons/public/index.html"
       ]
     }
   ],

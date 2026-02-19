@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useWindowDimensions, useKonvaTheme } from "../../../../hooks";
+import { useWindowDimensions, useKonvaTheme, useIsTouchDevice } from "../../../../hooks";
 import { useLessonState } from "../../../../hooks";
 import { AnswerInput } from "../../../../shared/components";
 import styled from "styled-components";
@@ -29,21 +29,22 @@ function isInCircle(px, py, cx, cy, r, tolerance = 0) {
 
 // tolerance = extra pixels added to each circle's radius for detection,
 // so a chip only *mostly* inside the zone still registers correctly.
-const ZONE_TOLERANCE = 18;
+// Base value for desktop; touch devices use a larger value (set inside the component).
+const ZONE_TOLERANCE_DEFAULT = 18;
 
-function detectZone2(px, py, leftC, rightC) {
-  const inLeft = isInCircle(px, py, leftC.x, leftC.y, leftC.r, ZONE_TOLERANCE);
-  const inRight = isInCircle(px, py, rightC.x, rightC.y, rightC.r, ZONE_TOLERANCE);
+function detectZone2(px, py, leftC, rightC, tolerance = ZONE_TOLERANCE_DEFAULT) {
+  const inLeft = isInCircle(px, py, leftC.x, leftC.y, leftC.r, tolerance);
+  const inRight = isInCircle(px, py, rightC.x, rightC.y, rightC.r, tolerance);
   if (inLeft && inRight) return "center";
   if (inLeft) return "left";
   if (inRight) return "right";
   return "outside";
 }
 
-function detectZone3(px, py, cA, cB, cC) {
-  const inA = isInCircle(px, py, cA.x, cA.y, cA.r, ZONE_TOLERANCE);
-  const inB = isInCircle(px, py, cB.x, cB.y, cB.r, ZONE_TOLERANCE);
-  const inC = isInCircle(px, py, cC.x, cC.y, cC.r, ZONE_TOLERANCE);
+function detectZone3(px, py, cA, cB, cC, tolerance = ZONE_TOLERANCE_DEFAULT) {
+  const inA = isInCircle(px, py, cA.x, cA.y, cA.r, tolerance);
+  const inB = isInCircle(px, py, cB.x, cB.y, cB.r, tolerance);
+  const inC = isInCircle(px, py, cC.x, cC.y, cC.r, tolerance);
   if (inA && inB && inC) return "abc";
   if (inA && inB) return "ab";
   if (inA && inC) return "ac";
@@ -128,6 +129,8 @@ function VennDiagram({ triggerNewProblem }) {
 
   const { width } = useWindowDimensions();
   const konvaTheme = useKonvaTheme();
+  const { isTouchDevice } = useIsTouchDevice();
+  const zoneTolerance = isTouchDevice ? 30 : ZONE_TOLERANCE_DEFAULT;
 
   const currentProblem = questionAnswerArray?.[currentQuestionIndex] || lessonProps;
   const visualData = currentProblem?.visualData || {};
@@ -212,8 +215,9 @@ function VennDiagram({ triggerNewProblem }) {
   }, [items, itemPlacements, revealAnswer]);
 
   // Chip dimensions (used for centering detection point)
-  const chipW = 100 * scale;
-  const chipH = 28 * scale;
+  const touchScale = isTouchDevice ? 1.3 : 1;
+  const chipW = 100 * scale * touchScale;
+  const chipH = 28 * scale * touchScale;
 
   const handleDragEnd = useCallback(
     (itemName, e) => {
@@ -226,8 +230,8 @@ function VennDiagram({ triggerNewProblem }) {
 
       const detectedZone =
         numCircles === 3
-          ? detectZone3(centerX, centerY, circleLayout.a, circleLayout.b, circleLayout.c)
-          : detectZone2(centerX, centerY, circleLayout.left, circleLayout.right);
+          ? detectZone3(centerX, centerY, circleLayout.a, circleLayout.b, circleLayout.c, zoneTolerance)
+          : detectZone2(centerX, centerY, circleLayout.left, circleLayout.right, zoneTolerance);
 
       setItemPlacements((prev) => ({
         ...prev,
@@ -245,7 +249,7 @@ function VennDiagram({ triggerNewProblem }) {
         });
       }
     },
-    [numCircles, circleLayout, checkResults, chipW, chipH]
+    [numCircles, circleLayout, checkResults, chipW, chipH, zoneTolerance]
   );
 
   const handleTryAnother = () => {
@@ -429,7 +433,7 @@ function VennDiagram({ triggerNewProblem }) {
               items?.map((item, i) => {
                 const placement = itemPlacements[item.name];
                 const x = placement?.x ?? wordBankX;
-                const y = placement?.y ?? wordBankStartY + i * 38 * scale;
+                const y = placement?.y ?? wordBankStartY + i * 38 * scale * touchScale;
                 const isCorrect = checkResults?.correct?.includes(item.name);
                 const isWrong = checkResults?.wrong?.includes(item.name);
                 const canDrag = !isComplete && !isCorrect;
@@ -440,8 +444,8 @@ function VennDiagram({ triggerNewProblem }) {
                     <Rect
                       x={x - 2}
                       y={y - 4}
-                      width={100 * scale}
-                      height={28 * scale}
+                      width={chipW}
+                      height={chipH}
                       cornerRadius={6}
                       fill={
                         isCorrect
@@ -464,10 +468,10 @@ function VennDiagram({ triggerNewProblem }) {
                       x={x}
                       y={y}
                       text={item.name}
-                      fontSize={14 * scale}
+                      fontSize={14 * scale * touchScale}
                       fontStyle="bold"
                       fill={konvaTheme.labelText}
-                      width={96 * scale}
+                      width={(chipW - 4)}
                       align="center"
                       draggable={canDrag}
                       onDragEnd={(e) => handleDragEnd(item.name, e)}
@@ -662,6 +666,9 @@ const VisualSection = styled.div`
   align-items: center;
   overflow-x: auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 `;
 
 const InteractionSection = styled.div`
@@ -695,6 +702,7 @@ const CheckButton = styled.button`
   background-color: ${(props) => props.theme.colors.info || "#3B82F6"};
   color: ${(props) => props.theme.colors.textInverted};
   transition: opacity 0.2s;
+  touch-action: manipulation;
 
   &:hover {
     opacity: 0.9;
@@ -721,6 +729,7 @@ const TryAnotherButton = styled.button`
   background-color: ${(props) => props.theme.colors.buttonSuccess};
   color: ${(props) => props.theme.colors.textInverted};
   transition: opacity 0.2s;
+  touch-action: manipulation;
 
   &:hover {
     opacity: 0.9;
@@ -763,6 +772,7 @@ const TopHintButton = styled.button`
   color: ${(props) => props.theme.colors.textSecondary};
   cursor: pointer;
   transition: all 0.2s;
+  touch-action: manipulation;
 
   &:hover {
     background: ${(props) => props.theme.colors.hoverBackground};

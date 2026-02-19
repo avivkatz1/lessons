@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import numbers from "../helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
+import TouchDragHandle from "./TouchDragHandle";
 
 const MovablePointsAndLinesAlternateInterior = ({
   points,
@@ -32,16 +33,31 @@ const MovablePointsAndLinesAlternateInterior = ({
   return (
     <>
       {newPoints.map((p, i) => {
+        if (i < 3) {
+          return (
+            <TouchDragHandle
+              key={i}
+              id={i}
+              radius={6}
+              stroke={"black"}
+              x={p.x}
+              y={p.y}
+              fill="yellow"
+              onDragMove={changePosition}
+              affordanceColor="yellow"
+            />
+          );
+        }
         return (
           <Circle
+            key={i}
             id={i}
-            radius={i < 3 ? 6 : 4}
+            radius={4}
             stroke={"black"}
             x={p.x}
             y={p.y}
-            fill={i < 3 ? "yellow" : "black"}
-            draggable={i < 3 ? true : false}
-            onDragMove={changePosition}
+            fill="black"
+            draggable={false}
           />
         );
       })}

@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 import { setUserAnswer, setAnswerFeedback, recordAnswer } from "../../store/lessonSlice";
 import { validateAnswer } from "../helpers/validateAnswer";
+import { useIsTouchDevice } from "../../hooks";
+import MathKeypad from "./MathKeypad";
 
 const AnswerInput = ({
   correctAnswer,
@@ -21,8 +23,11 @@ const AnswerInput = ({
   const isUsingBatch = useSelector(
     (state) => state.lesson.questionAnswerArray && state.lesson.questionAnswerArray.length > 0
   );
+  const { isTouchDevice } = useIsTouchDevice();
   const [localInput, setLocalInput] = useState("");
   const [attempts, setAttempts] = useState(0);
+  const [keypadOpen, setKeypadOpen] = useState(false);
+  const inputRef = useRef(null);
 
   // Sync local input with Redux state
   useEffect(() => {
@@ -41,6 +46,15 @@ const AnswerInput = ({
     setAttempts(0);
   }, [correctAnswer]);
 
+  // Scroll input into view when keypad opens on touch devices
+  useEffect(() => {
+    if (keypadOpen && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 350); // Wait for keypad slide-up animation
+    }
+  }, [keypadOpen]);
+
   // Auto-clear wrong answers after 2 seconds
   useEffect(() => {
     if (answerFeedback === "incorrect") {
@@ -56,6 +70,11 @@ const AnswerInput = ({
   const handleInputChange = (e) => {
     setLocalInput(e.target.value);
     dispatch(setUserAnswer(e.target.value));
+  };
+
+  const handleKeypadChange = (newValue) => {
+    setLocalInput(newValue);
+    dispatch(setUserAnswer(newValue));
   };
 
   const handleSubmit = () => {
@@ -131,6 +150,7 @@ const AnswerInput = ({
     <Wrapper feedback={answerFeedback}>
       <div className="input-container">
         <input
+          ref={inputRef}
           type="text"
           value={localInput}
           onChange={handleInputChange}
@@ -138,6 +158,13 @@ const AnswerInput = ({
           placeholder={placeholder}
           disabled={disabled || answerFeedback === "correct"}
           className="answer-input"
+          {...(isTouchDevice
+            ? {
+                readOnly: true,
+                inputMode: "none",
+                onFocus: () => setKeypadOpen(true),
+              }
+            : {})}
         />
         <button
           onClick={handleButtonClick}
@@ -152,6 +179,15 @@ const AnswerInput = ({
         <div className="feedback correct">
           Correct! {attempts > 1 ? `(${attempts} attempts)` : "(1st try!)"}
         </div>
+      )}
+      {isTouchDevice && (
+        <MathKeypad
+          visible={keypadOpen && !disabled && answerFeedback !== "correct"}
+          value={localInput}
+          onChange={handleKeypadChange}
+          onSubmit={handleSubmit}
+          onClose={() => setKeypadOpen(false)}
+        />
       )}
     </Wrapper>
   );

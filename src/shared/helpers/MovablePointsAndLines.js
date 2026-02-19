@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import numbers from "../helpers/numbers";
 import { Stage, Layer, RegularPolygon, Rect, Circle, Line, Shape, Text } from "react-konva";
+import TouchDragHandle from "./TouchDragHandle";
 
 const MovablePointsAndLines = ({ points, changePosition, handleShapeMoving }) => {
   return (
     <>
       {points.map((p, i) => {
         return (
-          <Circle
+          <TouchDragHandle
+            key={i}
             id={i}
             radius={4}
             stroke={"black"}

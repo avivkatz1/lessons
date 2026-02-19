@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { useWindowDimensions, useKonvaTheme } from "../../../../hooks";
 import { Stage, Layer, Circle, Line, Text, Rect } from "react-konva";
+import TouchDragHandle from "../../../../shared/helpers/TouchDragHandle";
 
 /**
  * TriangleInequality - Interactive demonstration of the triangle inequality theorem
@@ -185,30 +186,37 @@ function TriangleInequality({ triggerNewProblem }) {
             {/* Endpoint circles */}
             {points.map((p, i) => {
               const isDraggable = i === 0 || i === 3;
+              if (isDraggable) {
+                return (
+                  <TouchDragHandle
+                    key={p.id}
+                    id={i}
+                    radius={10}
+                    stroke={canFormTriangle ? "#48BB78" : "#EF4444"}
+                    strokeWidth={4}
+                    x={p.x}
+                    y={p.y}
+                    fill="#EF4444"
+                    onDragMove={handleDrag}
+                    affordanceColor="#EF4444"
+                    dragBoundFunc={(pos) => ({
+                      x: Math.max(20, Math.min(pos.x, canvasWidth - 20)),
+                      y: Math.max(20, Math.min(pos.y, 200)),
+                    })}
+                  />
+                );
+              }
               return (
                 <Circle
                   key={p.id}
                   id={i}
-                  radius={isDraggable ? 10 : 6}
-                  stroke={
-                    isDraggable
-                      ? canFormTriangle
-                        ? "#48BB78"
-                        : "#EF4444"
-                      : konvaTheme.shapeStroke
-                  }
-                  strokeWidth={isDraggable ? 4 : 2}
+                  radius={6}
+                  stroke={konvaTheme.shapeStroke}
+                  strokeWidth={2}
                   x={p.x}
                   y={p.y}
-                  fill={isDraggable ? "#EF4444" : konvaTheme.shapeStroke}
-                  draggable={isDraggable}
-                  onDragMove={handleDrag}
-                  dragBoundFunc={(pos) => {
-                    return {
-                      x: Math.max(20, Math.min(pos.x, canvasWidth - 20)),
-                      y: Math.max(20, Math.min(pos.y, 200)),
-                    };
-                  }}
+                  fill={konvaTheme.shapeStroke}
+                  draggable={false}
                 />
               );
             })}
@@ -339,6 +347,9 @@ const VisualSection = styled.div`
   align-items: center;
   overflow-x: auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 
   @media (min-width: 768px) {
     padding: 30px;

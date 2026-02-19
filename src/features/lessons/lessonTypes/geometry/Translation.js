@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useLessonState, useWindowDimensions, useKonvaTheme } from "../../../../hooks";
+import { useLessonState, useWindowDimensions, useKonvaTheme, useIsTouchDevice } from "../../../../hooks";
 import styled from "styled-components";
 import { Stage, Layer, Rect, Line } from "react-konva";
 import { AnswerInput } from "../../../../shared/components";
@@ -7,7 +7,8 @@ import { AnswerInput } from "../../../../shared/components";
 const GRID_SPACING = 15;
 const GRID_OFFSET_X = 310;
 const GRID_OFFSET_Y = 10;
-const TOLERANCE = 10; // pixels tolerance for "correct" positioning
+const TOLERANCE_DESKTOP = 10;
+const TOLERANCE_TOUCH = 18; // wider tolerance for finger imprecision
 
 /**
  * Translation - Interactive exploration of translation (sliding) transformations
@@ -31,6 +32,8 @@ function Translation({ triggerNewProblem }) {
 
   const { width } = useWindowDimensions();
   const konvaTheme = useKonvaTheme();
+  const { isTouchDevice } = useIsTouchDevice();
+  const TOLERANCE = isTouchDevice ? TOLERANCE_TOUCH : TOLERANCE_DESKTOP;
 
   // Current problem from backend
   const currentProblem = questionAnswerArray?.[currentQuestionIndex] || lessonProps;
@@ -80,9 +83,30 @@ function Translation({ triggerNewProblem }) {
     );
   };
 
+  // Snap layer position to grid on touch devices during drag
+  const handleDragMove = (e) => {
+    if (!isTouchDevice) return;
+    const layer = e.target.getLayer() || e.target;
+    const x = layer.x();
+    const y = layer.y();
+    const snappedX = Math.round(x / GRID_SPACING) * GRID_SPACING;
+    const snappedY = Math.round(y / GRID_SPACING) * GRID_SPACING;
+    layer.position({ x: snappedX, y: snappedY });
+  };
+
   const handleDragEnd = (e) => {
-    const layer = e.target.getLayer();
-    const newPos = { x: layer.x(), y: layer.y() };
+    const layer = e.target.getLayer() || e.target;
+    let newPos = { x: layer.x(), y: layer.y() };
+
+    // Snap to grid on touch devices
+    if (isTouchDevice) {
+      newPos = {
+        x: Math.round(newPos.x / GRID_SPACING) * GRID_SPACING,
+        y: Math.round(newPos.y / GRID_SPACING) * GRID_SPACING,
+      };
+      layer.position(newPos);
+    }
+
     setDragPosition(newPos);
 
     const isCorrect = checkDragPosition(newPos);
@@ -344,6 +368,7 @@ function Translation({ triggerNewProblem }) {
               draggable
               x={dragPosition.x}
               y={dragPosition.y}
+              onDragMove={handleDragMove}
               onDragEnd={handleDragEnd}
             >
               <Rect
@@ -519,6 +544,9 @@ const VisualSection = styled.div`
   align-items: center;
   overflow-x: auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 
   @media (min-width: 768px) {
     padding: 30px;

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { Stage, Layer, Circle, Line, Text } from "react-konva";
-import { useLessonState, useWindowDimensions } from "../../../../hooks";
+import { useLessonState, useWindowDimensions, useIsTouchDevice } from "../../../../hooks";
 
 const getRandomX = () => Math.floor(Math.random() * 401) + 200; // 200 to 600
 
@@ -11,6 +11,7 @@ function Symmetry({ triggerNewProblem }) {
   // Phase 3: Use shared lesson state hook
   const { lessonProps } = useLessonState();
   const { width } = useWindowDimensions();
+  const { isTouchDevice } = useIsTouchDevice();
 
   const [showAnswer, setShowAnswer] = useState(false);
   const [points, setPoints] = useState(() => [
@@ -159,6 +160,7 @@ function Symmetry({ triggerNewProblem }) {
               id={1}
               stroke={isCorrect ? "green" : "lightblue"}
               strokeWidth={isCorrect ? 14 : 8}
+              hitStrokeWidth={isTouchDevice ? 40 : 0}
               draggable={true}
               x={lineX}
               y={0}
@@ -269,6 +271,9 @@ const VisualSection = styled.div`
   border-radius: 12px;
   padding: 16px;
   overflow-x: auto;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 
   @media (max-width: 1024px) {
     margin: 16px 0;
