@@ -20,6 +20,15 @@ import {
 import Rounding from "./Rounding";
 import OrderOfOperations from "./OrderOfOperations";
 import AddingFractions from "./AddingFractions";
+import ReducingFractions from "./ReducingFractions";
+import EvaluatingExpressions from "./EvaluatingExpressions.jsx";
+import OneStepEquations from "./OneStepEquations.jsx";
+import TwoStepEquations from "./TwoStepEquations.jsx";
+import PatternsLesson from "./PatternsLesson.jsx";
+import ProbabilityAreaModelLesson from "./ProbabilityAreaModelLesson";
+import ProbabilityTreeDiagramLesson from "./ProbabilityTreeDiagramLesson";
+import ExpectedValueLesson from "./ExpectedValueLesson";
+import ProportionalReasoning from "./ProportionalReasoning";
 
 // Alias for backwards compatibility
 const BasicProblemsWordsOnly = BasicProblemWordsOnly;
@@ -46,4 +55,13 @@ export {
   Rounding,
   OrderOfOperations,
   AddingFractions,
+  ReducingFractions,
+  EvaluatingExpressions,
+  OneStepEquations,
+  TwoStepEquations,
+  PatternsLesson,
+  ProbabilityAreaModelLesson,
+  ProbabilityTreeDiagramLesson,
+  ExpectedValueLesson,
+  ProportionalReasoning,
 };

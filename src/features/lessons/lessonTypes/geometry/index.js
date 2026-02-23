@@ -17,10 +17,29 @@ import TangentLesson from "./TangentLesson";
 import TangentMultiple from "./TangentMultiple";
 import MoreTangentLesson from "./MoreTangentLesson";
 import SlopeTriangles from "./SlopeTriangles";
+import SlopeTrianglesLesson from "./SlopeTrianglesLesson";
 import Proportions from "./Proportions";
 import InverseTrig from "./InverseTrig";
 import SymmetryLesson from "./SymmetryLesson";
 import SymmetryIdentify from "./SymmetryIdentify";
+import SidesAndAnglesLesson from "./SidesAndAnglesLesson";
+import ShapesLesson from "./ShapesLesson";
+import DilationLesson from "./DilationLesson";
+import SimilarTrianglesLesson from "./SimilarTrianglesLesson";
+import SimilarityProofsLesson from "./SimilarityProofsLesson";
+import SimilarTrianglesWordProblemsLesson from "./SimilarTrianglesWordProblemsLesson";
+import PythagoreanTheoremLesson from "./PythagoreanTheoremLesson";
+import PythagoreanTriplesLesson from "./PythagoreanTriplesLesson";
+import ParallelLesson from "./ParallelLesson";
+import Area from "./Area";
+import CompositeShapeLesson from "./CompositeShapeLesson";
+import ProportionsLesson from "./ProportionsLesson";
+import ZoomFactorLesson from "./ZoomFactorLesson";
+import AllTrigRatiosLesson from "./AllTrigRatiosLesson";
+import InverseTrigLesson from "./InverseTrigLesson";
+import ThirtySixtyNinetyLesson from "./ThirtySixtyNinetyLesson";
+import FortyFiveFortyFiveNinetyLesson from "./FortyFiveFortyFiveNinetyLesson";
+import TrigWordProblemsLesson from "./TrigWordProblemsLesson";
 
 // Export with alias for backwards compatibility
 const SlopeTriangle = SlopeTriangles;
@@ -46,8 +65,27 @@ export {
   MoreTangentLesson,
   SlopeTriangles,
   SlopeTriangle,
+  SlopeTrianglesLesson,
   Proportions,
   InverseTrig,
   SymmetryLesson,
   SymmetryIdentify,
+  SidesAndAnglesLesson,
+  ShapesLesson,
+  DilationLesson,
+  SimilarTrianglesLesson,
+  SimilarityProofsLesson,
+  SimilarTrianglesWordProblemsLesson,
+  PythagoreanTheoremLesson,
+  PythagoreanTriplesLesson,
+  ParallelLesson,
+  Area,
+  CompositeShapeLesson,
+  ProportionsLesson,
+  ZoomFactorLesson,
+  AllTrigRatiosLesson,
+  InverseTrigLesson,
+  ThirtySixtyNinetyLesson,
+  FortyFiveFortyFiveNinetyLesson,
+  TrigWordProblemsLesson,
 };

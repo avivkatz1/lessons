@@ -7,6 +7,7 @@ import AngleRelationshipsLevelOne from "./AngleRelationshipsLevelOne";
 import AngleRelationshipsDiagram from "./AngleRelationshipsDiagram";
 import Parallel from "./Parallel";
 import Perpendicular from "./Perpendicular";
+import AnglesLesson from "./AnglesLesson";
 
 // Alias for backwards compatibility
 const AngleRelationShipsLevelOne = AngleRelationshipsLevelOne;
@@ -22,4 +23,5 @@ export {
   AngleRelationshipsDiagram,
   Parallel,
   Perpendicular,
+  AnglesLesson,
 };

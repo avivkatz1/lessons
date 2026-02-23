@@ -200,7 +200,13 @@ function SymmetryLesson({ triggerNewProblem }) {
         <LevelTitle>{info.title}</LevelTitle>
       </LevelHeader>
 
-      <InstructionText>{info.instruction}</InstructionText>
+      <InstructionText
+        dangerouslySetInnerHTML={{
+          __html: level === 3 && currentProblem?.question?.[0]?.text
+            ? currentProblem.question[0].text
+            : info.instruction
+        }}
+      />
 
       {/* Konva grid */}
       <VisualSection>
@@ -285,8 +291,8 @@ function SymmetryLesson({ triggerNewProblem }) {
               );
             })}
 
-            {/* Line of symmetry */}
-            {axis === "vertical" && (
+            {/* Line of symmetry - Hide for Level 3 */}
+            {level !== 3 && axis === "vertical" && (
               <Line
                 points={[linePosition * cellSize, 0, linePosition * cellSize, canvasHeight]}
                 stroke="#F97316"
@@ -294,7 +300,7 @@ function SymmetryLesson({ triggerNewProblem }) {
                 dash={[8, 4]}
               />
             )}
-            {axis === "horizontal" && (
+            {level !== 3 && axis === "horizontal" && (
               <Line
                 points={[0, linePosition * cellSize, canvasWidth, linePosition * cellSize]}
                 stroke="#F97316"
@@ -302,7 +308,7 @@ function SymmetryLesson({ triggerNewProblem }) {
                 dash={[8, 4]}
               />
             )}
-            {axis === "diagonal" && (
+            {level !== 3 && axis === "diagonal" && (
               <Line
                 points={[0, 0, canvasWidth, canvasHeight]}
                 stroke="#F97316"
