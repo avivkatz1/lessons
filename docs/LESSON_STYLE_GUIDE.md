@@ -1,7 +1,7 @@
 # Lesson Style Guide
-**Version:** 1.0
-**Last Updated:** February 23, 2026
-**Reference Implementation:** Reflection Lesson (SymmetryLesson.jsx)
+**Version:** 2.0
+**Last Updated:** February 26, 2026
+**Reference Implementation:** Area/Perimeter Levels 3-7 (InputOverlayPanel Pattern)
 
 ## 📋 Table of Contents
 
@@ -36,7 +36,66 @@
 
 When creating new lessons, study these existing implementations for specific patterns and techniques:
 
-### 🌟 **SymmetryLesson.jsx** - Gold Standard (Primary Reference)
+### ⭐ **NEW STANDARD: InputOverlayPanel Pattern** (v2.0)
+**Path:** `src/features/lessons/lessonTypes/geometry/components/areaPerimeter/Level3-7.jsx`
+**Full Documentation:** `docs/guides/INPUT_OVERLAY_PANEL_SYSTEM.md`
+
+**🎯 USE THIS FOR ALL NEW LESSONS WITH NUMERIC INPUT**
+
+**Use this for:**
+- ✅ **iPad optimization** - Canvas + button slide left, figure stays visible when panel opens
+- ✅ **SlimMathKeypad integration** - Touch-optimized numeric input
+- ✅ **Static button placement** - Below canvas, slides with it
+- ✅ **Modal close tracking** - Button changes to "Try Another Problem" after modal X click
+- ✅ **Smooth animations** - 300ms slide, unified canvas+button motion
+- ✅ **No canvas resize** - Overlay panel doesn't force canvas to shrink
+- ✅ **Touch targets** - 56px minimum (exceeds WCAG 44px)
+
+**Key Features:**
+```javascript
+// 1. Canvas slides left when panel opens (figure stays visible)
+const slideDistance = panelWidth * 0.75; // 75% of panel width
+
+// 2. Static button below canvas (not floating)
+<CanvasWrapper $panelOpen={panelOpen} $slideDistance={slideDistance}>
+  <CanvasContainer>{/* Canvas */}</CanvasContainer>
+  <ButtonContainer>
+    {modalClosedWithX ? (
+      <TryAnotherButton onClick={handleNextProblem}>
+        Try Another Problem
+      </TryAnotherButton>
+    ) : (
+      <EnterAnswerButton variant="static" onClick={openPanel} />
+    )}
+  </ButtonContainer>
+</CanvasWrapper>
+
+// 3. Modal close tracking (prevents modal from reappearing)
+const handleComplete = (success) => {
+  if (success && !modalClosedWithX) {  // Only show if not manually closed
+    setIsComplete(true);
+  }
+};
+```
+
+**Why This is the New Standard:**
+- ✅ Fits iPad landscape perfectly (no scrolling)
+- ✅ Figure remains visible when entering answer
+- ✅ Clear visual hierarchy (canvas → formula → button)
+- ✅ Intuitive: user sees what they're calculating while inputting
+- ✅ Reusable: drop-in solution via `useInputOverlay` hook
+
+**User Feedback:**
+> "I really like this new style to work with the math pad and how to enter answers while still seeing the problem. I want this to be a standard for using the math pad so that everything can stay on the ipad page."
+
+**Implemented In:**
+- AreaPerimeterLesson (Levels 3-7)
+- All Congruent Triangles lessons (SSS, SAS, ASA, AAS)
+- SymmetryLesson
+
+---
+
+### 🌟 **SymmetryLesson.jsx** - Gold Standard (Legacy Reference)
 **Path:** `src/features/lessons/lessonTypes/geometry/SymmetryLesson.jsx`
 
 **Use this for:**
@@ -344,6 +403,91 @@ function KaTeXExpression({ tokens }) {
 
 ---
 
+### 📱 **Area/Perimeter Lessons (Levels 3-7)** - Input Overlay Panel System
+**Path:** `src/features/lessons/lessonTypes/geometry/components/areaPerimeter/`
+
+**Use this for:**
+- ✅ iPad-optimized numeric input without canvas resize
+- ✅ Slide-in overlay panel with compact keypad
+- ✅ Floating "Enter Answer" button on canvas
+- ✅ Touch-friendly 56px+ buttons
+- ✅ Multiple input fields (area + perimeter)
+- ✅ Smooth 300ms animations
+- ✅ Modal success flow (panel closes → modal opens)
+
+**Key Components:**
+- `InputOverlayPanel` - Slide-in container from right
+- `SlimMathKeypad` - Compact 3-column numeric keypad
+- `EnterAnswerButton` - Floating CTA button (centered on canvas)
+- `useInputOverlay` - State management hook
+
+**Reference Implementations:**
+- `Level3CalculateRectangle.jsx` - Multi-input (area + perimeter)
+- `Level4RightTriangle.jsx` - Standard single-input
+- `Level5AnyTriangle.jsx` - Best example (cleanest code)
+- `Level6TrapezoidDecomposition.jsx` - Formula helpers
+- `Level7MixedShapes.jsx` - Dynamic panel titles
+
+**Key Patterns:**
+```javascript
+// 1. Setup with hook
+const {
+  panelOpen, inputValue, submitted,
+  setInputValue, setSubmitted,
+  openPanel, closePanel, resetAll,
+} = useInputOverlay();
+
+// 2. Canvas width (NO panelOpen dependency - stays full width)
+const canvasWidth = useMemo(() => {
+  return Math.min(windowWidth - 40, 1200);
+}, [windowWidth]);  // ← panelOpen NOT included
+
+// 3. Success flow: panel closes first, then modal
+useEffect(() => {
+  if (isCorrect && submitted && onComplete) {
+    closePanel();  // Close panel first
+    const timer = setTimeout(() => {
+      onComplete(true);  // Show modal after 500ms
+    }, 500);
+    return () => clearTimeout(timer);
+  }
+}, [isCorrect, submitted, onComplete, closePanel]);
+
+// 4. Floating Enter Answer button
+{!panelOpen && (
+  <EnterAnswerButton
+    onClick={openPanel}
+    disabled={submitted && isCorrect}
+  />
+)}
+
+// 5. Overlay panel with keypad
+<InputOverlayPanel
+  visible={panelOpen}
+  onClose={closePanel}
+  title="Calculate Area"
+>
+  <InputLabel>Area (cm²):</InputLabel>
+  <SlimMathKeypad
+    value={inputValue}
+    onChange={setInputValue}
+    onSubmit={handleSubmit}
+  />
+  {/* Feedback + buttons inside panel */}
+</InputOverlayPanel>
+```
+
+**Critical Design Decisions:**
+- Canvas does NOT resize when panel opens (overlay-only approach)
+- Button centered at `top: 50%; left: 50%; transform: translate(-50%, -50%)`
+- Gray background with blue border (matches shape colors)
+- 500ms delay between panel close and modal open
+- Panel uses `transform: translateX()` for smooth GPU animation
+
+**Full Documentation:** See `docs/guides/INPUT_OVERLAY_PANEL_SYSTEM.md` for complete migration guide, troubleshooting, and best practices.
+
+---
+
 ## Pattern Selection Guide
 
 When designing a new lesson, choose patterns based on your learning objectives:
@@ -402,8 +546,66 @@ All spacing MUST use iPad-specific media queries:
 
 **Keep Inline:**
 - ✅ Instructions (must be compact)
-- ✅ Input fields
-- ✅ Primary action buttons
+- ✅ Primary action buttons (e.g., "Enter Answer")
+
+**Use InputOverlayPanel For:** (NEW STANDARD)
+- ✅ **Numeric input** - SlimMathKeypad for calculations
+- ✅ **Any input that needs a keyboard** - Overlay prevents content from being pushed off-screen
+- ✅ **iPad landscape optimization** - Canvas slides left, figure stays visible
+
+### 4. InputOverlayPanel Pattern (NEW - Required for Numeric Input)
+
+**CRITICAL:** For ANY lesson requiring numeric input (calculations, measurements, coordinates, etc.), you MUST use the InputOverlayPanel pattern.
+
+**Why:**
+- ❌ **Problem with inline inputs:** Native keyboard pushes content off-screen on iPad
+- ❌ **Problem with canvas resize:** Jarring UX when canvas shrinks to make room
+- ✅ **Solution:** Overlay panel slides in from right, canvas slides left to keep figure visible
+
+**Implementation Requirements:**
+
+1. **Use `useInputOverlay` hook** (not raw useState)
+   ```javascript
+   import { useInputOverlay } from '../../hooks/useInputOverlay';
+   const { panelOpen, inputValue, ... } = useInputOverlay();
+   ```
+
+2. **Static button below canvas** (not floating)
+   ```javascript
+   <CanvasWrapper $panelOpen={panelOpen} $slideDistance={slideDistance}>
+     <CanvasContainer>{/* Canvas */}</CanvasContainer>
+     {!panelOpen && (
+       <ButtonContainer>
+         <EnterAnswerButton variant="static" onClick={openPanel} />
+       </ButtonContainer>
+     )}
+   </CanvasWrapper>
+   ```
+
+3. **Canvas slide animation** (75% of panel width)
+   ```javascript
+   const slideDistance = useMemo(() => {
+     if (windowWidth <= 768) return 0; // Mobile: No slide
+     const panelWidth = Math.min(Math.max(windowWidth * 0.4, 360), 480);
+     return panelWidth * 0.75;
+   }, [windowWidth]);
+   ```
+
+4. **Modal close tracking** (prevent modal from reappearing)
+   ```javascript
+   // Parent component
+   const handleComplete = (success) => {
+     if (success && !modalClosedWithX) {
+       setIsComplete(true);
+     }
+   };
+   ```
+
+**Full Documentation:** See `docs/guides/INPUT_OVERLAY_PANEL_SYSTEM.md`
+
+**Reference Implementation:**
+- `components/areaPerimeter/Level3CalculateRectangle.jsx` (simplest example)
+- `components/areaPerimeter/Level5AnyTriangle.jsx` (cleanest example)
 - ✅ Feedback text (short, 1-2 lines max)
 
 ### 4. Dynamic Canvas Sizing
