@@ -40,6 +40,10 @@ import InverseTrigLesson from "./InverseTrigLesson";
 import ThirtySixtyNinetyLesson from "./ThirtySixtyNinetyLesson";
 import FortyFiveFortyFiveNinetyLesson from "./FortyFiveFortyFiveNinetyLesson";
 import TrigWordProblemsLesson from "./TrigWordProblemsLesson";
+import SSSCongruentTrianglesLesson from "./SSSCongruentTrianglesLesson";
+import SASCongruentTrianglesLesson from "./SASCongruentTrianglesLesson";
+import AASCongruentTrianglesLesson from "./AASCongruentTrianglesLesson";
+import ASACongruentTrianglesLesson from "./ASACongruentTrianglesLesson";
 
 // Export with alias for backwards compatibility
 const SlopeTriangle = SlopeTriangles;
@@ -88,4 +92,8 @@ export {
   ThirtySixtyNinetyLesson,
   FortyFiveFortyFiveNinetyLesson,
   TrigWordProblemsLesson,
+  SSSCongruentTrianglesLesson,
+  SASCongruentTrianglesLesson,
+  AASCongruentTrianglesLesson,
+  ASACongruentTrianglesLesson,
 };

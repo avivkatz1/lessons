@@ -807,6 +807,414 @@ konvaTheme.shapeHighlight    // Highlighted shapes (#00BF63 / #00e676)
 
 ---
 
+## Rule #6: Dynamic Text Positioning (Smart Positioning System)
+
+### Problem
+
+Dimension labels and diagram text can be covered by lines, shapes, or other labels due to:
+- Fixed offsets (hardcoded 15-20px from edges)
+- No collision detection between labels
+- No measurement of actual text bounds (inaccurate estimation: `label.length * fontSize / 4`)
+- No canvas boundary checking
+- No responsive positioning based on available space
+
+**Example overlap scenarios:**
+- Shape labels ("A", "B") overlap with dimension labels on small rectangles
+- Area labels overlap with shape edges when hardcoded
+- Height text overflows canvas when apex is near edge
+- Labels collide with each other when shapes are close together
+
+### Rule
+
+ALL dimension labels, shape labels, and area labels MUST use the **Smart Positioning System** to prevent overlaps and ensure readability.
+
+**Key principles:**
+1. **Accurate text measurement** - Use Konva's native `getTextWidth()` instead of estimation
+2. **Collision detection** - Check for overlaps with shapes, lines, and other labels
+3. **Canvas boundary checking** - Ensure labels stay within visible canvas area
+4. **Multi-strategy positioning** - Try multiple positions before fallback
+5. **Priority-based conflicts** - Higher priority elements (shapes) take precedence
+
+### Architecture: Three-Layer System
+
+```javascript
+// Layer 1: TextMeasurer - Accurate text dimension calculation
+class TextMeasurer {
+  measureText(text, { fontSize, fontStyle, fontFamily }) {
+    // Uses Konva.Text node for accurate width/height
+    return { width, height };
+  }
+}
+
+// Layer 2: BoundingBoxRegistry - Collision detection with spatial grid
+class BoundingBoxRegistry {
+  register(id, bounds, type, priority) { /* Track element */ }
+  getOverlaps(bounds, excludeId) { /* Find collisions */ }
+  isWithinCanvas(bounds) { /* Check boundaries */ }
+}
+
+// Layer 3: SmartPositionCalculator - Position finding with fallbacks
+class SmartPositionCalculator {
+  calculateDimensionPosition(config) { /* For side labels */ }
+  calculateShapeLabelPosition(config) { /* For A, B, area labels */ }
+}
+```
+
+**Performance:** O(k) collision detection using spatial grid indexing (50px cells) instead of O(n²) brute force.
+
+### Implementation Pattern 1: Setup Hook
+
+```javascript
+import { useSmartPositioning } from '../../hooks/useSmartPositioning';
+import { registerShape } from '../../utils/smartPositioning';
+
+function MyLevel({ visualData }) {
+  const { width: canvasWidth, height: canvasHeight } = useWindowDimensions();
+  const konvaTheme = useKonvaTheme();
+
+  // Initialize smart positioning system
+  const { registry, calculator } = useSmartPositioning(canvasWidth, canvasHeight);
+
+  // Register shapes with collision system
+  useEffect(() => {
+    registerShape(registry, 'rect1', {
+      x: rectX,
+      y: rectY,
+      width: rectWidth,
+      height: rectHeight
+    }, 'shape', 10); // priority: 10 (higher = more important)
+  }, [registry, rectX, rectY, rectWidth, rectHeight]);
+
+  return (
+    <Stage width={canvasWidth} height={canvasHeight}>
+      <Layer>
+        {/* Background */}
+        <Rect width={canvasWidth} height={canvasHeight} fill={konvaTheme.canvasBackground} />
+
+        {/* Shape */}
+        <Rect x={rectX} y={rectY} width={rectWidth} height={rectHeight}
+              fill={konvaTheme.shapeFill} stroke={konvaTheme.shapeStroke} />
+
+        {/* Smart dimension labels */}
+        <DimensionLabel
+          x1={rectX} y1={rectY + rectHeight}
+          x2={rectX + rectWidth} y2={rectY + rectHeight}
+          label="5 cm"
+          registry={registry}
+          enableSmartPositioning={true}
+          id="width-label"
+          konvaTheme={konvaTheme}
+        />
+
+        {/* Smart shape labels */}
+        <SmartText
+          calculator={calculator}
+          shapeBounds={{ x: rectX, y: rectY, width: rectWidth, height: rectHeight }}
+          label="A"
+          fontSize={28}
+          fontStyle="bold"
+          fill={konvaTheme.labelText}
+          registry={registry}
+          id="shape-a-label"
+        />
+      </Layer>
+    </Stage>
+  );
+}
+```
+
+### Implementation Pattern 2: Enhanced DimensionLabel
+
+The DimensionLabel component now supports smart positioning while maintaining backward compatibility:
+
+```javascript
+// ❌ OLD WAY - No smart positioning (still works for backward compatibility)
+<DimensionLabel
+  x1={x1} y1={y1} x2={x2} y2={y2}
+  label="10 cm"
+  offset={15}
+  konvaTheme={konvaTheme}
+/>
+// Uses fixed offset, inaccurate text centering
+
+// ✅ NEW WAY - Smart positioning enabled
+<DimensionLabel
+  x1={x1} y1={y1} x2={x2} y2={y2}
+  label="10 cm"
+  offset={20}  // baseOffset for positioning strategies
+  konvaTheme={konvaTheme}
+  registry={registry}              // Required for smart positioning
+  enableSmartPositioning={true}    // Opt-in flag
+  id="width-label"                 // Required for collision tracking
+  fontSize={20}
+/>
+// Tries 6 positioning strategies:
+// 1. Preferred offset (20px perpendicular)
+// 2. 1.5x offset (30px)
+// 3. 2x offset (40px)
+// 4. Opposite side (flip)
+// 5. Opposite side 1.5x offset
+// 6. Opposite side 2x offset
+// Falls back to preferred position if no collision-free space
+```
+
+### Implementation Pattern 3: SmartText for Shape Labels
+
+```javascript
+import SmartText from './SmartText';
+
+// Shape label with automatic collision avoidance
+<SmartText
+  calculator={calculator}
+  shapeBounds={{
+    x: shapeX,
+    y: shapeY,
+    width: shapeWidth,
+    height: shapeHeight
+  }}
+  label="Rectangle A"
+  fontSize={18}
+  fontStyle="bold"
+  fill={konvaTheme.labelText}
+  registry={registry}
+  id="rect-a-label"
+/>
+
+// Tries 5 positioning strategies:
+// 1. Center of shape
+// 2. Upper-center (30% from top)
+// 3. Left-center (30% from left)
+// 4. Right-center (70% from left)
+// 5. Lower-center (70% from top)
+// Falls back to center if no collision-free space
+```
+
+### Position Strategy Logic
+
+**For dimension labels (side lengths):**
+
+```javascript
+const strategies = [
+  { offset: baseOffset, flip: 1 },       // Preferred: 20px perpendicular
+  { offset: baseOffset * 1.5, flip: 1 }, // Larger: 30px
+  { offset: baseOffset * 2, flip: 1 },   // Even larger: 40px
+  { offset: baseOffset, flip: -1 },      // Opposite side: 20px
+  { offset: baseOffset * 1.5, flip: -1 },// Opposite side: 30px
+  { offset: baseOffset * 2, flip: -1 }   // Opposite side: 40px
+];
+
+// For each strategy:
+// 1. Calculate position perpendicular to line
+// 2. Check if bounds overlap with registered elements
+// 3. Check if bounds are within canvas
+// 4. Use first valid position, or fallback to preferred
+```
+
+**For shape labels (A, B, area values):**
+
+```javascript
+const strategies = [
+  { x: centerX, y: centerY },              // Center
+  { x: centerX, y: upperCenterY },         // Upper-center
+  { x: leftCenterX, y: centerY },          // Left-center
+  { x: rightCenterX, y: centerY },         // Right-center
+  { x: centerX, y: lowerCenterY }          // Lower-center
+];
+
+// For each strategy:
+// 1. Calculate text bounding box at position
+// 2. Check for collisions with other elements
+// 3. Check canvas boundaries
+// 4. Use first valid position, or fallback to center
+```
+
+### Spatial Grid Indexing (Performance)
+
+The registry uses a **spatial grid** (50px cells) for O(k) collision detection:
+
+```javascript
+// Instead of checking all N elements (O(n²)):
+for (const element of allElements) {
+  if (overlaps(newLabel, element)) { /* collision */ }
+}
+
+// Smart positioning checks only nearby cells (O(k)):
+const cells = getCellsForBounds(newLabel);  // ~4-9 cells
+for (const cell of cells) {
+  for (const element of cell.elements) {    // ~1-5 elements per cell
+    if (overlaps(newLabel, element)) { /* collision */ }
+  }
+}
+```
+
+**Result:** Collision detection completes in <1ms even with 50+ canvas elements.
+
+### Helper Functions
+
+```javascript
+// Register a shape (rectangle, triangle, etc.)
+registerShape(registry, 'shape-id', {
+  x: 100,
+  y: 100,
+  width: 200,
+  height: 150
+}, 'shape', 10);  // priority: 10
+
+// Register a shape from points array (polygon)
+registerShape(registry, 'triangle', {
+  points: [x1, y1, x2, y2, x3, y3]
+}, 'shape', 10);
+// Automatically calculates bounding box
+
+// Register a line
+registerLine(registry, 'line-id', x1, y1, x2, y2, strokeWidth, priority);
+```
+
+### Common Mistakes
+
+```javascript
+// ❌ WRONG - Estimating text width
+const textWidth = label.length * fontSize / 4;
+// Inaccurate for different fonts, styles, character widths
+
+// ✅ CORRECT - Measuring actual text width
+const { width } = textMeasurer.measureText(label, { fontSize, fontStyle, fontFamily });
+
+// ❌ WRONG - Not registering shapes
+<Rect x={x} y={y} width={w} height={h} />
+<DimensionLabel ... enableSmartPositioning={true} />
+// Label doesn't know about rectangle, may overlap
+
+// ✅ CORRECT - Register all shapes
+useEffect(() => {
+  registerShape(registry, 'rect', { x, y, width: w, height: h }, 'shape', 10);
+}, [registry, x, y, w, h]);
+
+// ❌ WRONG - Forgetting to pass registry
+<DimensionLabel ... enableSmartPositioning={true} id="label1" />
+// enableSmartPositioning has no effect without registry
+
+// ✅ CORRECT - Pass registry and calculator
+<DimensionLabel ... registry={registry} enableSmartPositioning={true} id="label1" />
+<SmartText ... registry={registry} calculator={calculator} id="label2" />
+```
+
+### Priority System
+
+Higher priority elements take precedence in conflict resolution:
+
+```javascript
+// Shapes (highest priority) - never moved
+registerShape(registry, 'rect', bounds, 'shape', 10);
+
+// Lines (high priority)
+registerLine(registry, 'dimension-line', x1, y1, x2, y2, 2, 8);
+
+// Dimension labels (medium priority)
+// Registered automatically by DimensionLabel with priority: 7
+
+// Shape labels (lower priority)
+// Registered automatically by SmartText with priority: 6
+```
+
+**Conflict resolution:** If no collision-free position found, the label falls back to its preferred position with a console warning. This ensures information is always displayed even if perfect positioning isn't possible.
+
+### Testing Checklist
+
+When implementing smart positioning for a level:
+
+**Before Smart Positioning:**
+- [ ] Take screenshots of current implementation
+- [ ] Note specific overlap issues
+
+**After Smart Positioning:**
+- [ ] No overlaps between dimension labels and shapes
+- [ ] No overlaps between shape labels and dimension labels
+- [ ] No overlaps between multiple text labels
+- [ ] All text within canvas boundaries
+- [ ] Text readable in dark mode
+- [ ] Test with minimum shape sizes (small rectangles/triangles)
+- [ ] Test with maximum shape sizes (canvas-filling shapes)
+- [ ] Test shapes near canvas edges
+- [ ] Test different canvas sizes (desktop, iPad)
+- [ ] No console warnings about collision failures
+
+**Performance:**
+- [ ] Positioning calculation completes in <16ms (60fps)
+- [ ] No visible lag when shapes update
+- [ ] Smooth rendering during interactions
+
+### Migration Checklist
+
+When migrating an existing level to smart positioning:
+
+1. **Add imports:**
+   ```javascript
+   import { useSmartPositioning } from '../../hooks/useSmartPositioning';
+   import { registerShape } from '../../utils/smartPositioning';
+   import SmartText from './SmartText';
+   ```
+
+2. **Initialize system:**
+   ```javascript
+   const { registry, calculator } = useSmartPositioning(canvasWidth, canvasHeight);
+   ```
+
+3. **Register shapes in useEffect:**
+   ```javascript
+   useEffect(() => {
+     registerShape(registry, 'id', bounds, 'shape', 10);
+   }, [registry, bounds]);
+   ```
+
+4. **Update DimensionLabel props:**
+   - Add `registry={registry}`
+   - Add `enableSmartPositioning={true}`
+   - Add `id="unique-id"`
+
+5. **Replace hardcoded Text with SmartText:**
+   - Pass `calculator={calculator}`
+   - Pass `shapeBounds={...}`
+   - Pass `registry={registry}`
+   - Pass `id="unique-id"`
+
+6. **Test thoroughly** (use checklist above)
+
+### When to Use Smart Positioning
+
+**Use smart positioning when:**
+- Drawing dimension labels on shapes (ALWAYS for area/perimeter lessons)
+- Placing multiple labels on a single shape
+- Shapes can vary significantly in size
+- Shapes can be positioned near canvas edges
+- Multiple shapes appear close together
+- Labels may overlap with shape edges
+
+**Skip smart positioning when:**
+- Single static label in guaranteed open space
+- Label position is user-controlled (draggable)
+- Performance is critical and overlaps are impossible by design
+
+### Production Examples
+
+**Implemented in:**
+- `Level2CompareRectangles.jsx` - Two rectangles with dimension labels and shape labels
+- `Level4RightTriangle.jsx` - Triangle with dimension labels and area label
+
+**Pattern files:**
+- Core utilities: `geometry/utils/smartPositioning.js`
+- React hook: `geometry/hooks/useSmartPositioning.js`
+- Enhanced component: `geometry/components/areaPerimeter/DimensionLabel.jsx`
+- New component: `geometry/components/areaPerimeter/SmartText.jsx`
+
+### Resources
+
+- **Implementation plan:** See session transcript for full architecture and timeline
+- **Code patterns:** See Pattern 1-3 above for copy-paste templates
+- **Helper utilities:** `registerShape()`, `registerLine()` in `smartPositioning.js`
+
+---
+
 ## Related Files
 
 - **Solution Guide:** `DYNAMIC_ANGLE_INDICATOR_SOLUTION.md` - Complete implementation guide

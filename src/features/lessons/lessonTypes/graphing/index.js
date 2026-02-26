@@ -1,3 +1,4 @@
-import PlottingPoints from "./PlottingPoints";
+import PlottingPoints from "./PlottingPoints.jsx";
+import GraphingLines from "./GraphingLines.jsx";
 
-export { PlottingPoints };
+export { PlottingPoints, GraphingLines };

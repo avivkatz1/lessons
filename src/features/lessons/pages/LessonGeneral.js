@@ -368,6 +368,18 @@ const Wrapper = styled.div`
       padding: 10px 20px;
     }
   }
+
+  /* iPad optimization: reduce padding to save vertical space */
+  @media (max-width: 1024px) {
+    padding-bottom: 8px;
+
+    .lesson-container {
+      padding: 8px;
+    }
+    .instructions {
+      padding: 4px 10px;
+    }
+  }
 `;
 
 // Phase 2 - Stage 1: Styled components for loading, error, and empty states

@@ -159,6 +159,7 @@ Head to frontends/lessons/context/conversations/active.json to write down anythi
 1. **Planning & Design** (Architect)
    - Prompt user with any questions to help with plan, or anytime during process
    - Review similar lessons
+   - **Check INTERACTIVE_LESSON_PATTERNS.md for interactive patterns** (drawing canvas, button selection, visual helpers)
    - Define data contract
    - Create implementation plan for this lesson and potential levels
    - Be mindful of creating good lessons for struggling learners
@@ -172,9 +173,11 @@ Head to frontends/lessons/context/conversations/active.json to write down anythi
 
 3. **Frontend Implementation** (Lesson Developer)
    - Prompt user with any questions to help with plan before start, or anytime during process
+   - **Review INTERACTIVE_LESSON_PATTERNS.md** for proven interaction patterns (button selection, canvas integration, visual scaffolding)
    - Build React component
-   - Use standard patterns
+   - Use standard patterns (see INTERACTIVE_LESSON_PATTERNS.md for examples)
    - Ensure dark mode compatibility
+   - Consider progressive scaffolding (heavy → fade as student demonstrates mastery)
    - *May spawn:* Konva, Dark Mode, Geometry specialists
 
 4. **Testing & QA** (Tester)
@@ -497,9 +500,12 @@ Each bot has defined decision-making authority and can ask questions of other bo
 
 ## Related Documentation
 
+- **INTERACTIVE_LESSON_PATTERNS.md** - ⭐ **NEW!** Comprehensive guide for building interactive lessons (drawing canvas, button selection, visual helpers, progressive scaffolding)
 - **LESSON_DEVELOPMENT_CHECKLIST.md** - Lesson development guide
 - **VISUAL_DESIGN_RULES.md** - Visual design standards
 - **LESSON_TESTING_PROTOCOL.md** - Testing procedures
+- **CANVAS_KONVA_MIGRATION.md** - Drawing canvas implementation details
+- **CANVAS_ANSWER_BOX_FEATURE.md** - Canvas answer input integration
 - **Individual Bot Definitions** - See `/docs/bots/` subdirectories
 - **Workflow Definitions** - See `/context/workflows/`
 

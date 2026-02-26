@@ -15,6 +15,12 @@ import InstructionComponent from "./InstructionComponent";
 // Phase 2 - Stage 1: Error boundaries
 import ErrorBoundary from "./ErrorBoundary";
 import LessonErrorBoundary from "./LessonErrorBoundary";
+// Drawing canvas for iPad
+import DrawingCanvas from "./DrawingCanvas";
+// Input Overlay System (Phase 1 - Foundation)
+import InputOverlayPanel from "./InputOverlayPanel";
+import SlimMathKeypad from "./SlimMathKeypad";
+import EnterAnswerButton from "./EnterAnswerButton";
 
 export {
   Header,
@@ -34,4 +40,10 @@ export {
   // Phase 2 - Stage 1: Error boundaries
   ErrorBoundary,
   LessonErrorBoundary,
+  // Drawing canvas for iPad
+  DrawingCanvas,
+  // Input Overlay System (Phase 1 - Foundation)
+  InputOverlayPanel,
+  SlimMathKeypad,
+  EnterAnswerButton,
 };

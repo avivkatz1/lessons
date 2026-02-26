@@ -243,6 +243,8 @@ export const validateArray = (userAnswer, correctAnswer, options = {}) => {
 
   if (isSimpleArray) {
     const normalizedUser = normalizeInput(userAnswer);
+    // For reducing fractions, only accept exact string match (no numeric equivalence)
+    const exactOnly = lessonName === "reducing_fractions";
 
     // Check if user answer matches ANY of the correct answers
     for (const answer of correctAnswer) {
@@ -253,19 +255,21 @@ export const validateArray = (userAnswer, correctAnswer, options = {}) => {
         return true;
       }
 
-      // Try numeric comparison
-      const userNum = parseFloat(normalizedUser);
-      const correctNum = parseFloat(correctText);
-      if (!isNaN(userNum) && !isNaN(correctNum)) {
-        if (validateNumber(userAnswer, correctText)) {
-          return true;
+      if (!exactOnly) {
+        // Try numeric comparison
+        const userNum = parseFloat(normalizedUser);
+        const correctNum = parseFloat(correctText);
+        if (!isNaN(userNum) && !isNaN(correctNum)) {
+          if (validateNumber(userAnswer, correctText)) {
+            return true;
+          }
         }
-      }
 
-      // Try fraction comparison
-      if (normalizedUser.includes("/") || correctText.includes("/")) {
-        if (validateFraction(userAnswer, correctText)) {
-          return true;
+        // Try fraction comparison
+        if (normalizedUser.includes("/") || correctText.includes("/")) {
+          if (validateFraction(userAnswer, correctText)) {
+            return true;
+          }
         }
       }
     }

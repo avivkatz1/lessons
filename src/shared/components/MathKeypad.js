@@ -105,8 +105,9 @@ const MathKeypad = ({ value = "", onChange, onSubmit, onClose, visible }) => {
         onChange(buildFractionValue(num, toggled));
       }
     } else {
-      const toggled = value.startsWith("-") ? value.slice(1) : "-" + value;
-      onChange(toggled);
+      // For coordinate entry and general use, just append the minus sign
+      // This allows typing "(-4,2)" correctly
+      onChange(value + "-");
     }
   }, [fractionMode, activeField, value, onChange, parseFraction, buildFractionValue]);
 
@@ -132,6 +133,22 @@ const MathKeypad = ({ value = "", onChange, onSubmit, onClose, visible }) => {
     setActiveField(field);
   }, []);
 
+  const handleComma = useCallback(() => {
+    onChange(value + ",");
+  }, [value, onChange]);
+
+  const handleLeftParen = useCallback(() => {
+    onChange(value + "(");
+  }, [value, onChange]);
+
+  const handleRightParen = useCallback(() => {
+    onChange(value + ")");
+  }, [value, onChange]);
+
+  const handleSpace = useCallback(() => {
+    onChange(value + " ");
+  }, [value, onChange]);
+
   const handleSubmit = useCallback(() => {
     if (onSubmit) {
       onSubmit();
@@ -144,7 +161,7 @@ const MathKeypad = ({ value = "", onChange, onSubmit, onClose, visible }) => {
     }
   }, [onClose]);
 
-  // Key definitions for the 4-row layout
+  // Key definitions for the 5-row layout with coordinates support
   const keys = [
     [
       { label: "7", action: () => handleDigit("7") },
@@ -167,6 +184,12 @@ const MathKeypad = ({ value = "", onChange, onSubmit, onClose, visible }) => {
     [
       { label: "0", action: () => handleDigit("0") },
       { label: ".", action: handleDecimal },
+      { label: ",", action: handleComma },
+      { label: "Space", action: handleSpace, type: "space" },
+    ],
+    [
+      { label: "(", action: handleLeftParen },
+      { label: ")", action: handleRightParen },
       {
         label: "\u25AD/\u25AD",
         action: handleFractionToggle,
@@ -180,6 +203,11 @@ const MathKeypad = ({ value = "", onChange, onSubmit, onClose, visible }) => {
     <>
       {visible && <Overlay onClick={handleOverlayClick} />}
       <KeypadContainer $visible={visible}>
+        {/* Display area always visible */}
+        <DisplayArea>
+          <DisplayText>{value || "0"}</DisplayText>
+        </DisplayArea>
+
         {fractionMode && (
           <FractionArea>
             <FractionDisplay
@@ -236,24 +264,82 @@ const KeypadContainer = styled.div`
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
   transform: translateY(${(props) => (props.$visible ? "0" : "100%")});
   transition: transform 0.3s ease-in-out;
-  padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px;
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px)) 6px;
+
+  /* iPad optimization: more compact */
+  @media (max-width: 1024px) {
+    padding: 3px 3px calc(3px + env(safe-area-inset-bottom, 0px)) 3px;
+    border-radius: 10px 10px 0 0;
+  }
+`;
+
+const DisplayArea = styled.div`
+  padding: 10px 12px;
+  background-color: ${(props) => props.theme.colors.pageBackground};
+  border-bottom: 2px solid ${(props) => props.theme.colors.border};
+  border-radius: 8px 8px 0 0;
+  margin: 0 0 6px 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  /* iPad optimization: more compact */
+  @media (max-width: 1024px) {
+    padding: 6px 10px;
+    margin: 0 0 3px 0;
+    min-height: 32px;
+    border-bottom: 1px solid ${(props) => props.theme.colors.border};
+  }
+`;
+
+const DisplayText = styled.div`
+  font-size: 24px;
+  font-weight: 600;
+  color: ${(props) => props.theme.colors.textPrimary};
+  text-align: right;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Droid Sans Mono', 'Source Code Pro', monospace;
+  letter-spacing: 0.5px;
+  word-break: break-all;
+
+  /* iPad optimization: smaller text */
+  @media (max-width: 1024px) {
+    font-size: 18px;
+    letter-spacing: 0.3px;
+  }
 `;
 
 const FractionArea = styled.div`
   padding: 4px 8px 0;
   border-bottom: 1px solid ${(props) => props.theme.colors.border};
   margin-bottom: 4px;
+
+  /* iPad optimization: more compact */
+  @media (max-width: 1024px) {
+    padding: 2px 6px 0;
+    margin-bottom: 2px;
+  }
 `;
 
 const KeyGrid = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
+
+  /* iPad optimization: tighter gaps */
+  @media (max-width: 1024px) {
+    gap: 3px;
+  }
 `;
 
 const KeyRow = styled.div`
   display: flex;
-  gap: 6px;
+  gap: 5px;
+
+  /* iPad optimization: tighter gaps */
+  @media (max-width: 1024px) {
+    gap: 3px;
+  }
 `;
 
 const Key = styled.button`
@@ -261,7 +347,11 @@ const Key = styled.button`
   min-height: 48px;
   border: 1px solid ${(props) => props.theme.colors.border};
   border-radius: 8px;
-  font-size: ${(props) => (props.$type === "submit" ? "16px" : "20px")};
+  font-size: ${(props) => {
+    if (props.$type === "submit") return "16px";
+    if (props.$type === "space") return "14px";
+    return "20px";
+  }};
   font-weight: 600;
   cursor: pointer;
   user-select: none;
@@ -282,5 +372,16 @@ const Key = styled.button`
 
   &:active {
     transform: scale(0.95);
+  }
+
+  /* iPad optimization: more compact buttons */
+  @media (max-width: 1024px) {
+    min-height: 36px;
+    border-radius: 6px;
+    font-size: ${(props) => {
+      if (props.$type === "submit") return "13px";
+      if (props.$type === "space") return "11px";
+      return "17px";
+    }};
   }
 `;

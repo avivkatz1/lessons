@@ -29,6 +29,11 @@ import ProbabilityAreaModelLesson from "./ProbabilityAreaModelLesson";
 import ProbabilityTreeDiagramLesson from "./ProbabilityTreeDiagramLesson";
 import ExpectedValueLesson from "./ExpectedValueLesson";
 import ProportionalReasoning from "./ProportionalReasoning";
+import AddingIntegersLesson from "./AddingIntegersLesson";
+import SubtractingIntegersLesson from "./SubtractingIntegersLesson";
+import MultiplyingIntegersLesson from "./MultiplyingIntegersLesson";
+import MultiplyingFractionsLesson from "./MultiplyingFractionsLesson";
+import SolvingEquationsLesson from "./SolvingEquationsLesson";
 
 // Alias for backwards compatibility
 const BasicProblemsWordsOnly = BasicProblemWordsOnly;
@@ -64,4 +69,9 @@ export {
   ProbabilityTreeDiagramLesson,
   ExpectedValueLesson,
   ProportionalReasoning,
+  AddingIntegersLesson,
+  SubtractingIntegersLesson,
+  MultiplyingIntegersLesson,
+  MultiplyingFractionsLesson,
+  SolvingEquationsLesson,
 };

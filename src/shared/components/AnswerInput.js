@@ -14,6 +14,8 @@ const AnswerInput = ({
   placeholder = "Enter your answer",
   disabled = false,
   tryAnotherText = "Try Another Problem",
+  getIncorrectMessage,
+  onKeypadOpenChange,
 }) => {
   const dispatch = useDispatch();
   const userAnswer = useSelector((state) => state.lesson.userAnswer);
@@ -45,6 +47,13 @@ const AnswerInput = ({
   useEffect(() => {
     setAttempts(0);
   }, [correctAnswer]);
+
+  // Notify parent when keypad state changes
+  useEffect(() => {
+    if (onKeypadOpenChange) {
+      onKeypadOpenChange(keypadOpen);
+    }
+  }, [keypadOpen, onKeypadOpenChange]);
 
   // Scroll input into view when keypad opens on touch devices
   useEffect(() => {
@@ -174,7 +183,11 @@ const AnswerInput = ({
           {getButtonText()}
         </button>
       </div>
-      {answerFeedback === "incorrect" && <div className="feedback incorrect">Try again</div>}
+      {answerFeedback === "incorrect" && (
+        <div className="feedback incorrect">
+          {(getIncorrectMessage && getIncorrectMessage(localInput)) || "Try again"}
+        </div>
+      )}
       {answerFeedback === "correct" && (
         <div className="feedback correct">
           Correct! {attempts > 1 ? `(${attempts} attempts)` : "(1st try!)"}

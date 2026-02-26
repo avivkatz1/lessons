@@ -22,6 +22,7 @@
       },
       "tasks": [
         "Review 2-3 similar existing lessons for patterns",
+        "Look at lesson named sides for examples of interaction and scaffolding",
         "Define backend data contract (JSON structure)",
         "Sketch visual requirements (if Konva needed)",
         "List edge cases (small/large values, extreme angles)",

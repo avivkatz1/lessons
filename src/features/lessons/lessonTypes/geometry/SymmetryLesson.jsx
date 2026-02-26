@@ -3,6 +3,7 @@ import { useLessonState, useWindowDimensions, useKonvaTheme } from "../../../../
 import { AnswerInput } from "../../../../shared/components";
 import styled from "styled-components";
 import { Stage, Layer, Rect, Line, Text, Circle } from "react-konva";
+import ExplanationModal from "./ExplanationModal";
 
 // ==================== LEVEL CONFIG ====================
 
@@ -48,6 +49,7 @@ function SymmetryLesson({ triggerNewProblem }) {
   const [checkResult, setCheckResult] = useState(null);
   const [showHint, setShowHint] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [keypadOpen, setKeypadOpen] = useState(false);
 
   const currentProblem = questionAnswerArray?.[currentQuestionIndex] || lessonProps;
   const visualData = currentProblem?.visualData || {};
@@ -90,8 +92,23 @@ function SymmetryLesson({ triggerNewProblem }) {
     return [String(currentProblem?.answer || "")];
   }, [currentProblem]);
 
-  // Canvas sizing
-  const canvasWidth = Math.min(width - 40, 500);
+  // Canvas sizing - reduce on iPad, shrink more when keypad is open
+  const canvasWidth = useMemo(() => {
+    const baseMax = Math.min(width - 40, 500);
+
+    // Level 4 with keypad open: shrink significantly to fit
+    if (isPlottingLevel && keypadOpen && width <= 1024) {
+      return Math.min(baseMax, 320);
+    }
+
+    // iPad optimization: reduce canvas size
+    if (width <= 1024) {
+      return Math.min(baseMax, 400);
+    }
+
+    return baseMax;
+  }, [width, isPlottingLevel, keypadOpen]);
+
   const cellSize = canvasWidth / gridSize;
   const canvasHeight = canvasWidth; // Square grid
 
@@ -421,19 +438,17 @@ function SymmetryLesson({ triggerNewProblem }) {
             onTryAnother={handleTryAnother}
             disabled={isComplete}
             placeholder="e.g. (7,2), (5,4)"
+            onKeypadOpenChange={setKeypadOpen}
           />
         )}
       </InteractionSection>
 
-      {/* Explanation */}
+      {/* Explanation Modal */}
       {isComplete && (
-        <ExplanationSection>
-          <ExplanationTitle>Correct!</ExplanationTitle>
-          <ExplanationText>{explanation}</ExplanationText>
-          <TryAnotherButton onClick={handleTryAnother}>
-            Try Another Problem
-          </TryAnotherButton>
-        </ExplanationSection>
+        <ExplanationModal
+          explanation={explanation}
+          onTryAnother={handleTryAnother}
+        />
       )}
     </Wrapper>
   );
@@ -456,6 +471,11 @@ const Wrapper = styled.div`
   @media (min-width: 768px) {
     padding: 30px;
   }
+
+  /* iPad optimization: reduce padding */
+  @media (max-width: 1024px) {
+    padding: 12px;
+  }
 `;
 
 const LoadingText = styled.p`
@@ -470,6 +490,12 @@ const LevelHeader = styled.div`
   margin-bottom: 6px;
   width: 100%;
   justify-content: center;
+
+  /* iPad optimization: tighter spacing */
+  @media (max-width: 1024px) {
+    gap: 8px;
+    margin-bottom: 3px;
+  }
 `;
 
 const LevelBadge = styled.span`
@@ -480,6 +506,12 @@ const LevelBadge = styled.span`
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
+
+  /* iPad optimization: smaller badge */
+  @media (max-width: 1024px) {
+    padding: 2px 10px;
+    font-size: 12px;
+  }
 `;
 
 const LevelTitle = styled.h2`
@@ -491,6 +523,11 @@ const LevelTitle = styled.h2`
   @media (min-width: 768px) {
     font-size: 22px;
   }
+
+  /* iPad optimization: slightly smaller title */
+  @media (max-width: 1024px) {
+    font-size: 18px;
+  }
 `;
 
 const InstructionText = styled.p`
@@ -499,6 +536,12 @@ const InstructionText = styled.p`
   text-align: center;
   margin: 0 0 12px 0;
   max-width: 700px;
+
+  /* iPad optimization: compact text */
+  @media (max-width: 1024px) {
+    font-size: 14px;
+    margin: 0 0 8px 0;
+  }
 `;
 
 const VisualSection = styled.div`
@@ -513,6 +556,13 @@ const VisualSection = styled.div`
   overflow-x: auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   cursor: crosshair;
+  transition: all 0.3s ease-in-out;
+
+  /* iPad optimization: reduce padding and margin */
+  @media (max-width: 1024px) {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
 `;
 
 const InteractionSection = styled.div`
@@ -522,6 +572,12 @@ const InteractionSection = styled.div`
   align-items: center;
   gap: 15px;
   margin-bottom: 20px;
+
+  /* iPad optimization: tighter gaps */
+  @media (max-width: 1024px) {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
 `;
 
 const HintBox = styled.div`
@@ -534,6 +590,13 @@ const HintBox = styled.div`
   font-size: 15px;
   line-height: 1.6;
   color: ${(props) => props.theme.colors.textPrimary};
+
+  /* iPad optimization: compact hint box */
+  @media (max-width: 1024px) {
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
 `;
 
 const FeedbackText = styled.p`
@@ -542,12 +605,22 @@ const FeedbackText = styled.p`
   color: ${(props) => (props.$isWrong ? "#EF4444" : props.theme.colors.buttonSuccess)};
   margin: 0;
   text-align: center;
+
+  /* iPad optimization: slightly smaller feedback */
+  @media (max-width: 1024px) {
+    font-size: 14px;
+  }
 `;
 
 const ButtonRow = styled.div`
   display: flex;
   gap: 12px;
   align-items: center;
+
+  /* iPad optimization: tighter button spacing */
+  @media (max-width: 1024px) {
+    gap: 8px;
+  }
 `;
 
 const CheckButton = styled.button`
@@ -564,6 +637,12 @@ const CheckButton = styled.button`
 
   &:hover:not(:disabled) {
     opacity: 0.9;
+  }
+
+  /* iPad optimization: compact button */
+  @media (max-width: 1024px) {
+    padding: 10px 24px;
+    font-size: 15px;
   }
 `;
 
@@ -582,6 +661,12 @@ const ResetButton = styled.button`
   &:hover:not(:disabled) {
     background-color: ${(props) => props.theme.colors.hoverBackground};
   }
+
+  /* iPad optimization: compact button */
+  @media (max-width: 1024px) {
+    padding: 10px 24px;
+    font-size: 15px;
+  }
 `;
 
 const ExplanationSection = styled.div`
@@ -595,6 +680,13 @@ const ExplanationSection = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 12px;
+
+  /* iPad optimization: compact explanation */
+  @media (max-width: 1024px) {
+    padding: 16px 20px;
+    margin-top: 0px;
+    gap: 8px;
+  }
 `;
 
 const ExplanationTitle = styled.h3`
@@ -602,6 +694,11 @@ const ExplanationTitle = styled.h3`
   font-weight: 700;
   color: ${(props) => props.theme.colors.buttonSuccess};
   margin: 0;
+
+  /* iPad optimization: smaller title */
+  @media (max-width: 1024px) {
+    font-size: 17px;
+  }
 `;
 
 const ExplanationText = styled.p`
@@ -610,6 +707,12 @@ const ExplanationText = styled.p`
   color: ${(props) => props.theme.colors.textPrimary};
   margin: 0;
   text-align: center;
+
+  /* iPad optimization: compact text */
+  @media (max-width: 1024px) {
+    font-size: 14px;
+    line-height: 1.5;
+  }
 `;
 
 const TryAnotherButton = styled.button`
@@ -625,6 +728,12 @@ const TryAnotherButton = styled.button`
 
   &:hover {
     opacity: 0.9;
+  }
+
+  /* iPad optimization: compact button */
+  @media (max-width: 1024px) {
+    padding: 10px 24px;
+    font-size: 15px;
   }
 `;
 

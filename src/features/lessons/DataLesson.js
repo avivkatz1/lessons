@@ -104,6 +104,9 @@ const CompositeShape2 = lazy(() =>
 const CompositeShape3 = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.CompositeShape3 }))
 );
+const CompositeShapeLessonComp = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.CompositeShapeLesson }))
+);
 const TriangleInequality = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.TriangleInequality }))
 );
@@ -116,8 +119,17 @@ const Dilation = lazy(() =>
 const Proportions = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.Proportions }))
 );
+const ProportionsLessonComp = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.ProportionsLesson }))
+);
+const ProportionalReasoning = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.ProportionalReasoning }))
+);
 const SlopeTriangle = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.SlopeTriangle }))
+);
+const SlopeTrianglesLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.SlopeTrianglesLesson }))
 );
 const Tangent = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.Tangent }))
@@ -133,6 +145,66 @@ const MoreTangentLesson = lazy(() =>
 );
 const InverseTrig = lazy(() =>
   import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.InverseTrig }))
+);
+const SidesAndAnglesLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.SidesAndAnglesLesson }))
+);
+const ShapesLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.ShapesLesson }))
+);
+const DilationLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.DilationLesson }))
+);
+const SimilarTrianglesLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.SimilarTrianglesLesson }))
+);
+const SimilarityProofsLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.SimilarityProofsLesson }))
+);
+const SimilarTrianglesWordProblemsLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.SimilarTrianglesWordProblemsLesson }))
+);
+const PythagoreanTheoremLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.PythagoreanTheoremLesson }))
+);
+const PythagoreanTriplesLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.PythagoreanTriplesLesson }))
+);
+const AreaLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.Area }))
+);
+const ZoomFactorLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.ZoomFactorLesson }))
+);
+const AllTrigRatiosLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.AllTrigRatiosLesson }))
+);
+const InverseTrigLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.InverseTrigLesson }))
+);
+const ThirtySixtyNinetyLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.ThirtySixtyNinetyLesson }))
+);
+const FortyFiveFortyFiveNinetyLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.FortyFiveFortyFiveNinetyLesson }))
+);
+const TrigWordProblemsLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.TrigWordProblemsLesson }))
+);
+const SSSCongruentTrianglesLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.SSSCongruentTrianglesLesson }))
+);
+
+const SASCongruentTrianglesLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.SASCongruentTrianglesLesson }))
+);
+
+const AASCongruentTrianglesLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.AASCongruentTrianglesLesson }))
+);
+
+const ASACongruentTrianglesLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.ASACongruentTrianglesLesson }))
 );
 
 // Angle components
@@ -152,6 +224,21 @@ const AngleRelationshipsDiagram = lazy(() =>
 const Parallel = lazy(() =>
   import("../lessons/lessonTypes/angles/index").then((m) => ({ default: m.Parallel }))
 );
+const ParallelLesson = lazy(() =>
+  import("../lessons/lessonTypes/geometry/index").then((m) => ({ default: m.ParallelLesson }))
+);
+const RotationLesson = lazy(() =>
+  import("./lessonTypes/geometry/RotationLesson").then((m) => ({ default: m.default }))
+);
+const AreaPerimeterLesson = lazy(() =>
+  import("./lessonTypes/geometry/AreaPerimeterLesson").then((m) => ({ default: m.default }))
+);
+const TranslationLesson = lazy(() =>
+  import("./lessonTypes/geometry/TranslationLesson").then((m) => ({ default: m.default }))
+);
+const PerpendicularLesson = lazy(() =>
+  import("./lessonTypes/geometry/PerpendicularLesson").then((m) => ({ default: m.default }))
+);
 const NamingAnglesLevelOne = lazy(() =>
   import("../lessons/lessonTypes/angles/index").then((m) => ({ default: m.NamingAnglesLevelOne }))
 );
@@ -163,6 +250,9 @@ const NamingAnglesLevelThree = lazy(() =>
 );
 const NamingAnglesLevelFour = lazy(() =>
   import("../lessons/lessonTypes/angles/index").then((m) => ({ default: m.NamingAnglesLevelFour }))
+);
+const AnglesLesson = lazy(() =>
+  import("../lessons/lessonTypes/angles/index").then((m) => ({ default: m.AnglesLesson }))
 );
 
 // Image lesson components
@@ -185,8 +275,32 @@ const BasicProblemsWordsOnly = lazy(() =>
 const BasicProbability = lazy(() =>
   import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.BasicProbability }))
 );
+const ProbabilityAreaModelLesson = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.ProbabilityAreaModelLesson }))
+);
+const ProbabilityTreeDiagramLesson = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.ProbabilityTreeDiagramLesson }))
+);
+const ExpectedValueLesson = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.ExpectedValueLesson }))
+);
+const FlowChartsLesson = lazy(() =>
+  import("../lessons/lessonTypes/logic/index").then((m) => ({ default: m.FlowChartsLesson }))
+);
+const ConditionalStatementsLesson = lazy(() =>
+  import("../lessons/lessonTypes/logic/index").then((m) => ({ default: m.ConditionalStatementsLesson }))
+);
 const Evaluating = lazy(() =>
   import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.Evaluating }))
+);
+const EvaluatingExpressions = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.EvaluatingExpressions }))
+);
+const OneStepEquations = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.OneStepEquations }))
+);
+const TwoStepEquations = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.TwoStepEquations }))
 );
 const VennDiagram = lazy(() =>
   import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.VennDiagram }))
@@ -215,8 +329,37 @@ const Rounding = lazy(() =>
 const OrderOfOperations = lazy(() =>
   import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.OrderOfOperations }))
 );
+const AddingIntegersLesson = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.AddingIntegersLesson }))
+);
+const SubtractingIntegersLesson = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.SubtractingIntegersLesson }))
+);
+const MultiplyingIntegersLesson = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.MultiplyingIntegersLesson }))
+);
+const MultiplyingFractionsLesson = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.MultiplyingFractionsLesson }))
+);
+const SolvingEquationsLesson = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.SolvingEquationsLesson }))
+);
 const AddingFractions = lazy(() =>
   import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.AddingFractions }))
+);
+const ReducingFractions = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.ReducingFractions }))
+);
+const PatternsLesson = lazy(() =>
+  import("../lessons/lessonTypes/algebra/index").then((m) => ({ default: m.PatternsLesson }))
+);
+
+// Graphing components
+const PlottingPoints = lazy(() =>
+  import("../lessons/lessonTypes/graphing/index").then((m) => ({ default: m.PlottingPoints }))
+);
+const GraphingLines = lazy(() =>
+  import("../lessons/lessonTypes/graphing/index").then((m) => ({ default: m.GraphingLines }))
 );
 
 // Export lesson configuration
@@ -224,11 +367,17 @@ const AddingFractions = lazy(() =>
 export const DataLesson = {
   triangle_sum: {
     lessonImage: triangleSum,
-    LessonComponent: [TriangleSum, BasicProblemsWordsOnly, AngleRelationShipsLevelOne],
+    LessonComponent: [TriangleSum, TriangleSum, TriangleSum, TriangleSum, TriangleSum],
   },
   equations: {
     lessonImage: equation,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      SolvingEquationsLesson,  // Level 1: One-step equations
+      SolvingEquationsLesson,  // Level 2: Two-step equations
+      SolvingEquationsLesson,  // Level 3: Multi-step equations
+      SolvingEquationsLesson,  // Level 4: Variables on both sides
+      SolvingEquationsLesson,  // Level 5: Word problems
+    ],
   },
   complementary_angles: {
     lessonImage: complementary_angles,
@@ -252,15 +401,36 @@ export const DataLesson = {
   },
   parallel: {
     lessonImage: parallel,
-    LessonComponent: [Parallel],
+    LessonComponent: [
+      ParallelLesson,  // Level 1: Identify Parallel Lines
+      ParallelLesson,  // Level 2: Match Parallel Pairs
+      ParallelLesson,  // Level 3: Make Lines Parallel
+      ParallelLesson,  // Level 4: Equations - Identify
+      ParallelLesson,  // Level 5: Equations - Find Parallel
+    ],
   },
   perpendicular: {
     lessonImage: perpendicular,
-    LessonComponent: [ImageLesson],
+    LessonComponent: [
+      PerpendicularLesson,  // L1: Drag square to test
+      PerpendicularLesson,  // L2: Click pairs
+      PerpendicularLesson,  // L3: Make perpendicular
+      PerpendicularLesson,  // L4: Identify from equations
+      PerpendicularLesson,  // L5: Find equation
+    ],
   },
   area_perimeter: {
     lessonImage: perimeter_area,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      AreaPerimeterLesson, // L1: Draggable Rectangle
+      AreaPerimeterLesson, // L2: Compare Rectangles
+      AreaPerimeterLesson, // L3: Calculate Area & Perimeter
+      AreaPerimeterLesson, // L4: Right Triangles
+      AreaPerimeterLesson, // L5: Any Triangle
+      AreaPerimeterLesson, // L6: Trapezoid Decomposition
+      AreaPerimeterLesson, // L7: Mixed Shapes
+      AreaPerimeterLesson, // L8: Word Problems
+    ],
   },
   rotational_symmetry: {
     lessonImage: rotational_symmetry,
@@ -272,24 +442,42 @@ export const DataLesson = {
   },
   patterns: {
     lessonImage: patterns,
-    LessonComponent: [ImageLesson],
+    LessonComponent: [
+      PatternsLesson,  // Level 1: Visual arithmetic, small positive differences
+      PatternsLesson,  // Level 2: Visual arithmetic, larger differences
+      PatternsLesson,  // Level 3: Numeric arithmetic, negatives allowed
+      PatternsLesson,  // Level 4: Numeric geometric (×n)
+      PatternsLesson,  // Level 5: Mixed arithmetic and geometric
+    ],
   },
   shapes: {
     lessonImage: shapes,
-    LessonComponent: [ImageLesson],
+    LessonComponent: [
+      ShapesLesson,
+      ShapesLesson,
+      ShapesLesson,
+      ShapesLesson,
+      ShapesLesson,
+    ],
   },
   plotting_points: {
     lessonImage: plotting_points,
-    LessonComponent: [ImageLesson],
+    LessonComponent: [
+      PlottingPoints,  // Level 1: Quadrant I, small numbers
+      PlottingPoints,  // Level 2: Quadrant I, larger numbers
+      PlottingPoints,  // Level 3: Introduce negatives
+      PlottingPoints,  // Level 4: All four quadrants
+      PlottingPoints,  // Level 5: Full range + word problems
+    ],
   },
   translation: {
     lessonImage: translation,
     LessonComponent: [
-      Translation,  // Level 1: Drag with green outline
-      Translation,  // Level 2: Drag without outline
-      Translation,  // Level 3: Algebraic notation
-      Translation,  // Level 4: Calculate translation
-      Translation,  // Level 5: Complete the rule
+      TranslationLesson,  // L1: Drag with green outline
+      TranslationLesson,  // L2: Drag without outline
+      TranslationLesson,  // L3: Apply notation
+      TranslationLesson,  // L4: Calculate translation
+      TranslationLesson,  // L5: Complete the rule
     ],
   },
   reflection: {
@@ -304,7 +492,13 @@ export const DataLesson = {
   },
   rotation: {
     lessonImage: rotation,
-    LessonComponent: [ImageLesson],
+    LessonComponent: [
+      RotationLesson, // L1: 90° rotation about origin
+      RotationLesson, // L2: 180° rotation about origin
+      RotationLesson, // L3: 270° rotation about origin
+      RotationLesson, // L4: 90° rotation about a point
+      RotationLesson, // L5: Mixed rotations
+    ],
   },
   basic_probability: {
     lessonImage: basic_probability,
@@ -314,6 +508,46 @@ export const DataLesson = {
       BasicProbability,  // Level 3: Complementary events
       BasicProbability,  // Level 4: Independent events
       BasicProbability,  // Level 5: Word problems
+    ],
+  },
+  probability_area_model: {
+    lessonImage: probability_area_model,
+    LessonComponent: [
+      ProbabilityAreaModelLesson,  // Level 1: Read the Area Model
+      ProbabilityAreaModelLesson,  // Level 2: Fill in the Missing Cell
+      ProbabilityAreaModelLesson,  // Level 3: Find P(A and B)
+      ProbabilityAreaModelLesson,  // Level 4: Combined Probability
+      ProbabilityAreaModelLesson,  // Level 5: Word Problems
+    ],
+  },
+  probability_tree_diagram: {
+    lessonImage: probability_tree_diagram,
+    LessonComponent: [
+      ProbabilityTreeDiagramLesson,  // Level 1: Read the Tree
+      ProbabilityTreeDiagramLesson,  // Level 2: Fill in Missing Branch
+      ProbabilityTreeDiagramLesson,  // Level 3: Find P(A and B)
+      ProbabilityTreeDiagramLesson,  // Level 4: Multiple Paths
+      ProbabilityTreeDiagramLesson,  // Level 5: Word Problems
+    ],
+  },
+  expected_value: {
+    lessonImage: expected_value,
+    LessonComponent: [
+      ExpectedValueLesson,  // Level 1: Read the Table
+      ExpectedValueLesson,  // Level 2: Find Missing Value
+      ExpectedValueLesson,  // Level 3: Expected Value
+      ExpectedValueLesson,  // Level 4: Is It Fair?
+      ExpectedValueLesson,  // Level 5: Word Problems
+    ],
+  },
+  flow_charts: {
+    lessonImage: flow_charts,
+    LessonComponent: [
+      FlowChartsLesson,  // Level 1: Identify Symbols
+      FlowChartsLesson,  // Level 2: Follow Simple Charts
+      FlowChartsLesson,  // Level 3: Complete Charts
+      FlowChartsLesson,  // Level 4: Math Calculations
+      FlowChartsLesson,  // Level 5: Triangle Similarity Proofs
     ],
   },
   venn_diagrams: {
@@ -328,11 +562,27 @@ export const DataLesson = {
   },
   area: {
     lessonImage: perimeter_area,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      AreaLesson,  // Level 1: Make the Target Area (drag to resize)
+      AreaLesson,  // Level 2: Count the Squares (MC)
+      AreaLesson,  // Level 3: Area of Rectangles
+      AreaLesson,  // Level 4: Area of Triangles (rect cut in half)
+      AreaLesson,  // Level 5: Rectangles & Triangles (no formula)
+      AreaLesson,  // Level 6: Trapezoids (two triangles)
+      AreaLesson,  // Level 7: Parallelograms
+      AreaLesson,  // Level 8: All Shapes, No Help
+      AreaLesson,  // Level 9: Word Problems (MC)
+    ],
   },
   angles: {
     lessonImage: angles,
-    LessonComponent: [ImageLesson],
+    LessonComponent: [
+      AnglesLesson,  // Level 1: Find the vertex
+      AnglesLesson,  // Level 2: Identify the angle region
+      AnglesLesson,  // Level 3: Classify Acute/Right/Obtuse
+      AnglesLesson,  // Level 4: Estimate the angle
+      AnglesLesson,  // Level 5: Make the angle (drag)
+    ],
   },
   symmetry: {
     lessonImage: reflection_symmetry,
@@ -354,37 +604,224 @@ export const DataLesson = {
   },
   composite_shapes: {
     lessonImage: composite_shape,
-    LessonComponent: [CompositeShape, CompositeShape2, CompositeShape3],
+    LessonComponent: [
+      CompositeShapeLessonComp,  // Level 1: Identify the Shapes (MC)
+      CompositeShapeLessonComp,  // Level 2: L-Shapes (addition)
+      CompositeShapeLessonComp,  // Level 3: T-Shapes & U-Shapes
+      CompositeShapeLessonComp,  // Level 4: Cutout Shapes (subtraction)
+      CompositeShapeLessonComp,  // Level 5: Rectangles + Triangles
+      CompositeShapeLessonComp,  // Level 6: Mixed Shapes (no help)
+      CompositeShapeLessonComp,  // Level 7: Find Missing Dimension
+      CompositeShapeLessonComp,  // Level 8: Word Problems (MC)
+    ],
   },
   triangle_inequality: {
     lessonImage: triangleSum,
-    LessonComponent: [BasicProblemsWordsOnly, TriangleInequality],
+    LessonComponent: [
+      TriangleInequality,
+      TriangleInequality,
+      TriangleInequality,
+      TriangleInequality,
+      TriangleInequality,
+    ],
   },
   pythagoreon_theorem: {
     lessonImage: pythagorean_theorem,
     LessonComponent: [
-      PythagoreanTheorem,  // Level 1: Identification
-      PythagoreanTheorem,  // Level 2: Find Hypotenuse
-      PythagoreanTheorem,  // Level 3: Find Leg
-      PythagoreanTheorem,  // Level 4: Mixed
-      PythagoreanTheorem   // Level 5: Word Problems
+      PythagoreanTheoremLesson,  // Level 1: Identify the Hypotenuse
+      PythagoreanTheoremLesson,  // Level 2: Find the Hypotenuse
+      PythagoreanTheoremLesson,  // Level 3: Find a Missing Leg
+      PythagoreanTheoremLesson,  // Level 4: Mixed
+      PythagoreanTheoremLesson,  // Level 5: Word Problems
+    ],
+  },
+  pythagorean_triples: {
+    lessonImage: pythagorean_triples,
+    LessonComponent: [
+      PythagoreanTriplesLesson,  // Level 1: Learn the Triples
+      PythagoreanTriplesLesson,  // Level 2: Identify from Two Sides
+      PythagoreanTriplesLesson,  // Level 3: Find the Missing Side
+      PythagoreanTriplesLesson,  // Level 4: Multiples of Triples
+      PythagoreanTriplesLesson,  // Level 5: Word Problems
     ],
   },
   dilation: {
     lessonImage: dilation,
-    LessonComponent: [Dilation],
+    LessonComponent: [
+      DilationLesson,
+      DilationLesson,
+      DilationLesson,
+      DilationLesson,
+      DilationLesson,
+    ],
+  },
+  similar_triangles: {
+    lessonImage: similar_triangles_word_problems,
+    LessonComponent: [
+      SimilarTrianglesLesson,
+      SimilarTrianglesLesson,
+      SimilarTrianglesLesson,
+      SimilarTrianglesLesson,
+      SimilarTrianglesLesson,
+    ],
+  },
+  similarity: {
+    lessonImage: similar_triangles_word_problems,
+    LessonComponent: [
+      SimilarTrianglesLesson,
+      SimilarTrianglesLesson,
+      SimilarTrianglesLesson,
+      SimilarTrianglesLesson,
+      SimilarTrianglesLesson,
+    ],
+  },
+  similarity_proofs: {
+    lessonImage: similar_triangles_word_problems,
+    LessonComponent: [
+      SimilarityProofsLesson,
+      SimilarityProofsLesson,
+      SimilarityProofsLesson,
+      SimilarityProofsLesson,
+      SimilarityProofsLesson,
+    ],
+  },
+  similar_triangles_word_problems: {
+    lessonImage: similar_triangles_word_problems,
+    LessonComponent: [
+      SimilarTrianglesWordProblemsLesson, // L1: Shadow Problems
+      SimilarTrianglesWordProblemsLesson, // L2: Indirect Measurement
+      SimilarTrianglesWordProblemsLesson, // L3: Scale Models & Maps
+      SimilarTrianglesWordProblemsLesson, // L4: Photography & Optics
+      SimilarTrianglesWordProblemsLesson, // L5: Mixed Applications
+      SimilarTrianglesWordProblemsLesson, // L6: Interactive Scene Builder
+    ],
+  },
+  sss_congruent_triangles: {
+    lessonImage: sss,
+    LessonComponent: [
+      SSSCongruentTrianglesLesson, // L1: Recognition (binary choice, same orientation)
+      SSSCongruentTrianglesLesson, // L2: Match Sides (toggle buttons, mixed orientations)
+      SSSCongruentTrianglesLesson, // L3: Find Congruent Pair (grid, rotated/flipped)
+      SSSCongruentTrianglesLesson, // L4: Find Missing Side (answer input, all orientations)
+      SSSCongruentTrianglesLesson, // L5: Word Problems (real-world applications)
+    ],
+  },
+  // Alias for menu compatibility
+  sss: {
+    lessonImage: sss,
+    LessonComponent: [
+      SSSCongruentTrianglesLesson,
+      SSSCongruentTrianglesLesson,
+      SSSCongruentTrianglesLesson,
+      SSSCongruentTrianglesLesson,
+      SSSCongruentTrianglesLesson,
+    ],
+  },
+  sas_congruent_triangles: {
+    lessonImage: sas,
+    LessonComponent: [
+      SASCongruentTrianglesLesson, // L1: Recognition (binary choice, same orientation)
+      SASCongruentTrianglesLesson, // L2: Match Parts (toggle buttons, mixed orientations)
+      SASCongruentTrianglesLesson, // L3: Find Congruent Pair (grid, rotated/flipped)
+      SASCongruentTrianglesLesson, // L4: Find Missing Measurement (answer input, all orientations)
+      SASCongruentTrianglesLesson, // L5: Word Problems (real-world applications)
+    ],
+  },
+  // Alias for menu compatibility
+  sas: {
+    lessonImage: sas,
+    LessonComponent: [
+      SASCongruentTrianglesLesson,
+      SASCongruentTrianglesLesson,
+      SASCongruentTrianglesLesson,
+      SASCongruentTrianglesLesson,
+      SASCongruentTrianglesLesson,
+    ],
+  },
+  aas_congruent_triangles: {
+    lessonImage: aas,
+    LessonComponent: [
+      AASCongruentTrianglesLesson, // L1: Recognition (binary choice)
+      AASCongruentTrianglesLesson, // L2: Identify Parts (toggle classification)
+      AASCongruentTrianglesLesson, // L3: Find Congruent Pair (grid)
+      AASCongruentTrianglesLesson, // L4: Find Missing Measurement (input)
+      AASCongruentTrianglesLesson, // L5: Word Problems (real-world applications)
+    ],
+  },
+  // Alias for menu compatibility
+  aas: {
+    lessonImage: aas,
+    LessonComponent: [
+      AASCongruentTrianglesLesson,
+      AASCongruentTrianglesLesson,
+      AASCongruentTrianglesLesson,
+      AASCongruentTrianglesLesson,
+      AASCongruentTrianglesLesson,
+    ],
+  },
+  asa_congruent_triangles: {
+    lessonImage: asa,
+    LessonComponent: [
+      ASACongruentTrianglesLesson, // L1: Recognition (binary choice)
+      ASACongruentTrianglesLesson, // L2: Identify Parts (toggle classification)
+      ASACongruentTrianglesLesson, // L3: Find Congruent Pair (grid)
+      ASACongruentTrianglesLesson, // L4: Find Missing Measurement (input)
+      ASACongruentTrianglesLesson, // L5: Word Problems (real-world applications)
+    ],
+  },
+  // Alias for menu compatibility
+  asa: {
+    lessonImage: asa,
+    LessonComponent: [
+      ASACongruentTrianglesLesson,
+      ASACongruentTrianglesLesson,
+      ASACongruentTrianglesLesson,
+      ASACongruentTrianglesLesson,
+      ASACongruentTrianglesLesson,
+    ],
   },
   proportions: {
     lessonImage: equation,
-    LessonComponent: [BasicProblemsWordsOnly, Proportions],
+    LessonComponent: [
+      ProportionsLessonComp, // L1: Identify Equal Ratios
+      ProportionsLessonComp, // L2: Complete the Proportion
+      ProportionsLessonComp, // L3: Cross-Multiply Intro
+      ProportionsLessonComp, // L4: Solve Any Position
+      ProportionsLessonComp, // L5: Scale Factor Problems
+      ProportionsLessonComp, // L6: Proportion Word Problems
+      ProportionsLessonComp, // L7: Harder Proportions
+      ProportionsLessonComp, // L8: Mixed Word Problems (MC)
+    ],
+  },
+  zoom_factor: {
+    lessonImage: dilation,
+    LessonComponent: [
+      ZoomFactorLesson,  // Level 1: Identify the Zoom Factor
+      ZoomFactorLesson,  // Level 2: Drag to Zoom
+      ZoomFactorLesson,  // Level 3: Find New Dimensions
+      ZoomFactorLesson,  // Level 4: Area After Zoom
+      ZoomFactorLesson,  // Level 5: Word Problems
+    ],
   },
   proportional_reasoning: {
     lessonImage: equation,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      ProportionalReasoning, // L1: Visual Ratios (MC)
+      ProportionalReasoning, // L2: Ratio Tables (input)
+      ProportionalReasoning, // L3: Unit Rates (input)
+      ProportionalReasoning, // L4: Proportional vs Non-Proportional (MC)
+      ProportionalReasoning, // L5: Real-World Applications (input)
+    ],
   },
   slope_triangles: {
     lessonImage: slope_triangles,
-    LessonComponent: [SlopeTriangle],
+    LessonComponent: [
+      SlopeTrianglesLesson,  // Level 1: Identify Rise & Run (MC)
+      SlopeTrianglesLesson,  // Level 2: Compute Slope (MC)
+      SlopeTrianglesLesson,  // Level 3: Slope from Coordinates (Input)
+      SlopeTrianglesLesson,  // Level 4: Slope is Constant (Input)
+      SlopeTrianglesLesson,  // Level 5: Bridge to Tangent (Input)
+    ],
   },
   tangent: {
     lessonImage: tangent,
@@ -392,7 +829,24 @@ export const DataLesson = {
   },
   more_tangent: {
     lessonImage: tangent,
-    LessonComponent: [MoreTangentLesson],
+    LessonComponent: [
+      MoreTangentLesson,  // Level 1: Identify sides (colored hints)
+      MoreTangentLesson,  // Level 2: Calculate tangent (no color hints)
+      MoreTangentLesson,  // Level 3: Find missing side (basic)
+      MoreTangentLesson,  // Level 4: Find missing side (challenging)
+      MoreTangentLesson,  // Level 5: Find angle (inverse tangent)
+    ],
+  },
+  all_trig_ratios: {
+    lessonImage: all_trig_ratios,
+    LessonComponent: [
+      AllTrigRatiosLesson,  // Level 1: Identify the Ratio
+      AllTrigRatiosLesson,  // Level 2: Which Function?
+      AllTrigRatiosLesson,  // Level 3: Set Up the Equation
+      AllTrigRatiosLesson,  // Level 4: Solve for the Side
+      AllTrigRatiosLesson,  // Level 5: Find the Angle
+      AllTrigRatiosLesson,  // Level 6: Word Problems
+    ],
   },
   mess_around: {
     lessonImage: reflection_symmetry,
@@ -410,15 +864,43 @@ export const DataLesson = {
   },
   inverse_trig: {
     lessonImage: inverse_trig,
-    LessonComponent: [InverseTrig, InverseTrig, InverseTrig],
+    LessonComponent: [
+      InverseTrigLesson,  // Level 1: Pick the Inverse Function (MC)
+      InverseTrigLesson,  // Level 2: Set Up the Expression (MC)
+      InverseTrigLesson,  // Level 3: Find the Angle - basic (Input)
+      InverseTrigLesson,  // Level 4: Find the Angle - mixed (Input)
+      InverseTrigLesson,  // Level 5: Word Problems (Input)
+    ],
   },
   thirty_sixty_ninety: {
     lessonImage: thirty_sixty_ninety,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      ThirtySixtyNinetyLesson,  // Level 1: Learn the Pattern (MC)
+      ThirtySixtyNinetyLesson,  // Level 2: Short Leg Given (MC)
+      ThirtySixtyNinetyLesson,  // Level 3: Find Missing Side (Input)
+      ThirtySixtyNinetyLesson,  // Level 4: Work Backwards (Input)
+      ThirtySixtyNinetyLesson,  // Level 5: Word Problems (Input)
+    ],
   },
   forty_five_forty_five_ninety: {
     lessonImage: fortyfive_fortyfive_ninety,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      FortyFiveFortyFiveNinetyLesson,  // Level 1: Learn the Pattern (MC)
+      FortyFiveFortyFiveNinetyLesson,  // Level 2: Leg Given (MC)
+      FortyFiveFortyFiveNinetyLesson,  // Level 3: Find Missing Side (Input)
+      FortyFiveFortyFiveNinetyLesson,  // Level 4: Work Backwards (Input)
+      FortyFiveFortyFiveNinetyLesson,  // Level 5: Word Problems (Input)
+    ],
+  },
+  trig_word_problems: {
+    lessonImage: tangent,
+    LessonComponent: [
+      TrigWordProblemsLesson,  // Level 1: Visual Ladder Problems
+      TrigWordProblemsLesson,  // Level 2: Visual Elevation/Depression
+      TrigWordProblemsLesson,  // Level 3: Height Finding
+      TrigWordProblemsLesson,  // Level 4: Angle Finding
+      TrigWordProblemsLesson,  // Level 5: Mixed Applications
+    ],
   },
   order_of_operations: {
     lessonImage: order_of_operations,
@@ -431,27 +913,64 @@ export const DataLesson = {
   },
   evaluating_expressions: {
     lessonImage: evaluating_expressions,
-    LessonComponent: [Evaluating],
+    LessonComponent: [
+      EvaluatingExpressions,  // Level 1: Drag tiles into 2 groups
+      EvaluatingExpressions,  // Level 2: Drag tiles into 3 groups
+      EvaluatingExpressions,  // Level 3: Type simplified (x, const)
+      EvaluatingExpressions,  // Level 4: Type simplified (x², x, const)
+      EvaluatingExpressions,  // Level 5: Complex with xy terms
+    ],
   },
   one_step_equations: {
     lessonImage: one_step_equations,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      OneStepEquations,  // Level 1: x + a = b
+      OneStepEquations,  // Level 2: x - a = b
+      OneStepEquations,  // Level 3: ax = b
+      OneStepEquations,  // Level 4: x ÷ a = b
+      OneStepEquations,  // Level 5: Mixed operations
+    ],
   },
   adding_integers: {
     lessonImage: adding_integers,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      AddingIntegersLesson, // L1: Number line (both positive)
+      AddingIntegersLesson, // L2: Chips (both negative)
+      AddingIntegersLesson, // L3: Mixed (positive result)
+      AddingIntegersLesson, // L4: Mixed (negative result)
+      AddingIntegersLesson, // L5: Word problems
+    ],
   },
   subtracting_integers: {
     lessonImage: subtracting_integers,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      SubtractingIntegersLesson, // L1: Keep Change Change (positive - positive)
+      SubtractingIntegersLesson, // L2: Subtracting negatives
+      SubtractingIntegersLesson, // L3: Negative - positive
+      SubtractingIntegersLesson, // L4: Negative - negative
+      SubtractingIntegersLesson, // L5: Word problems
+    ],
   },
   multiplying_integers: {
     lessonImage: multiplying_integers,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      MultiplyingIntegersLesson, // L1: Positive · Positive
+      MultiplyingIntegersLesson, // L2: Positive · Negative
+      MultiplyingIntegersLesson, // L3: Negative · Positive
+      MultiplyingIntegersLesson, // L4: Negative · Negative
+      MultiplyingIntegersLesson, // L5: Sign Prediction
+      MultiplyingIntegersLesson, // L6: Word problems
+    ],
   },
   two_step_equations: {
     lessonImage: two_step_equations,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      TwoStepEquations,  // Level 1: ax + b = c
+      TwoStepEquations,  // Level 2: ax ± b = c
+      TwoStepEquations,  // Level 3: x/a ± b = c
+      TwoStepEquations,  // Level 4: Mixed
+      TwoStepEquations,  // Level 5: Negatives
+    ],
   },
   rounding: {
     lessonImage: rounding,
@@ -473,27 +992,93 @@ export const DataLesson = {
   },
   multiplying_fractions: {
     lessonImage: multiplying_fractions,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      MultiplyingFractionsLesson,  // Level 1: Simple fractions
+      MultiplyingFractionsLesson,  // Level 2: Larger fractions
+      MultiplyingFractionsLesson,  // Level 3: Simplifying results
+      MultiplyingFractionsLesson,  // Level 4: Mixed difficulty
+      MultiplyingFractionsLesson,  // Level 5: Word problems
+    ],
+  },
+  solving_equations: {
+    lessonImage: equation,
+    LessonComponent: [
+      SolvingEquationsLesson,  // Level 1: One-step equations
+      SolvingEquationsLesson,  // Level 2: Two-step equations
+      SolvingEquationsLesson,  // Level 3: Multi-step equations
+      SolvingEquationsLesson,  // Level 4: Variables on both sides
+      SolvingEquationsLesson,  // Level 5: Word problems
+    ],
   },
   reducing_fractions: {
     lessonImage: reducing_fractions,
-    LessonComponent: [BasicProblemsWordsOnly],
+    LessonComponent: [
+      ReducingFractions,  // Level 1: Halving
+      ReducingFractions,  // Level 2: Easy common factors
+      ReducingFractions,  // Level 3: Find the GCD
+      ReducingFractions,  // Level 4: Already reduced?
+      ReducingFractions,  // Level 5: Word problems
+    ],
   },
   measuring_sides: {
     lessonImage: ruler,
-    LessonComponent: [MeasuringSides],
+    LessonComponent: [
+      MeasuringSides,  // Level 1: Whole inches
+      MeasuringSides,  // Level 2: Half inches
+      MeasuringSides,  // Level 3: Quarter inches
+      MeasuringSides,  // Level 4: Eighth inches
+      MeasuringSides,  // Level 5: Two measurements (add/subtract)
+    ],
+  },
+  sides_and_angles: {
+    lessonImage: shapes,
+    LessonComponent: [
+      SidesAndAnglesLesson,
+      SidesAndAnglesLesson,
+      SidesAndAnglesLesson,
+      SidesAndAnglesLesson,
+      SidesAndAnglesLesson,
+    ],
   },
   // Alias for Chapter 1 navigation
   sides: {
-    lessonImage: ruler,
-    LessonComponent: [MeasuringSides],
+    lessonImage: shapes,
+    LessonComponent: [
+      SidesAndAnglesLesson,
+      SidesAndAnglesLesson,
+      SidesAndAnglesLesson,
+      SidesAndAnglesLesson,
+      SidesAndAnglesLesson,
+    ],
   },
   measuring_angles: {
     lessonImage: protractor,
-    LessonComponent: [Protractor],
+    LessonComponent: [
+      Protractor,  // Level 1: Multiples of 10°
+      Protractor,  // Level 2: Multiples of 5°
+      Protractor,  // Level 3: Any whole degree
+      Protractor,  // Level 4: Identify type + measure
+      Protractor,  // Level 5: Two angles (add/subtract)
+    ],
   },
   graphing_lines: {
     lessonImage: plotting_points,
-    LessonComponent: [ImageLesson],
+    LessonComponent: [
+      GraphingLines,  // Level 1: Identify y-intercept
+      GraphingLines,  // Level 2: Identify slope
+      GraphingLines,  // Level 3: Write equation (positive slopes)
+      GraphingLines,  // Level 4: Write equation (any slope)
+      GraphingLines,  // Level 5: Plot the line from equation
+    ],
+  },
+  conditional_statements: {
+    lessonImage: conditional_statements,
+    LessonComponent: [
+      ConditionalStatementsLesson,  // Level 1: Drag to Build
+      ConditionalStatementsLesson,  // Level 2: Match Converse
+      ConditionalStatementsLesson,  // Level 3: Build Inverse
+      ConditionalStatementsLesson,  // Level 4: Match All Forms
+      ConditionalStatementsLesson,  // Level 5: Build Contrapositive
+    ],
   },
 };
