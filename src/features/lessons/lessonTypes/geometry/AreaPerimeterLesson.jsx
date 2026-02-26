@@ -27,6 +27,7 @@ function AreaPerimeterLesson({ triggerNewProblem }) {
 
   const [isComplete, setIsComplete] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [modalClosedWithX, setModalClosedWithX] = useState(false);
 
   const currentProblem = questionAnswerArray?.[currentQuestionIndex] || lessonProps;
   const visualData = currentProblem?.visualData || {};
@@ -40,24 +41,31 @@ function AreaPerimeterLesson({ triggerNewProblem }) {
   useEffect(() => {
     setIsComplete(false);
     setShowHint(false);
+    setModalClosedWithX(false);
   }, [currentQuestionIndex, level]);
 
   // Handle completion from child components
   const handleComplete = (success) => {
-    if (success) {
+    console.log('[AreaPerimeterLesson] handleComplete called, success:', success, 'modalClosedWithX:', modalClosedWithX);
+    // Don't show modal if it was manually closed
+    if (success && !modalClosedWithX) {
       setIsComplete(true);
     }
   };
 
   // Handle modal close (X button) - just close without advancing
   const handleClose = () => {
+    console.log('[AreaPerimeterLesson] handleClose - modal X clicked');
     setIsComplete(false);
+    setModalClosedWithX(true); // User manually closed the success modal
   };
 
   // Handle "Try Another Problem" - close and advance
   const handleTryAnother = () => {
+    console.log('[AreaPerimeterLesson] handleTryAnother - advancing to next problem');
     setIsComplete(false);
     setShowHint(false);
+    setModalClosedWithX(false);
     triggerNewProblem();
   };
 
@@ -82,6 +90,7 @@ function AreaPerimeterLesson({ triggerNewProblem }) {
       visualData,
       onComplete: handleComplete,
       questionIndex: currentQuestionIndex,
+      modalClosedWithX,
     };
 
     switch (level) {

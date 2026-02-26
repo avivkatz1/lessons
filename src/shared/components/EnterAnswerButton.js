@@ -1,25 +1,23 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
 /**
- * EnterAnswerButton - Floating centered CTA to trigger input overlay panel
+ * EnterAnswerButton - CTA to trigger input overlay panel
  *
  * Features:
- * - Desktop/Tablet: Floating button centered on canvas (fixed position)
- * - Mobile: Inline centered button
+ * - Two variants: "floating" (default, centered on canvas) and "static" (below canvas)
+ * - Desktop/Tablet: Variant-dependent behavior
+ * - Mobile: Always static (inline)
  * - 56px minimum height (exceeds WCAG 2.1 44px minimum)
  * - Smooth hover animations
  * - Dark mode support
  *
  * Usage:
- *   <EnterAnswerButton
- *     onClick={() => setPanelOpen(true)}
- *     disabled={isComplete}
- *   />
+ *   <EnterAnswerButton onClick={() => setPanelOpen(true)} variant="static" />
  */
-const EnterAnswerButton = ({ onClick, disabled = false }) => {
+const EnterAnswerButton = ({ onClick, disabled = false, variant = "floating" }) => {
   return (
-    <CTAButton onClick={onClick} disabled={disabled}>
+    <CTAButton onClick={onClick} disabled={disabled} $variant={variant}>
       <ButtonText>Enter Answer</ButtonText>
     </CTAButton>
   );
@@ -30,13 +28,6 @@ export default EnterAnswerButton;
 // ==================== STYLED COMPONENTS ====================
 
 const CTAButton = styled.button`
-  /* Desktop/Tablet: Floating button centered on canvas area */
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 100;
-
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -55,15 +46,42 @@ const CTAButton = styled.button`
   cursor: pointer;
   transition: all 0.2s ease-in-out;
 
-  &:hover:not(:disabled) {
-    transform: translate(-50%, -50%) scale(1.05);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
-    border-width: 3px;
-  }
+  /* Floating variant (default - backward compatible) */
+  ${props => props.$variant === "floating" && css`
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
 
-  &:active:not(:disabled) {
-    transform: translate(-50%, -50%) scale(0.98);
-  }
+    &:hover:not(:disabled) {
+      transform: translate(-50%, -50%) scale(1.05);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+      border-width: 3px;
+    }
+
+    &:active:not(:disabled) {
+      transform: translate(-50%, -50%) scale(0.98);
+    }
+  `}
+
+  /* Static variant (NEW - for Area/Perimeter lessons) */
+  ${props => props.$variant === "static" && css`
+    position: static;
+    transform: none;
+    width: 100%;
+    margin: 0 auto;
+
+    &:hover:not(:disabled) {
+      transform: scale(1.03);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+      border-width: 3px;
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+  `}
 
   &:disabled {
     opacity: 0.5;
@@ -75,8 +93,8 @@ const CTAButton = styled.button`
     min-height: 52px;
   }
 
+  /* Mobile: Always static regardless of variant */
   @media (max-width: 768px) {
-    /* Mobile: Inline centered button */
     position: static;
     transform: none;
     width: 100%;

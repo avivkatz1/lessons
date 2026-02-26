@@ -299,6 +299,7 @@ function AASCongruentTrianglesLesson({ triggerNewProblem }) {
   const { width: windowWidth } = useWindowDimensions();
   const konvaTheme = useKonvaTheme();
   const [showHint, setShowHint] = useState(false);
+  const [modalClosedWithX, setModalClosedWithX] = useState(false);
 
   // Phase state
   const [phase, setPhase] = useState('interact');
@@ -361,7 +362,14 @@ function AASCongruentTrianglesLesson({ triggerNewProblem }) {
     setShowHint(false);
     setClassifications({});
     setSelectedTriangles([]);
+    setModalClosedWithX(false);
+    setModalClosedWithX(false);
   }
+
+  const handleClose = () => {
+    setPhase('interact');
+    setModalClosedWithX(true);
+  };
 
   const handleTryAnother = useCallback(() => {
     setShowHint(false);
@@ -371,6 +379,8 @@ function AASCongruentTrianglesLesson({ triggerNewProblem }) {
     setShakingIdx(null);
     setClassifications({});
     setSelectedTriangles([]);
+    setModalClosedWithX(false);
+    setModalClosedWithX(false);
     hideAnswer();
     triggerNewProblem();
   }, [hideAnswer, triggerNewProblem]);
@@ -392,13 +402,17 @@ function AASCongruentTrianglesLesson({ triggerNewProblem }) {
 
           if (isCorrect) {
             setTimeout(() => {
-              setPhase('complete');
+              if (!modalClosedWithX) {
+                setPhase('complete');
+              }
               revealAnswer();
             }, 600);
           } else {
             setWrongAttempts((prev) => prev + 1);
             setTimeout(() => {
               setSelectedTriangles([]);
+    setModalClosedWithX(false);
+    setModalClosedWithX(false);
             }, 800);
           }
         }
@@ -416,7 +430,9 @@ function AASCongruentTrianglesLesson({ triggerNewProblem }) {
     if (choice.correct) {
       setSelectedChoice(idx);
       setTimeout(() => {
-        setPhase('complete');
+        if (!modalClosedWithX) {
+          setPhase('complete');
+        }
         revealAnswer();
       }, 800);
     } else {
@@ -440,7 +456,9 @@ function AASCongruentTrianglesLesson({ triggerNewProblem }) {
     });
 
     if (allCorrect) {
-      setPhase('complete');
+      if (!modalClosedWithX) {
+        setPhase('complete');
+      }
       revealAnswer();
     } else {
       setWrongAttempts((prev) => prev + 1);
@@ -787,7 +805,9 @@ function AASCongruentTrianglesLesson({ triggerNewProblem }) {
             answerType="array"
             onCorrect={() => {
               setTimeout(() => {
-                setPhase('complete');
+                if (!modalClosedWithX) {
+                  setPhase('complete');
+                }
                 revealAnswer();
               }, 300);
             }}
@@ -801,6 +821,7 @@ function AASCongruentTrianglesLesson({ triggerNewProblem }) {
       {/* Phase: Complete */}
       {phase === 'complete' && (
         <ExplanationModal
+          onClose={handleClose}
           explanation={explanation}
           onTryAnother={handleTryAnother}
         />

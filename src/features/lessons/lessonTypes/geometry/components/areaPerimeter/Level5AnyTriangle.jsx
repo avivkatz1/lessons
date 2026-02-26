@@ -13,12 +13,13 @@ import { useInputOverlay } from '../../hooks/useInputOverlay';
  * Scalene, isosceles, or equilateral triangles with perpendicular height marked
  * Progressive scaffolding: Q1-5 show height line, Q6+ hide
  *
- * NEW: Uses Input Overlay Panel system for iPad optimization
- * - Panel overlays on top (canvas stays full width)
- * - SlimMathKeypad for touch-friendly number entry
- * - Smooth slide-in animation from right
+ * NEW: Enhanced with canvas slide animation
+ * - Triangle centered horizontally on canvas
+ * - EnterAnswerButton positioned below canvas (static, not floating)
+ * - Canvas slides left 75% of panel width when panel opens (desktop/iPad only)
+ * - Mobile: Full-screen overlay, no slide animation
  */
-function Level5AnyTriangle({ visualData, onComplete, onNextProblem, questionIndex = 0 }) {
+function Level5AnyTriangle({ visualData, onComplete, onNextProblem, questionIndex = 0, modalClosedWithX = false }) {
   const { width: windowWidth } = useWindowDimensions();
   const konvaTheme = useKonvaTheme();
 
@@ -42,6 +43,16 @@ function Level5AnyTriangle({ visualData, onComplete, onNextProblem, questionInde
     resetAll,
   } = useInputOverlay();
 
+  // Calculate slide distance based on panel width (75% of panel width)
+  const slideDistance = useMemo(() => {
+    // Mobile: No slide
+    if (windowWidth <= 768) return 0;
+
+    // Desktop/iPad: Calculate panel width, then slide distance
+    const panelWidth = Math.min(Math.max(windowWidth * 0.4, 360), 480);
+    return panelWidth * 0.75; // Slide by 75% of panel width
+  }, [windowWidth]);
+
   // Canvas sizing (stays constant - panel overlays on top)
   const canvasWidth = useMemo(() => {
     const padding = 40;
@@ -55,11 +66,11 @@ function Level5AnyTriangle({ visualData, onComplete, onNextProblem, questionInde
   // Smart positioning system
   const { registry, calculator } = useSmartPositioning(canvasWidth, canvasHeight);
 
-  // Position triangle in center
-  const startX = cellSize * 2;
-  const startY = cellSize * 2;
+  // CENTERED triangle positioning
   const triBase = base * (cellSize * 0.45);
   const triHeight = height * (cellSize * 0.45);
+  const startX = (canvasWidth - triBase) / 2; // Center horizontally
+  const startY = (canvasHeight - triHeight) / 2 - 30; // Center vertically with upward offset
 
   // Calculate triangle vertices based on type
   let vertices;
@@ -133,13 +144,9 @@ function Level5AnyTriangle({ visualData, onComplete, onNextProblem, questionInde
 
   return (
     <Container>
-      {/* Enter Answer Button (floating on desktop, inline on mobile) */}
-      {!panelOpen && (
-        <EnterAnswerButton onClick={openPanel} disabled={submitted && isCorrect} />
-      )}
-
-      {/* Canvas with triangle - stays at full width */}
-      <CanvasContainer>
+      {/* Wrapper with slide animation (wraps canvas, formula, and button) */}
+      <CanvasWrapper $panelOpen={panelOpen} $slideDistance={slideDistance}>
+        <CanvasContainer>
         <Stage width={canvasWidth} height={canvasHeight}>
           <Layer>
             {/* Background */}
@@ -260,13 +267,31 @@ function Level5AnyTriangle({ visualData, onComplete, onNextProblem, questionInde
         </Stage>
       </CanvasContainer>
 
-      {/* Formula helper - stays below canvas */}
+      {/* Formula helper - below canvas */}
       <FormulaHelper>
         <Formula>Formula: Area = ½ × base × height</Formula>
         {showHeightLine && (
           <HintText>The height (h) must be perpendicular (90°) to the base!</HintText>
         )}
       </FormulaHelper>
+
+      {/* Button - STATIC, below formula, slides with canvas */}
+      {!panelOpen && (
+        <ButtonContainer>
+          {modalClosedWithX ? (
+            <TryAnotherButton onClick={handleNextProblem}>
+              Try Another Problem
+            </TryAnotherButton>
+          ) : (
+            <EnterAnswerButton
+              onClick={openPanel}
+              disabled={submitted && isCorrect}
+              variant="static"
+            />
+          )}
+        </ButtonContainer>
+      )}
+    </CanvasWrapper>
 
       {/* Input Overlay Panel */}
       <InputOverlayPanel
@@ -320,7 +345,33 @@ const Container = styled.div`
   flex-direction: column;
   align-items: center;
   width: 100%;
-  gap: 16px;
+  gap: 20px; /* Increased for better spacing */
+
+  @media (max-width: 1024px) {
+    gap: 16px;
+  }
+`;
+
+// NEW: Wrapper that handles slide animation
+const CanvasWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px; /* Gap between canvas, formula, and button */
+
+  /* Smooth slide transition */
+  transition: transform 0.3s ease-in-out;
+
+  /* Desktop + iPad: Slide left when panel opens */
+  @media (min-width: 769px) {
+    transform: translateX(${props => props.$panelOpen ? `-${props.$slideDistance}px` : '0'});
+  }
+
+  /* Mobile: No slide */
+  @media (max-width: 768px) {
+    transform: translateX(0);
+  }
 
   @media (max-width: 1024px) {
     gap: 12px;
@@ -371,6 +422,19 @@ const CanvasContainer = styled.div`
 
   @media (max-width: 1024px) {
     padding: 12px;
+  }
+`;
+
+// NEW: Container for static button below canvas
+const ButtonContainer = styled.div`
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+
+  @media (max-width: 1024px) {
+    padding: 0 12px;
   }
 `;
 
@@ -467,6 +531,31 @@ const NextButton = styled.button`
   @media (max-width: 1024px) {
     padding: 10px 28px;
     font-size: 15px;
+  }
+`;
+
+const TryAnotherButton = styled.button`
+  width: 100%;
+  padding: 14px 32px;
+  font-size: 17px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background-color: ${props => props.theme.colors.info || '#3B82F6'};
+  color: ${props => props.theme.colors.textInverted || '#FFFFFF'};
+  transition: all 0.2s;
+  min-height: 56px;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 1024px) {
+    padding: 12px 28px;
+    font-size: 16px;
+    min-height: 52px;
   }
 `;
 

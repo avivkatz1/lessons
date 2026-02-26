@@ -39,7 +39,7 @@ export function useInputOverlay() {
   }, []);
 
   /**
-   * Close the input panel (does not clear input)
+   * Close the input panel
    */
   const closePanel = useCallback(() => {
     setPanelOpen(false);

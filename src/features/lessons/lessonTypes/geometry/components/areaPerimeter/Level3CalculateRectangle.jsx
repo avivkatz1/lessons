@@ -12,12 +12,13 @@ import { useInputOverlay } from '../../hooks/useInputOverlay';
  * Static rectangle with labeled dimensions, student enters area and/or perimeter
  * Progressive scaffolding: Q1-4 area only, Q5-8 perimeter only, Q9+ both
  *
- * NEW: Uses Input Overlay Panel system for iPad optimization
- * - Panel overlays on top (canvas stays full width)
- * - SlimMathKeypad for touch-friendly number entry
- * - Supports area, perimeter, or both inputs
+ * NEW: Enhanced with canvas slide animation
+ * - Figure centered horizontally on canvas
+ * - EnterAnswerButton positioned below canvas (static, not floating)
+ * - Canvas slides left 75% of panel width when panel opens (desktop/iPad only)
+ * - Mobile: Full-screen overlay, no slide animation
  */
-function Level3CalculateRectangle({ visualData, onComplete, onNextProblem, questionIndex = 0 }) {
+function Level3CalculateRectangle({ visualData, onComplete, onNextProblem, questionIndex = 0, modalClosedWithX = false }) {
   const { width: windowWidth } = useWindowDimensions();
   const konvaTheme = useKonvaTheme();
 
@@ -44,6 +45,16 @@ function Level3CalculateRectangle({ visualData, onComplete, onNextProblem, quest
   // Additional state for perimeter when asking for both
   const [perimeterInput, setPerimeterInput] = useState('');
 
+  // Calculate slide distance based on panel width (75% of panel width)
+  const slideDistance = useMemo(() => {
+    // Mobile: No slide
+    if (windowWidth <= 768) return 0;
+
+    // Desktop/iPad: Calculate panel width, then slide distance
+    const panelWidth = Math.min(Math.max(windowWidth * 0.4, 360), 480);
+    return panelWidth * 0.75; // Slide by 75% of panel width
+  }, [windowWidth]);
+
   // Canvas sizing (stays constant - panel overlays on top)
   const canvasWidth = useMemo(() => {
     const padding = 40;
@@ -54,11 +65,11 @@ function Level3CalculateRectangle({ visualData, onComplete, onNextProblem, quest
   const gridSize = 10; // More grid cells
   const cellSize = 40; // Larger cells for better visibility
 
-  // Center rectangle on grid
-  const rectX = cellSize * 2;
-  const rectY = cellSize * 3;
+  // CENTERED rectangle positioning
   const rectWidth = length * (cellSize * 0.5); // Scale for visibility
   const rectHeight = width * (cellSize * 0.5);
+  const rectX = (canvasWidth - rectWidth) / 2; // Center horizontally
+  const rectY = (canvasHeight - rectHeight) / 2 - 30; // Center vertically with upward offset
 
   // Check correctness
   const areaCorrect = parseInt(inputValue) === area;
@@ -112,74 +123,88 @@ function Level3CalculateRectangle({ visualData, onComplete, onNextProblem, quest
 
   return (
     <Container>
-      {/* Enter Answer Button (floating on canvas, inline on mobile) */}
-      {!panelOpen && (
-        <EnterAnswerButton onClick={openPanel} disabled={submitted && allCorrect} />
-      )}
+      {/* Wrapper with slide animation (wraps both canvas and button) */}
+      <CanvasWrapper $panelOpen={panelOpen} $slideDistance={slideDistance}>
+        <CanvasContainer>
+          <Stage width={canvasWidth} height={canvasHeight}>
+            <Layer>
+              {/* Background */}
+              <Rect
+                x={0}
+                y={0}
+                width={canvasWidth}
+                height={canvasHeight}
+                fill={konvaTheme.canvasBackground}
+              />
 
-      {/* Canvas with rectangle - stays at full width */}
-      <CanvasContainer>
-        <Stage width={canvasWidth} height={canvasHeight}>
-          <Layer>
-            {/* Background */}
-            <Rect
-              x={0}
-              y={0}
-              width={canvasWidth}
-              height={canvasHeight}
-              fill={konvaTheme.canvasBackground}
-            />
+              {/* Grid */}
+              <GridBackground
+                width={canvasWidth}
+                height={canvasHeight}
+                gridSize={gridSize}
+                cellSize={cellSize}
+                konvaTheme={konvaTheme}
+              />
 
-            {/* Grid */}
-            <GridBackground
-              width={canvasWidth}
-              height={canvasHeight}
-              gridSize={gridSize}
-              cellSize={cellSize}
-              konvaTheme={konvaTheme}
-            />
+              {/* CENTERED Rectangle */}
+              <Rect
+                x={rectX}
+                y={rectY}
+                width={rectWidth}
+                height={rectHeight}
+                fill={konvaTheme.shapeFill || '#3B82F6'}
+                fillOpacity={0.4}
+                stroke={konvaTheme.shapeStroke}
+                strokeWidth={3}
+                listening={false}
+              />
 
-            {/* Rectangle */}
-            <Rect
-              x={rectX}
-              y={rectY}
-              width={rectWidth}
-              height={rectHeight}
-              fill={konvaTheme.shapeFill || '#3B82F6'}
-              fillOpacity={0.4}
-              stroke={konvaTheme.shapeStroke}
-              strokeWidth={3}
-              listening={false}
-            />
+              {/* Dimensions - horizontal (length) */}
+              <DimensionLabel
+                x1={rectX}
+                y1={rectY + rectHeight}
+                x2={rectX + rectWidth}
+                y2={rectY + rectHeight}
+                label={`${length} cm`}
+                orientation="horizontal"
+                offset={20}
+                konvaTheme={konvaTheme}
+                fontSize={20}
+              />
 
-            {/* Dimensions - horizontal (length) */}
-            <DimensionLabel
-              x1={rectX}
-              y1={rectY + rectHeight}
-              x2={rectX + rectWidth}
-              y2={rectY + rectHeight}
-              label={`${length} cm`}
-              orientation="horizontal"
-              offset={20}
-              konvaTheme={konvaTheme}
-              fontSize={20}
-            />
+              {/* Dimensions - vertical (width) */}
+              <DimensionLabel
+                x1={rectX}
+                y1={rectY}
+                x2={rectX}
+                y2={rectY + rectHeight}
+                label={`${width} cm`}
+                orientation="vertical"
+                offset={20}
+                konvaTheme={konvaTheme}
+                fontSize={20}
+              />
+            </Layer>
+          </Stage>
+        </CanvasContainer>
 
-            {/* Dimensions - vertical (width) */}
-            <DimensionLabel
-              x1={rectX}
-              y1={rectY}
-              x2={rectX}
-              y2={rectY + rectHeight}
-              label={`${width} cm`}
-              orientation="vertical"
-              offset={20}
-              konvaTheme={konvaTheme}
-              fontSize={20}
-            />
-          </Layer>
-        </Stage>
-      </CanvasContainer>
+        {/* Button - STATIC, below canvas, slides with canvas */}
+        {!panelOpen && (
+          <ButtonContainer>
+            {modalClosedWithX ? (
+              <TryAnotherButton onClick={handleNextProblem}>
+                Try Another Problem
+              </TryAnotherButton>
+            ) : (
+              <EnterAnswerButton
+                onClick={openPanel}
+                disabled={submitted && allCorrect}
+                variant="static"
+              />
+            )}
+          </ButtonContainer>
+        )}
+      </CanvasWrapper>
 
       {/* Input Overlay Panel */}
       <InputOverlayPanel
@@ -257,10 +282,36 @@ const Container = styled.div`
   flex-direction: column;
   align-items: center;
   width: 100%;
-  gap: 16px;
+  gap: 20px; /* Increased for better button spacing */
 
   @media (max-width: 1024px) {
-    gap: 12px;
+    gap: 16px;
+  }
+`;
+
+// NEW: Wrapper that handles slide animation
+const CanvasWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px; /* Gap between canvas and button */
+
+  /* Smooth slide transition */
+  transition: transform 0.3s ease-in-out;
+
+  /* Desktop + iPad: Slide left when panel opens */
+  @media (min-width: 769px) {
+    transform: translateX(${props => props.$panelOpen ? `-${props.$slideDistance}px` : '0'});
+  }
+
+  /* Mobile: No slide */
+  @media (max-width: 768px) {
+    transform: translateX(0);
+  }
+
+  @media (max-width: 1024px) {
+    gap: 16px;
   }
 `;
 
@@ -274,6 +325,19 @@ const CanvasContainer = styled.div`
 
   @media (max-width: 1024px) {
     padding: 12px;
+  }
+`;
+
+// NEW: Container for static button below canvas
+const ButtonContainer = styled.div`
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+
+  @media (max-width: 1024px) {
+    padding: 0 12px;
   }
 `;
 
@@ -377,6 +441,31 @@ const NextButton = styled.button`
   @media (max-width: 1024px) {
     padding: 10px 28px;
     font-size: 15px;
+  }
+`;
+
+const TryAnotherButton = styled.button`
+  width: 100%;
+  padding: 14px 32px;
+  font-size: 17px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background-color: ${props => props.theme.colors.info || '#3B82F6'};
+  color: ${props => props.theme.colors.textInverted || '#FFFFFF'};
+  transition: all 0.2s;
+  min-height: 56px;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 1024px) {
+    padding: 12px 28px;
+    font-size: 16px;
+    min-height: 52px;
   }
 `;
 

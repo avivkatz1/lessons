@@ -50,6 +50,7 @@ function SymmetryLesson({ triggerNewProblem }) {
   const [showHint, setShowHint] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [keypadOpen, setKeypadOpen] = useState(false);
+  const [modalClosedWithX, setModalClosedWithX] = useState(false);
 
   const currentProblem = questionAnswerArray?.[currentQuestionIndex] || lessonProps;
   const visualData = currentProblem?.visualData || {};
@@ -76,6 +77,7 @@ function SymmetryLesson({ triggerNewProblem }) {
     setCheckResult(null);
     setShowHint(false);
     setIsComplete(false);
+    setModalClosedWithX(false);
   }, [currentQuestionIndex, level]);
 
   // Build sets for quick lookup
@@ -172,7 +174,9 @@ function SymmetryLesson({ triggerNewProblem }) {
 
     if (wrong.size === 0 && missingCount === 0) {
       setCheckResult({ correct: correct.size, total: expectedSet.size, wrong: new Set(), missingCount: 0 });
-      setIsComplete(true);
+      if (!modalClosedWithX) {
+        setIsComplete(true);
+      }
     } else {
       setCheckResult({
         correct: correct.size,
@@ -183,11 +187,17 @@ function SymmetryLesson({ triggerNewProblem }) {
     }
   };
 
+  const handleClose = () => {
+    setIsComplete(false);
+    setModalClosedWithX(true);
+  };
+
   const handleTryAnother = () => {
     setClickedCells(new Set());
     setCheckResult(null);
     setShowHint(false);
     setIsComplete(false);
+    setModalClosedWithX(false);
     triggerNewProblem();
   };
 
@@ -434,7 +444,7 @@ function SymmetryLesson({ triggerNewProblem }) {
           <AnswerInput
             correctAnswer={correctAnswer}
             answerType="array"
-            onCorrect={() => setIsComplete(true)}
+            onCorrect={() => !modalClosedWithX && setIsComplete(true)}
             onTryAnother={handleTryAnother}
             disabled={isComplete}
             placeholder="e.g. (7,2), (5,4)"
@@ -447,6 +457,7 @@ function SymmetryLesson({ triggerNewProblem }) {
       {isComplete && (
         <ExplanationModal
           explanation={explanation}
+          onClose={handleClose}
           onTryAnother={handleTryAnother}
         />
       )}

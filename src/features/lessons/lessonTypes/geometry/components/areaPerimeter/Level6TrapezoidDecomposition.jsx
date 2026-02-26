@@ -12,12 +12,13 @@ import { useInputOverlay } from '../../hooks/useInputOverlay';
  * Trapezoid pre-divided into triangles or rectangle+triangles
  * Progressive scaffolding: Q1-5 show individual areas, Q6+ only dimensions
  *
- * NEW: Uses Input Overlay Panel system for iPad optimization
- * - Panel overlays on top (canvas stays full width)
- * - SlimMathKeypad for touch-friendly number entry
- * - Smooth slide-in animation from right
+ * NEW: Enhanced with canvas slide animation
+ * - Trapezoid centered horizontally on canvas
+ * - EnterAnswerButton positioned below canvas (static, not floating)
+ * - Canvas slides left 75% of panel width when panel opens (desktop/iPad only)
+ * - Mobile: Full-screen overlay, no slide animation
  */
-function Level6TrapezoidDecomposition({ visualData, onComplete, onNextProblem, questionIndex = 0 }) {
+function Level6TrapezoidDecomposition({ visualData, onComplete, onNextProblem, questionIndex = 0, modalClosedWithX = false }) {
   const { width: windowWidth } = useWindowDimensions();
   const konvaTheme = useKonvaTheme();
 
@@ -44,6 +45,16 @@ function Level6TrapezoidDecomposition({ visualData, onComplete, onNextProblem, q
     resetAll,
   } = useInputOverlay();
 
+  // Calculate slide distance based on panel width (75% of panel width)
+  const slideDistance = useMemo(() => {
+    // Mobile: No slide
+    if (windowWidth <= 768) return 0;
+
+    // Desktop/iPad: Calculate panel width, then slide distance
+    const panelWidth = Math.min(Math.max(windowWidth * 0.4, 360), 480);
+    return panelWidth * 0.75; // Slide by 75% of panel width
+  }, [windowWidth]);
+
   // Canvas sizing (stays constant - panel overlays on top)
   const canvasWidth = useMemo(() => {
     const padding = 40;
@@ -54,13 +65,13 @@ function Level6TrapezoidDecomposition({ visualData, onComplete, onNextProblem, q
   const gridSize = 10; // More grid cells
   const cellSize = 40; // Larger cells for better visibility
 
-  // Position trapezoid in center
-  const startX = cellSize * 1.5;
-  const startY = cellSize * 2;
+  // CENTERED trapezoid positioning
   const trapHeight = height * (cellSize * 0.5);
   const topWidth = base1 * (cellSize * 0.5);
   const bottomWidth = base2 * (cellSize * 0.5);
   const offset = (bottomWidth - topWidth) / 2;
+  const startX = (canvasWidth - bottomWidth) / 2; // Center horizontally (use wider base)
+  const startY = (canvasHeight - trapHeight) / 2 - 30; // Center vertically with upward offset
 
   // Trapezoid vertices
   const vertices = [
@@ -112,13 +123,9 @@ function Level6TrapezoidDecomposition({ visualData, onComplete, onNextProblem, q
 
   return (
     <Container>
-      {/* Enter Answer Button (floating on canvas, inline on mobile) */}
-      {!panelOpen && (
-        <EnterAnswerButton onClick={openPanel} disabled={submitted && isCorrect} />
-      )}
-
-      {/* Canvas with trapezoid - stays at full width */}
-      <CanvasContainer>
+      {/* Wrapper with slide animation (wraps canvas and button) */}
+      <CanvasWrapper $panelOpen={panelOpen} $slideDistance={slideDistance}>
+        <CanvasContainer>
         <Stage width={canvasWidth} height={canvasHeight}>
           <Layer>
             {/* Background */}
@@ -239,6 +246,24 @@ function Level6TrapezoidDecomposition({ visualData, onComplete, onNextProblem, q
         <HintText>Or add up the individual shapes!</HintText>
       </FormulaHelper>
 
+      {/* Button - STATIC, below formula, slides with canvas */}
+      {!panelOpen && (
+        <ButtonContainer>
+          {modalClosedWithX ? (
+            <TryAnotherButton onClick={handleNextProblem}>
+              Try Another Problem
+            </TryAnotherButton>
+          ) : (
+            <EnterAnswerButton
+              onClick={openPanel}
+              disabled={submitted && isCorrect}
+              variant="static"
+            />
+          )}
+        </ButtonContainer>
+      )}
+    </CanvasWrapper>
+
       {/* Input Overlay Panel */}
       <InputOverlayPanel
         visible={panelOpen}
@@ -296,7 +321,33 @@ const Container = styled.div`
   flex-direction: column;
   align-items: center;
   width: 100%;
-  gap: 16px;
+  gap: 20px; /* Increased for better spacing */
+
+  @media (max-width: 1024px) {
+    gap: 16px;
+  }
+`;
+
+// NEW: Wrapper that handles slide animation
+const CanvasWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px; /* Gap between canvas, formula, and button */
+
+  /* Smooth slide transition */
+  transition: transform 0.3s ease-in-out;
+
+  /* Desktop + iPad: Slide left when panel opens */
+  @media (min-width: 769px) {
+    transform: translateX(${props => props.$panelOpen ? `-${props.$slideDistance}px` : '0'});
+  }
+
+  /* Mobile: No slide */
+  @media (max-width: 768px) {
+    transform: translateX(0);
+  }
 
   @media (max-width: 1024px) {
     gap: 12px;
@@ -347,6 +398,19 @@ const CanvasContainer = styled.div`
 
   @media (max-width: 1024px) {
     padding: 12px;
+  }
+`;
+
+// NEW: Container for static button below canvas
+const ButtonContainer = styled.div`
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+
+  @media (max-width: 1024px) {
+    padding: 0 12px;
   }
 `;
 
@@ -443,6 +507,31 @@ const NextButton = styled.button`
   @media (max-width: 1024px) {
     padding: 10px 28px;
     font-size: 15px;
+  }
+`;
+
+const TryAnotherButton = styled.button`
+  width: 100%;
+  padding: 14px 32px;
+  font-size: 17px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background-color: ${props => props.theme.colors.info || '#3B82F6'};
+  color: ${props => props.theme.colors.textInverted || '#FFFFFF'};
+  transition: all 0.2s;
+  min-height: 56px;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 1024px) {
+    padding: 12px 28px;
+    font-size: 16px;
+    min-height: 52px;
   }
 `;
 

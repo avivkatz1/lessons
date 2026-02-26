@@ -281,6 +281,7 @@ function SASCongruentTrianglesLesson({ triggerNewProblem }) {
   const { width: windowWidth } = useWindowDimensions();
   const konvaTheme = useKonvaTheme();
   const [showHint, setShowHint] = useState(false);
+  const [modalClosedWithX, setModalClosedWithX] = useState(false);
 
   // Phase state
   const [phase, setPhase] = useState('interact');
@@ -341,7 +342,14 @@ function SASCongruentTrianglesLesson({ triggerNewProblem }) {
     setShowHint(false);
     setClassifications({});
     setSelectedTriangles([]);
+    setModalClosedWithX(false);
+    setModalClosedWithX(false);
   }
+
+  const handleClose = () => {
+    setPhase('interact');
+    setModalClosedWithX(true);
+  };
 
   const handleTryAnother = useCallback(() => {
     setShowHint(false);
@@ -351,6 +359,8 @@ function SASCongruentTrianglesLesson({ triggerNewProblem }) {
     setShakingIdx(null);
     setClassifications({});
     setSelectedTriangles([]);
+    setModalClosedWithX(false);
+    setModalClosedWithX(false);
     hideAnswer();
     triggerNewProblem();
   }, [hideAnswer, triggerNewProblem]);
@@ -375,13 +385,17 @@ function SASCongruentTrianglesLesson({ triggerNewProblem }) {
 
           if (isCorrect) {
             setTimeout(() => {
-              setPhase('complete');
+              if (!modalClosedWithX) {
+                setPhase('complete');
+              }
               revealAnswer();
             }, 600);
           } else {
             setWrongAttempts((prev) => prev + 1);
             setTimeout(() => {
               setSelectedTriangles([]);
+    setModalClosedWithX(false);
+    setModalClosedWithX(false);
             }, 800);
           }
         }
@@ -399,7 +413,9 @@ function SASCongruentTrianglesLesson({ triggerNewProblem }) {
     if (choice.correct) {
       setSelectedChoice(idx);
       setTimeout(() => {
-        setPhase('complete');
+        if (!modalClosedWithX) {
+          setPhase('complete');
+        }
         revealAnswer();
       }, 800);
     } else {
@@ -423,7 +439,9 @@ function SASCongruentTrianglesLesson({ triggerNewProblem }) {
     });
 
     if (allCorrect) {
-      setPhase('complete');
+      if (!modalClosedWithX) {
+        setPhase('complete');
+      }
       revealAnswer();
     } else {
       setWrongAttempts((prev) => prev + 1);
@@ -736,7 +754,9 @@ function SASCongruentTrianglesLesson({ triggerNewProblem }) {
             answerType="array"
             onCorrect={() => {
               setTimeout(() => {
-                setPhase('complete');
+                if (!modalClosedWithX) {
+                  setPhase('complete');
+                }
                 revealAnswer();
               }, 300);
             }}
@@ -782,6 +802,7 @@ function SASCongruentTrianglesLesson({ triggerNewProblem }) {
       {/* ===== Phase: Complete ===== */}
       {phase === 'complete' && (
         <ExplanationModal
+          onClose={handleClose}
           explanation={explanation}
           onTryAnother={handleTryAnother}
         />
