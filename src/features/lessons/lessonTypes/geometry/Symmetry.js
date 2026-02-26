@@ -160,7 +160,7 @@ function Symmetry({ triggerNewProblem }) {
               id={1}
               stroke={isCorrect ? "green" : "lightblue"}
               strokeWidth={isCorrect ? 14 : 8}
-              hitStrokeWidth={isTouchDevice ? 40 : 0}
+              hitStrokeWidth={isTouchDevice ? 80 : 20}
               draggable={true}
               x={lineX}
               y={0}

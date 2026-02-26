@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { Stage, Layer, Circle, Line, Text, Arrow } from "react-konva";
-import { useLessonState, useWindowDimensions } from "../../../../hooks";
+import { useLessonState, useWindowDimensions, useIsTouchDevice } from "../../../../hooks";
 
 const getRandomX = () => Math.floor(Math.random() * 201) + 250; // 250 to 450
 
@@ -9,6 +9,7 @@ function Symmetry2({ triggerNewProblem }) {
   // Phase 3: Use shared lesson state hook
   const { lessonProps } = useLessonState();
   const { width } = useWindowDimensions();
+  const { isTouchDevice } = useIsTouchDevice();
 
   const [points, setPoints] = useState(() => [
     { id: 0, x: getRandomX(), y: 200 },
@@ -196,11 +197,17 @@ function Symmetry2({ triggerNewProblem }) {
               onDragMove={changePosition}
             />
 
-            {/* Symmetry line */}
+            {/* Symmetry line - draggable */}
             <Line
+              id={1}
               stroke="lightblue"
               strokeWidth={8}
-              points={[centerX, points[1].y + 10, centerX, points[1].y + 400]}
+              hitStrokeWidth={isTouchDevice ? 80 : 20}
+              draggable={true}
+              x={centerX}
+              y={0}
+              points={[0, points[1].y + 10, 0, points[1].y + 400]}
+              onDragMove={changePosition}
             />
 
             {/* Clickable x value (above) */}

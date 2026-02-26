@@ -144,6 +144,50 @@ We have comprehensive documentation for creating Phase 2.5 lessons based on the 
 
 ---
 
+## 📱 Input System Guide
+
+### **INPUT_OVERLAY_PANEL_SYSTEM.md** ⭐⭐
+**Location:** `/docs/guides/INPUT_OVERLAY_PANEL_SYSTEM.md`
+
+**What it is:** Complete guide for iPad-optimized numeric input system
+
+**When to use it:**
+- ✅ Creating geometry lessons with numeric input
+- ✅ Implementing touch-friendly keypads
+- ✅ Migrating existing lessons to overlay panel system
+- ✅ Troubleshooting canvas resize issues
+- ✅ Understanding Input Overlay architecture
+
+**Contents:**
+- System overview with visual flow diagrams
+- Core components (InputOverlayPanel, SlimMathKeypad, EnterAnswerButton, useInputOverlay)
+- Implementation pattern (standard single-input)
+- Key design decisions with evolution history
+- Migration checklist (10 steps)
+- Common patterns (dynamic titles, multi-input, checkmarks)
+- Touch optimization (WCAG compliance)
+- Troubleshooting guide
+- Production implementations (Levels 3-7)
+
+**Key Features:**
+- Canvas stays full width (no resize when panel opens)
+- Floating "Enter Answer" button centered on canvas
+- Slide-in panel from right with 300ms animation
+- Compact 3-column keypad (saves horizontal space)
+- 56px+ touch targets throughout
+- Smooth modal flow (panel closes → modal opens)
+
+**Reference Implementations:**
+- Level3CalculateRectangle.jsx (multi-input: area + perimeter)
+- Level5AnyTriangle.jsx (best example: cleanest code)
+- Level7MixedShapes.jsx (dynamic titles, 4 shape types)
+
+**Read time:** 60 minutes (comprehensive guide with code examples)
+
+**Migration time:** 20-30 minutes per lesson with this guide
+
+---
+
 ## 🚀 Recommended Reading Order
 
 ### For First-Time Lesson Creators
@@ -212,6 +256,22 @@ We have comprehensive documentation for creating Phase 2.5 lessons based on the 
 ### "Show me a working example"
 → **MULTIPLYING_INTEGERS_LESSON_SUMMARY.md** - Code References section
 → Study: ShapesLesson.jsx and MultiplyingIntegersLesson.jsx
+
+### "How do I add numeric input without scrolling on iPad?"
+→ **INPUT_OVERLAY_PANEL_SYSTEM.md** - Complete implementation guide
+→ Study: Level5AnyTriangle.jsx (best example)
+
+### "Why does my canvas resize when the keypad opens?"
+→ **INPUT_OVERLAY_PANEL_SYSTEM.md** - Key Design Decisions section
+→ Remove `panelOpen` from `canvasWidth` dependencies
+
+### "How do I center the Enter Answer button?"
+→ **INPUT_OVERLAY_PANEL_SYSTEM.md** - EnterAnswerButton section
+→ Use `top: 50%; left: 50%; transform: translate(-50%, -50%)`
+
+### "How do I handle multiple inputs (area + perimeter)?"
+→ **INPUT_OVERLAY_PANEL_SYSTEM.md** - Common Patterns: Hybrid State
+→ Study: Level3CalculateRectangle.jsx
 
 ---
 
@@ -377,18 +437,25 @@ You'll know you've mastered lesson creation when:
 **Essential Reading:**
 - `/docs/guides/LESSON_CREATION_CHEAT_SHEET.md` ⭐
 - `/docs/guides/PHASE_25_LESSON_CREATION_GUIDE.md` ⭐⭐⭐
+- `/docs/LESSON_STYLE_GUIDE.md` ⭐⭐
+
+**Specialized Guides:**
+- `/docs/guides/INPUT_OVERLAY_PANEL_SYSTEM.md` ⭐⭐ (iPad numeric input)
+- `/docs/MULTI_BOT_SYSTEM.md` (Workflow)
 
 **Case Studies:**
 - `/docs/MULTIPLYING_INTEGERS_LESSON_SUMMARY.md`
 - `/docs/MULTIPLYING_INTEGERS_LESSON_LOG.md`
 
-**Reference Code:**
+**Reference Code - Phase 2.5:**
 - `/src/features/lessons/lessonTypes/geometry/ShapesLesson.jsx`
 - `/src/features/lessons/lessonTypes/algebra/SubtractingIntegersLesson.jsx`
 - `/src/features/lessons/lessonTypes/algebra/MultiplyingIntegersLesson.jsx`
 
-**Workflow:**
-- `/docs/MULTI_BOT_SYSTEM.md`
+**Reference Code - Input Overlay:**
+- `/src/features/lessons/lessonTypes/geometry/components/areaPerimeter/Level5AnyTriangle.jsx` (best example)
+- `/src/features/lessons/lessonTypes/geometry/components/areaPerimeter/Level3CalculateRectangle.jsx` (multi-input)
+- `/src/features/lessons/lessonTypes/geometry/components/areaPerimeter/Level7MixedShapes.jsx` (dynamic titles)
 
 ---
 
