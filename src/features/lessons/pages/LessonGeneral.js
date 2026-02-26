@@ -288,7 +288,8 @@ function LessonGeneral() {
       </div>
 
       {/* Phase 2.5: Progress tracker moved to bottom to save top space */}
-      <ProgressTracker />
+      {/* Hide progress tracker for rotation lesson (has its own thin progress bar) */}
+      {params.lesson !== 'rotation' && <ProgressTracker />}
 
       {/* Phase 2.5: Show completion modal when batch is finished */}
       <BatchCompletionModal />

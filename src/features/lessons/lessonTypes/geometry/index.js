@@ -44,6 +44,7 @@ import SSSCongruentTrianglesLesson from "./SSSCongruentTrianglesLesson";
 import SASCongruentTrianglesLesson from "./SASCongruentTrianglesLesson";
 import AASCongruentTrianglesLesson from "./AASCongruentTrianglesLesson";
 import ASACongruentTrianglesLesson from "./ASACongruentTrianglesLesson";
+import RotationLesson from "./RotationLesson";
 
 // Export with alias for backwards compatibility
 const SlopeTriangle = SlopeTriangles;
@@ -96,4 +97,5 @@ export {
   SASCongruentTrianglesLesson,
   AASCongruentTrianglesLesson,
   ASACongruentTrianglesLesson,
+  RotationLesson,
 };
