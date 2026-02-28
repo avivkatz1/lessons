@@ -9,21 +9,38 @@
  * L5 — Word Problems: Real-world scenarios
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import styled from 'styled-components';
-import { Stage, Layer, Rect, Line } from 'react-konva';
+import { Stage, Layer, Rect, Line, Text, Transformer } from 'react-konva';
 import { useLessonState, useKonvaTheme, useWindowDimensions } from '../../../../hooks';
-import { AnswerInput } from '../../../../shared/components';
+import { InputOverlayPanel, SlimMathKeypad, EnterAnswerButton } from '../../../../shared/components';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
+import { useKeepChangeChangeValidation } from './hooks/useKeepChangeChangeValidation';
+import { useInputOverlay } from './hooks/useInputOverlay';
+import { calculateTargetRegions } from './utils/expressionParsing';
+import { calculateStrokeBounds } from './utils/strokeAnalysis';
 
 // ==================== KEEP CHANGE CHANGE INTERACTIVE COMPONENT ====================
 
-function KeepChangeChange({ visualData, konvaTheme, width, height, onClearDrawing, tool, onToolChange }) {
+function KeepChangeChange({
+  visualData,
+  konvaTheme,
+  width,
+  height,
+  onClearDrawing,
+  tool,
+  onToolChange,
+  lines,
+  onLinesChange,
+  validationState,
+  feedbackMessage,
+  katexRef,
+  targetRegions, // NEW: pass target regions for debug visualization
+}) {
   const { step1 } = visualData;
-  const [lines, setLines] = React.useState([]);
   const [isDrawing, setIsDrawing] = React.useState(false);
-  const katexRef = React.useRef(null);
+  const [showGuides, setShowGuides] = React.useState(true); // Show subtle guide rectangles
 
   const stageRef = React.useRef(null);
 
@@ -42,7 +59,7 @@ function KeepChangeChange({ visualData, konvaTheme, width, height, onClearDrawin
   const handleMouseDown = (e) => {
     setIsDrawing(true);
     const pos = e.target.getStage().getPointerPosition();
-    setLines([...lines, { tool, points: [pos.x, pos.y] }]);
+    onLinesChange([...lines, { tool, points: [pos.x, pos.y] }]);
   };
 
   const handleMouseMove = (e) => {
@@ -54,7 +71,7 @@ function KeepChangeChange({ visualData, konvaTheme, width, height, onClearDrawin
 
     lastLine.points = lastLine.points.concat([point.x, point.y]);
 
-    setLines(lines.slice(0, lines.length - 1).concat([lastLine]));
+    onLinesChange(lines.slice(0, lines.length - 1).concat([lastLine]));
   };
 
   const handleMouseUp = () => {
@@ -63,11 +80,11 @@ function KeepChangeChange({ visualData, konvaTheme, width, height, onClearDrawin
 
   // Clear callback - expose the clear function to parent
   React.useImperativeHandle(onClearDrawing, () => ({
-    clear: () => setLines([])
-  }), []);
+    clear: () => onLinesChange([])
+  }), [onLinesChange]);
 
   return (
-    <CanvasContainer>
+    <CanvasContainer $validationState={validationState}>
       <Stage
         width={width}
         height={height}
@@ -104,11 +121,45 @@ function KeepChangeChange({ visualData, konvaTheme, width, height, onClearDrawin
               }
             />
           ))}
+
+          {/* Guide rectangles showing calculated target regions */}
+          {showGuides && targetRegions && (
+            <>
+              {/* Mark 1 target region (minus sign) - Subtle guide */}
+              <Rect
+                x={targetRegions.mark1Region.x}
+                y={targetRegions.mark1Region.y}
+                width={targetRegions.mark1Region.width}
+                height={targetRegions.mark1Region.height}
+                stroke="#10B981"
+                strokeWidth={2}
+                dash={[8, 4]}
+                fill="rgba(16, 185, 129, 0.08)"
+                listening={false}
+              />
+
+              {/* Mark 2 target region - Subtle guide */}
+              <Rect
+                x={targetRegions.mark2Region.x}
+                y={targetRegions.mark2Region.y}
+                width={targetRegions.mark2Region.width}
+                height={targetRegions.mark2Region.height}
+                stroke="#3B82F6"
+                strokeWidth={2}
+                dash={[8, 4]}
+                fill="rgba(59, 130, 246, 0.08)"
+                listening={false}
+              />
+            </>
+          )}
         </Layer>
       </Stage>
 
       {/* KaTeX overlay - positioned on top of canvas */}
       <KaTeXOverlay ref={katexRef} />
+
+      {/* Feedback message */}
+      {feedbackMessage && <FeedbackMessage>{feedbackMessage}</FeedbackMessage>}
     </CanvasContainer>
   );
 }
@@ -129,7 +180,25 @@ function SubtractingIntegersLesson({ triggerNewProblem }) {
   const { width: windowWidth } = useWindowDimensions();
   const [showHint, setShowHint] = useState(false);
   const [tool, setTool] = useState('marker');
+  const [lines, setLines] = useState([]);
   const clearDrawingRef = React.useRef(null);
+  const katexRef = React.useRef(null);
+
+  // InputOverlayPanel state
+  const {
+    panelOpen,
+    inputValue,
+    submitted,
+    setInputValue,
+    setSubmitted,
+    openPanel,
+    closePanel,
+    resetAll,
+  } = useInputOverlay();
+
+  // Modal tracking for ExplanationModal behavior
+  const [isComplete, setIsComplete] = useState(false);
+  const [modalClosedWithX, setModalClosedWithX] = useState(false);
 
   // Current problem
   const currentProblem = questionAnswerArray?.[currentQuestionIndex] || lessonProps;
@@ -154,6 +223,9 @@ function SubtractingIntegersLesson({ triggerNewProblem }) {
     if (clearDrawingRef.current) {
       clearDrawingRef.current.clear();
     }
+    resetAll(); // Reset InputOverlay state
+    setIsComplete(false);
+    setModalClosedWithX(false);
     triggerNewProblem();
     hideAnswer();
   };
@@ -168,7 +240,30 @@ function SubtractingIntegersLesson({ triggerNewProblem }) {
     if (clearDrawingRef.current) {
       clearDrawingRef.current.clear();
     }
+    setIsComplete(true);
     revealAnswer();
+  };
+
+  // Handle answer submission from InputOverlayPanel
+  const handleSubmitAnswer = () => {
+    if (!inputValue.trim()) return;
+
+    setSubmitted(true);
+    const isCorrect = correctAnswer.includes(inputValue.trim());
+
+    if (isCorrect) {
+      // Show success feedback briefly, then advance to next question
+      setTimeout(() => {
+        closePanel();
+        resetAll();
+        setIsComplete(false);
+        setModalClosedWithX(false);
+        if (clearDrawingRef.current) {
+          clearDrawingRef.current.clear();
+        }
+        triggerNewProblem();
+      }, 1000); // 1 second delay to show "Correct!" feedback
+    }
   };
 
   // Canvas sizing
@@ -182,12 +277,51 @@ function SubtractingIntegersLesson({ triggerNewProblem }) {
     return 0;
   }, [levelNum]);
 
-  // Clear drawing when level changes
+  // Canvas slide animation distance for InputOverlayPanel
+  const slideDistance = useMemo(() => {
+    // Mobile: No slide
+    if (windowWidth <= 768) return 0;
+
+    // Desktop/iPad: Calculate panel width, then slide distance
+    const panelWidth = Math.min(Math.max(windowWidth * 0.4, 360), 480);
+    return panelWidth * 0.75; // Slide by 75% of panel width
+  }, [windowWidth]);
+
+  // Target regions state (calculated after KaTeX renders)
+  const [targetRegions, setTargetRegions] = useState(null);
+
+  // Calculate target regions AFTER KaTeX renders (in useEffect, not useMemo)
+  React.useEffect(() => {
+    if (levelNum < 1 || levelNum > 4 || !visualData || !visualData.step1) {
+      setTargetRegions(null);
+      return;
+    }
+
+    // Wait for next frame to ensure KaTeX has rendered
+    requestAnimationFrame(() => {
+      console.log('[Validation] Recalculating target regions for:', visualData.step1);
+      const regions = calculateTargetRegions(visualData, katexRef, canvasWidth, canvasHeight);
+      setTargetRegions(regions);
+    });
+  }, [visualData?.step1, canvasWidth, canvasHeight, levelNum]);
+
+  // Run validation hook
+  const validationResult = useKeepChangeChangeValidation(lines, targetRegions);
+
+  // Clear drawing and reset input when level or question changes
   React.useEffect(() => {
     if (clearDrawingRef.current) {
       clearDrawingRef.current.clear();
     }
-  }, [levelNum]);
+    // Clear lines state
+    setLines([]);
+    // Reset InputOverlay state
+    resetAll();
+    setIsComplete(false);
+    setModalClosedWithX(false);
+    // Reset hint state
+    setShowHint(false);
+  }, [levelNum, visualData?.step1, resetAll]);
 
   return (
     <Wrapper>
@@ -215,38 +349,37 @@ function SubtractingIntegersLesson({ triggerNewProblem }) {
         <QuestionText>{questionText}</QuestionText>
       </QuestionSection>
 
-      {/* Visual Component - Show for first 4 questions, then only if hint is shown */}
+      {/* Visual Component with slide animation - Show for first 4 questions, then only if hint is shown */}
       {visualData && visualData.type === 'keepChangeChange' && (currentQuestionIndex < 4 || showHint) && (
-        <VisualSection>
-          <KeepChangeChange
-            visualData={visualData}
-            konvaTheme={konvaTheme}
-            width={canvasWidth}
-            height={canvasHeight}
-            tool={tool}
-            onToolChange={setTool}
-            onClearDrawing={clearDrawingRef}
-          />
-        </VisualSection>
-      )}
+        <CanvasWrapper $panelOpen={panelOpen} $slideDistance={slideDistance}>
+          <VisualSection>
+            <KeepChangeChange
+              visualData={visualData}
+              konvaTheme={konvaTheme}
+              width={canvasWidth}
+              height={canvasHeight}
+              tool={tool}
+              onToolChange={setTool}
+              onClearDrawing={clearDrawingRef}
+              lines={lines}
+              onLinesChange={setLines}
+              validationState={validationResult.validationState}
+              feedbackMessage={validationResult.feedbackMessage}
+              katexRef={katexRef}
+              targetRegions={targetRegions}
+            />
+          </VisualSection>
 
-      {/* Interaction Section */}
-      <InteractionSection>
-        {showHint && hint && (
-          <HintBox>{hint}</HintBox>
-        )}
-
-        {/* Drawing tools - below canvas like Symmetry lesson */}
-        {visualData && visualData.type === 'keepChangeChange' && (currentQuestionIndex < 4 || showHint) && (
+          {/* Drawing tools - all in one row below canvas */}
           <ButtonContainer>
             <ToolButton
-              active={tool === 'marker'}
+              $active={tool === 'marker'}
               onClick={() => setTool('marker')}
             >
               🖊️ Marker
             </ToolButton>
             <ToolButton
-              active={tool === 'eraser'}
+              $active={tool === 'eraser'}
               onClick={() => setTool('eraser')}
             >
               🧹 Eraser
@@ -255,20 +388,50 @@ function SubtractingIntegersLesson({ triggerNewProblem }) {
               Clear Drawing
             </ActionButton>
           </ButtonContainer>
+        </CanvasWrapper>
+      )}
+
+      {/* Interaction Section */}
+      <InteractionSection>
+        {showHint && hint && (
+          <HintBox>{hint}</HintBox>
         )}
 
+        {/* Enter Answer button - always visible */}
         {!showAnswer && (
-          <AnswerInputContainer>
-            <AnswerInput
-              correctAnswer={correctAnswer}
-              answerType="array"
-              onCorrect={handleCorrectAnswer}
-              onTryAnother={handleTryAnother}
-              disabled={showAnswer}
-              placeholder="Enter your answer"
-            />
-          </AnswerInputContainer>
+          <EnterAnswerButtonWrapper>
+            <EnterAnswerButton onClick={openPanel} disabled={showAnswer} variant="static" />
+          </EnterAnswerButtonWrapper>
         )}
+
+        {/* InputOverlayPanel */}
+        <InputOverlayPanel
+          visible={panelOpen}
+          onClose={closePanel}
+          onSubmit={handleSubmitAnswer}
+          isCorrect={submitted && correctAnswer.includes(inputValue.trim())}
+          isIncorrect={submitted && !correctAnswer.includes(inputValue.trim())}
+        >
+          <SlimMathKeypad
+            value={inputValue}
+            onChange={setInputValue}
+            onSubmit={handleSubmitAnswer}
+          />
+
+          {/* Submit button */}
+          <PanelButtonRow>
+            <SubmitButton onClick={handleSubmitAnswer} disabled={!inputValue.trim()}>
+              Submit Answer
+            </SubmitButton>
+          </PanelButtonRow>
+
+          {/* Feedback inside panel */}
+          {submitted && (
+            <PanelFeedback $isCorrect={correctAnswer.includes(inputValue.trim())}>
+              {correctAnswer.includes(inputValue.trim()) ? '✓ Correct!' : '✗ Try again'}
+            </PanelFeedback>
+          )}
+        </InputOverlayPanel>
 
         {showAnswer && explanation && (
           <ExplanationSection>
@@ -394,6 +557,17 @@ const VisualSection = styled.div`
 const CanvasContainer = styled.div`
   position: relative;
   display: inline-block;
+  border-radius: 8px;
+  border: 3px solid ${props => {
+    if (props.$validationState === 'complete') {
+      return props.theme.colors.buttonSuccess; // Green
+    } else if (props.$validationState === 'partial') {
+      return props.theme.colors.warning; // Orange
+    } else {
+      return props.theme.colors.border; // Gray
+    }
+  }};
+  transition: border-color 0.3s ease-in-out;
 `;
 
 const KaTeXOverlay = styled.div`
@@ -426,6 +600,69 @@ const KaTeXOverlay = styled.div`
   }
 `;
 
+const FeedbackMessage = styled.div`
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: ${props => props.theme.colors.cardBackground};
+  border: 2px solid ${props => props.theme.colors.info};
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 10;
+  color: ${props => props.theme.colors.textPrimary};
+  white-space: nowrap;
+
+  @media (max-width: 1024px) {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+`;
+
+const DebugInfo = styled.div`
+  position: absolute;
+  top: -240px;
+  left: 0;
+  background: ${props => props.theme.colors.cardBackground};
+  border: 3px solid ${props => props.theme.colors.warning};
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 13px;
+  color: ${props => props.theme.colors.textPrimary};
+  min-width: 320px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+`;
+
+const DebugTitle = styled.div`
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: ${props => props.theme.colors.warning};
+`;
+
+const DebugText = styled.div`
+  font-size: 12px;
+  margin-bottom: 4px;
+`;
+
+const DebugButton = styled.button`
+  margin-top: 8px;
+  width: 100%;
+  background: ${props => props.theme.colors.warning};
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
 const InteractionSection = styled.div`
   margin-top: 30px;
   display: flex;
@@ -454,11 +691,26 @@ const HintBox = styled.div`
   }
 `;
 
-const AnswerInputContainer = styled.div`
+const EnterAnswerButtonWrapper = styled.div`
   width: 100%;
-  max-width: 400px;
   display: flex;
   justify-content: center;
+  margin-top: 12px;
+
+  @media (max-width: 1024px) {
+    margin-top: 10px;
+  }
+`;
+
+// Canvas slide animation wrapper
+const CanvasWrapper = styled.div`
+  width: 100%;
+  transition: transform 0.3s ease-in-out;
+  transform: ${props => props.$panelOpen ? `translateX(-${props.$slideDistance}px)` : 'translateX(0)'};
+
+  @media (max-width: 768px) {
+    transform: none; // No slide on mobile (full-screen overlay instead)
+  }
 `;
 
 const ExplanationSection = styled.div`
@@ -533,9 +785,9 @@ const ButtonContainer = styled.div`
 `;
 
 const ToolButton = styled.button`
-  background: ${props => props.active ? props.theme.colors.info : props.theme.colors.cardBackground};
-  color: ${props => props.active ? props.theme.colors.textInverted : props.theme.colors.textPrimary};
-  border: 2px solid ${props => props.active ? props.theme.colors.info : props.theme.colors.border};
+  background: ${props => props.$active ? props.theme.colors.info : props.theme.colors.cardBackground};
+  color: ${props => props.$active ? props.theme.colors.textInverted : props.theme.colors.textPrimary};
+  border: 2px solid ${props => props.$active ? props.theme.colors.info : props.theme.colors.border};
   border-radius: 8px;
   padding: 12px 24px;
   font-size: 16px;
@@ -573,5 +825,72 @@ const ActionButton = styled.button`
   @media (max-width: 1024px) {
     padding: 10px 20px;
     font-size: 14px;
+  }
+`;
+
+// InputOverlayPanel styled components
+const PanelButtonRow = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  width: 100%;
+
+  @media (max-width: 1024px) {
+    gap: 8px;
+    margin-top: 16px;
+  }
+`;
+
+const SubmitButton = styled.button`
+  flex: 1;
+  background: ${props => props.theme.colors.buttonSuccess};
+  color: ${props => props.theme.colors.textInverted};
+  border: none;
+  border-radius: 8px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 56px;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 12px 20px;
+    font-size: 15px;
+    min-height: 48px;
+  }
+`;
+
+const PanelFeedback = styled.div`
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: ${props => props.$isCorrect
+    ? props.theme.colors.buttonSuccess + '18'
+    : props.theme.colors.buttonDanger + '18'
+  };
+  border: 2px solid ${props => props.$isCorrect
+    ? props.theme.colors.buttonSuccess
+    : props.theme.colors.buttonDanger
+  };
+  color: ${props => props.theme.colors.textPrimary};
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+
+  @media (max-width: 1024px) {
+    margin-top: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
   }
 `;
