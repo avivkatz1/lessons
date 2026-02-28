@@ -41,6 +41,8 @@ function Level7MixedShapes({ visualData, onComplete, onNextProblem, questionInde
     openPanel,
     closePanel,
     resetAll,
+    keepOpen,
+    setKeepOpen,
   } = useInputOverlay();
 
   // Calculate slide distance based on panel width (75% of panel width)
@@ -333,19 +335,36 @@ function Level7MixedShapes({ visualData, onComplete, onNextProblem, questionInde
   // Auto-trigger success modal when goal is reached
   useEffect(() => {
     if (isCorrect && submitted && onComplete) {
-      // Close panel and show success modal
-      closePanel();
-      const timer = setTimeout(() => {
-        onComplete(true);
-      }, 500);
-      return () => clearTimeout(timer);
+      if (keepOpen) {
+        // Keep Open mode: skip modal, auto-advance after 1 second
+        const timer = setTimeout(() => {
+          setInputValue('');
+          setSubmitted(false);
+          onNextProblem?.();
+        }, 1000);
+        return () => clearTimeout(timer);
+      } else {
+        // Normal mode: close panel and show modal
+        closePanel();
+        const timer = setTimeout(() => {
+          onComplete(true);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isCorrect, submitted, onComplete, closePanel]);
+  }, [isCorrect, submitted, onComplete, keepOpen, closePanel, setInputValue, setSubmitted, onNextProblem]);
 
   // Reset state when problem changes
   useEffect(() => {
-    resetAll();
-  }, [questionIndex, resetAll]);
+    if (!keepOpen) {
+      // Normal mode: close panel and reset everything
+      resetAll();
+    } else {
+      // Keep Open mode: just reset input/state, keep panel open
+      setInputValue('');
+      setSubmitted(false);
+    }
+  }, [questionIndex, keepOpen, resetAll, setInputValue, setSubmitted]);
 
   // Handle submit from keypad
   const handleSubmit = () => {
@@ -431,6 +450,8 @@ function Level7MixedShapes({ visualData, onComplete, onNextProblem, questionInde
           value={inputValue}
           onChange={setInputValue}
           onSubmit={handleSubmit}
+          keepOpen={keepOpen}
+          onKeepOpenChange={setKeepOpen}
         />
 
         {/* Feedback inside panel */}

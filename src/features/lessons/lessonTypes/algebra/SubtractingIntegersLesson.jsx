@@ -194,6 +194,8 @@ function SubtractingIntegersLesson({ triggerNewProblem }) {
     openPanel,
     closePanel,
     resetAll,
+    keepOpen,
+    setKeepOpen,
   } = useInputOverlay();
 
   // Modal tracking for ExplanationModal behavior
@@ -252,17 +254,31 @@ function SubtractingIntegersLesson({ triggerNewProblem }) {
     const isCorrect = correctAnswer.includes(inputValue.trim());
 
     if (isCorrect) {
-      // Show success feedback briefly, then advance to next question
-      setTimeout(() => {
-        closePanel();
-        resetAll();
-        setIsComplete(false);
-        setModalClosedWithX(false);
-        if (clearDrawingRef.current) {
-          clearDrawingRef.current.clear();
-        }
-        triggerNewProblem();
-      }, 1000); // 1 second delay to show "Correct!" feedback
+      if (keepOpen) {
+        // Keep Open mode: Clear input and auto-advance after 1 second
+        setTimeout(() => {
+          setInputValue('');
+          setSubmitted(false);
+          setIsComplete(false);
+          setModalClosedWithX(false);
+          if (clearDrawingRef.current) {
+            clearDrawingRef.current.clear();
+          }
+          triggerNewProblem();
+        }, 1000);
+      } else {
+        // Normal mode: Close panel and advance
+        setTimeout(() => {
+          closePanel();
+          resetAll();
+          setIsComplete(false);
+          setModalClosedWithX(false);
+          if (clearDrawingRef.current) {
+            clearDrawingRef.current.clear();
+          }
+          triggerNewProblem();
+        }, 1000);
+      }
     }
   };
 
@@ -316,12 +332,19 @@ function SubtractingIntegersLesson({ triggerNewProblem }) {
     // Clear lines state
     setLines([]);
     // Reset InputOverlay state
-    resetAll();
+    if (!keepOpen) {
+      // Normal mode: close panel and reset everything
+      resetAll();
+    } else {
+      // Keep Open mode: just reset input/state, keep panel open
+      setInputValue('');
+      setSubmitted(false);
+    }
     setIsComplete(false);
     setModalClosedWithX(false);
     // Reset hint state
     setShowHint(false);
-  }, [levelNum, visualData?.step1, resetAll]);
+  }, [levelNum, visualData?.step1, keepOpen, resetAll, setInputValue, setSubmitted]);
 
   return (
     <Wrapper>
@@ -416,6 +439,8 @@ function SubtractingIntegersLesson({ triggerNewProblem }) {
             value={inputValue}
             onChange={setInputValue}
             onSubmit={handleSubmitAnswer}
+            keepOpen={keepOpen}
+            onKeepOpenChange={setKeepOpen}
           />
 
           {/* Submit button */}

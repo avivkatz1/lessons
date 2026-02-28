@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 /**
  * useInputOverlay - State management hook for InputOverlayPanel
@@ -25,11 +25,32 @@ import { useState, useCallback } from "react";
  * @returns {Function} closePanel - Close the panel
  * @returns {Function} resetInput - Clear input and reset submitted state
  * @returns {Function} resetAll - Close panel and clear all state
+ * @returns {boolean} keepOpen - Whether to keep panel open after correct answer
+ * @returns {Function} setKeepOpen - Update the keep open preference
  */
 export function useInputOverlay() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [submitted, setSubmitted] = useState(false);
+
+  // Keep Open state - persists to localStorage
+  const [keepOpen, setKeepOpen] = useState(() => {
+    try {
+      const saved = localStorage.getItem('mathKeypadKeepOpen');
+      return saved === 'true';
+    } catch (error) {
+      return false; // Default to OFF
+    }
+  });
+
+  // Save keepOpen preference to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('mathKeypadKeepOpen', String(keepOpen));
+    } catch (error) {
+      // Silently fail if localStorage is unavailable
+    }
+  }, [keepOpen]);
 
   /**
    * Open the input panel
@@ -67,10 +88,12 @@ export function useInputOverlay() {
     panelOpen,
     inputValue,
     submitted,
+    keepOpen,
 
     // Setters
     setInputValue,
     setSubmitted,
+    setKeepOpen,
 
     // Actions
     openPanel,

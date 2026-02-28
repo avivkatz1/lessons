@@ -196,6 +196,8 @@ function SymmetryLesson({ triggerNewProblem }) {
     openPanel,
     closePanel,
     resetAll: resetPanel,
+    keepOpen,
+    setKeepOpen,
   } = useInputOverlay();
 
   // Level 4: Multi-input state for 4 coordinate pairs
@@ -233,8 +235,11 @@ function SymmetryLesson({ triggerNewProblem }) {
     setShowHint(false);
     setIsComplete(false);
     setModalClosedWithX(false);
-    resetPanel(); // Reset panel state for Level 4
-    // Reset Level 4 coordinates
+    if (!keepOpen) {
+      // Normal mode: close panel and reset everything
+      resetPanel();
+    }
+    // Reset Level 4 coordinates (always reset these regardless of keepOpen)
     setCoordinates({
       "A": { value: '', submitted: false, isCorrect: false },
       "B": { value: '', submitted: false, isCorrect: false },
@@ -242,7 +247,7 @@ function SymmetryLesson({ triggerNewProblem }) {
     });
     setFocusedPoint("A");
     setAllSubmitted(false);
-  }, [currentQuestionIndex, level, resetPanel]);
+  }, [currentQuestionIndex, level, keepOpen, resetPanel]);
 
   // Build sets for quick lookup
   const originalSet = useMemo(() => {
@@ -476,13 +481,23 @@ function SymmetryLesson({ triggerNewProblem }) {
   // Level 4: Auto-trigger modal when all correct
   useEffect(() => {
     if (allCorrect && !modalClosedWithX) {
-      closePanel();
-      const timer = setTimeout(() => {
-        setIsComplete(true);
-      }, 500);
-      return () => clearTimeout(timer);
+      // Handle keepOpen mode
+      if (keepOpen) {
+        // Keep panel open, reset coordinates, auto-advance after 1 second
+        setTimeout(() => {
+          handleResetCoordinates();
+          handleTryAnother();
+        }, 1000);
+      } else {
+        // Normal mode: close panel and show modal
+        closePanel();
+        const timer = setTimeout(() => {
+          setIsComplete(true);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [allCorrect, modalClosedWithX, closePanel]);
+  }, [allCorrect, modalClosedWithX, closePanel, keepOpen, handleResetCoordinates, handleTryAnother]);
 
   // Level 4: Reset all coordinates
   const handleResetCoordinates = useCallback(() => {
@@ -846,6 +861,8 @@ function SymmetryLesson({ triggerNewProblem }) {
             onChange={handleKeypadChange}
             onSubmit={() => handleSubmitCoordinate(focusedPoint)}
             extraButtons={["(", ",", ")"]}
+            keepOpen={keepOpen}
+            onKeepOpenChange={setKeepOpen}
           />
 
           {/* Success Message */}

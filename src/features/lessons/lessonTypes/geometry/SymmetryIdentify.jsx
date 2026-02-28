@@ -1,7 +1,11 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useLessonState, useWindowDimensions, useKonvaTheme } from "../../../../hooks";
 import { AnswerInput } from "../../../../shared/components";
-import styled from "styled-components";
+import InputOverlayPanel from "../../../../shared/components/InputOverlayPanel";
+import SlimMathKeypad from "../../../../shared/components/SlimMathKeypad";
+import EnterAnswerButton from "../../../../shared/components/EnterAnswerButton";
+import { useInputOverlay } from "../geometry/hooks/useInputOverlay";
+import styled, { css } from "styled-components";
 import { Stage, Layer, Rect, Line, Text, Circle } from "react-konva";
 
 // ==================== LEVEL CONFIG ====================
@@ -453,17 +457,78 @@ function CountLevel({ visualData, problem, konvaTheme, width, explanation, showA
   const [strokes, setStrokes] = useState([]); // array of { points: [x,y,x,y,...] }
   const isDrawing = useRef(false);
 
+  // InputOverlay state
+  const {
+    panelOpen,
+    inputValue,
+    submitted,
+    setInputValue,
+    setSubmitted,
+    openPanel,
+    closePanel,
+    resetAll,
+    keepOpen,
+    setKeepOpen,
+  } = useInputOverlay();
+
+  // Calculate slide distance (60% for flexible content)
+  const slideDistance = useMemo(() => {
+    if (width <= 768) return 0; // Mobile: no slide
+    const panelWidth = Math.min(Math.max(width * 0.4, 360), 480);
+    return panelWidth * 0.6; // 60% for flexible layout
+  }, [width]);
+
   // Reset drawing when problem changes
   useEffect(() => {
     setStrokes([]);
     setTool("marker");
-  }, [problem]);
+    if (!keepOpen) {
+      // Normal mode: close panel and reset everything
+      resetAll();
+    } else {
+      // Keep Open mode: just reset input/state, keep panel open
+      setInputValue('');
+      setSubmitted(false);
+    }
+  }, [problem, keepOpen, resetAll, setInputValue, setSubmitted]);
 
   const correctAnswer = useMemo(() => {
     if (problem?.acceptedAnswers?.length > 0) return problem.acceptedAnswers;
     if (Array.isArray(problem?.answer)) return problem.answer;
     return [String(problem?.answer || "")];
   }, [problem]);
+
+  // Handle panel submission
+  const handlePanelSubmit = useCallback(() => {
+    if (inputValue.trim() === '') return;
+    setSubmitted(true);
+
+    const isCorrectAnswer = correctAnswer.some(ans => String(ans) === inputValue.trim());
+
+    if (isCorrectAnswer) {
+      // Handle keepOpen mode
+      if (keepOpen) {
+        // Keep panel open, clear input, auto-advance after 1 second
+        setTimeout(() => {
+          setInputValue('');
+          setSubmitted(false);
+          onTryAnother();
+        }, 1000);
+      } else {
+        // Normal mode: close panel and auto-advance
+        closePanel();
+        setTimeout(() => {
+          onTryAnother();
+        }, 500);
+      }
+    }
+  }, [inputValue, correctAnswer, closePanel, onTryAnother, keepOpen, setInputValue]);
+
+  // Track if answer is correct for feedback
+  const isCorrect = useMemo(() => {
+    if (!submitted || inputValue.trim() === '') return false;
+    return correctAnswer.some(ans => String(ans) === inputValue.trim());
+  }, [submitted, inputValue, correctAnswer]);
 
   // Scale shape points to fit canvas
   const scaledPoints = useMemo(() => {
@@ -530,6 +595,7 @@ function CountLevel({ visualData, problem, konvaTheme, width, explanation, showA
 
   return (
     <>
+      <ContentWrapper $panelOpen={panelOpen} $slideDistance={slideDistance}>
       <VisualSection style={{ cursor: tool === "marker" ? "crosshair" : "pointer" }}>
         <Stage
           width={canvasWidth}
@@ -592,7 +658,6 @@ function CountLevel({ visualData, problem, konvaTheme, width, explanation, showA
         </Stage>
       </VisualSection>
 
-      <InteractionSection>
         {!showAnswer && (
           <ToolRow>
             <ToolButton $active={tool === "marker"} onClick={() => setTool("marker")}>
@@ -609,19 +674,51 @@ function CountLevel({ visualData, problem, konvaTheme, width, explanation, showA
 
         {!showAnswer && showHint && <HintBox>{hint}</HintBox>}
 
-        {!showAnswer && (
-          <AnswerInput
-            correctAnswer={correctAnswer}
-            answerType="array"
-            onCorrect={revealAnswer}
-            onTryAnother={onTryAnother}
-            disabled={showAnswer}
-            placeholder="How many lines of symmetry?"
-          />
+        {/* Enter Answer Button */}
+        {!showAnswer && !panelOpen && (
+          <ButtonContainer>
+            <EnterAnswerButton
+              onClick={openPanel}
+              disabled={submitted && isCorrect}
+              variant="static"
+            />
+          </ButtonContainer>
         )}
-      </InteractionSection>
+      </ContentWrapper>
 
-      {showAnswer && (
+      {/* InputOverlayPanel */}
+      <InputOverlayPanel
+        visible={panelOpen}
+        onClose={closePanel}
+        title="How Many Lines?"
+      >
+        <InputLabel>
+          Number of lines of symmetry:
+          {submitted && (isCorrect ? ' ✓' : ' ✗')}
+        </InputLabel>
+
+        <SlimMathKeypad
+          value={inputValue}
+          onChange={setInputValue}
+          onSubmit={handlePanelSubmit}
+          keepOpen={keepOpen}
+          onKeepOpenChange={setKeepOpen}
+        />
+
+        {submitted && !isCorrect && (
+          <FeedbackSection $isWrong>
+            Not quite — try again!
+          </FeedbackSection>
+        )}
+
+        <PanelButtonRow>
+          <SubmitButton onClick={handlePanelSubmit} disabled={!inputValue.trim()}>
+            Submit Answer
+          </SubmitButton>
+        </PanelButtonRow>
+      </InputOverlayPanel>
+
+      {showAnswer && !panelOpen && (
         <ExplanationSection $correct>
           <ExplanationTitle $correct>Correct!</ExplanationTitle>
           <ExplanationText>{explanation}</ExplanationText>
@@ -1191,5 +1288,107 @@ const TopHintButton = styled.button`
   @media (max-width: 768px) {
     top: 10px;
     right: 12px;
+  }
+`;
+
+const ContentWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+
+  transition: transform 0.3s ease-in-out;
+
+  /* Desktop + iPad: Slide left and scale when panel opens */
+  @media (min-width: 769px) {
+    ${props => props.$panelOpen ? css`
+      transform: translateX(-${props.$slideDistance}px) scale(0.95);
+      transform-origin: left center;
+    ` : css`
+      transform: translateX(0) scale(1);
+      transform-origin: center center;
+    `}
+  }
+
+  @media (max-width: 768px) {
+    transform: translateX(0);
+  }
+
+  @media (max-width: 1024px) {
+    gap: 16px;
+  }
+`;
+
+const ButtonContainer = styled.div`
+  width: 100%;
+  max-width: 500px;
+  margin-top: 16px;
+`;
+
+const InputLabel = styled.label`
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: ${props => props.theme.colors.textPrimary};
+  margin-bottom: 12px;
+
+  @media (max-width: 1024px) {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+`;
+
+const FeedbackSection = styled.div`
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+
+  ${props => props.$isWrong && css`
+    background-color: ${props.theme.colors.danger || '#E53E3E'}15;
+    color: ${props.theme.colors.danger || '#E53E3E'};
+    border: 1px solid ${props.theme.colors.danger || '#E53E3E'};
+  `}
+
+  @media (max-width: 1024px) {
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+`;
+
+const PanelButtonRow = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  width: 100%;
+`;
+
+const SubmitButton = styled.button`
+  flex: 1;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: ${props => props.theme.colors.buttonSuccess};
+  color: ${props => props.theme.colors.textInverted};
+  transition: opacity 0.2s;
+  opacity: ${props => props.disabled ? 0.5 : 1};
+  touch-action: manipulation;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 12px 20px;
+    font-size: 15px;
   }
 `;

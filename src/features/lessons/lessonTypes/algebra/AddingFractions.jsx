@@ -1,7 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useWindowDimensions, useKonvaTheme } from "../../../../hooks";
 import { useLessonState } from "../../../../hooks";
-import { AnswerInput } from "../../../../shared/components";
+import { InputOverlayPanel, EnterAnswerButton } from "../../../../shared/components";
+import ExplanationModal from "../geometry/ExplanationModal";
+import { useInputOverlay } from "../geometry/hooks/useInputOverlay";
+import FractionKeypad from "./components/FractionKeypad";
 import styled from "styled-components";
 import { Stage, Layer, Rect, Text, Line, Group } from "react-konva";
 
@@ -79,9 +82,26 @@ function AddingFractions({ triggerNewProblem }) {
     currentQuestionIndex,
   } = useLessonState();
 
-  const { width } = useWindowDimensions();
+  const { width: windowWidth } = useWindowDimensions();
   const konvaTheme = useKonvaTheme();
-  const [showHint, setShowHint] = useState(false);
+
+  // InputOverlay system hook
+  const {
+    panelOpen,
+    inputValue,
+    submitted,
+    setInputValue,
+    setSubmitted,
+    openPanel,
+    closePanel,
+    resetAll,
+    keepOpen,
+    setKeepOpen,
+  } = useInputOverlay();
+
+  // Modal tracking (v2.0 pattern)
+  const [isComplete, setIsComplete] = useState(false);
+  const [modalClosedWithX, setModalClosedWithX] = useState(false);
 
   const currentProblem = questionAnswerArray?.[currentQuestionIndex] || lessonProps;
   const visualData = currentProblem?.visualData || {};
@@ -107,22 +127,103 @@ function AddingFractions({ triggerNewProblem }) {
     return [String(currentProblem?.answer || "")];
   }, [currentProblem]);
 
+  // Calculate slide distance based on panel width (75% of panel width)
+  const slideDistance = useMemo(() => {
+    if (windowWidth <= 768) return 0; // Mobile: no slide
+    const panelWidth = Math.min(Math.max(windowWidth * 0.4, 360), 480);
+    return panelWidth * 0.75; // 75% of panel width
+  }, [windowWidth]);
+
+  // Validate answer
+  const isCorrect = useMemo(() => {
+    const acceptedAnswers = currentProblem?.acceptedAnswers || correctAnswer || [];
+    return acceptedAnswers.includes(inputValue.trim());
+  }, [inputValue, currentProblem, correctAnswer]);
+
+  // Auto-show modal on correct answer OR auto-advance if keepOpen is ON
+  useEffect(() => {
+    if (isCorrect && submitted) {
+      if (keepOpen) {
+        // Keep Open mode: skip modal, auto-advance after 1 second
+        const timer = setTimeout(() => {
+          // Clear input and reset for next problem
+          setInputValue('');
+          setSubmitted(false);
+          setModalClosedWithX(false);
+          // Advance to next problem
+          triggerNewProblem();
+        }, 1000); // 1 second delay
+        return () => clearTimeout(timer);
+      } else {
+        // Normal mode: close panel and show modal after 500ms
+        closePanel();
+        const timer = setTimeout(() => {
+          if (!modalClosedWithX) {
+            setIsComplete(true);
+          }
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isCorrect, submitted, modalClosedWithX, keepOpen, closePanel, setInputValue, setSubmitted, triggerNewProblem]);
+
+  // Reset on problem change
+  useEffect(() => {
+    if (!keepOpen) {
+      // Normal mode: close panel and reset everything
+      resetAll();
+    } else {
+      // Keep Open mode: just reset input/state, keep panel open
+      setInputValue('');
+      setSubmitted(false);
+    }
+    setIsComplete(false);
+    setModalClosedWithX(false);
+  }, [currentQuestionIndex, keepOpen, resetAll, setInputValue, setSubmitted]);
+
+  // Handlers
+  const handleSubmit = () => {
+    if (inputValue.trim() === '') return;
+    setSubmitted(true);
+  };
+
+  const handleClose = () => {
+    setIsComplete(false);
+    setModalClosedWithX(true); // Mark as manually closed
+  };
+
   const handleTryAnother = () => {
-    setShowHint(false);
+    setIsComplete(false);
+    setModalClosedWithX(false); // Reset flag
+    resetAll();
     hideAnswer();
+    triggerNewProblem();
+  };
+
+  const handleNextProblem = () => {
+    resetAll();
     triggerNewProblem();
   };
 
   const info = LEVEL_INFO[level] || LEVEL_INFO[1];
   const hasConversion = conversion !== null && conversion !== undefined;
 
-  // Canvas sizing
-  const canvasWidth = Math.min(width - 40, 700);
+  // Canvas sizing (NO panelOpen dependency!)
+  const canvasWidth = useMemo(() => {
+    return Math.min(windowWidth - 40, 700);
+  }, [windowWidth]);
+
+  const canvasHeight = useMemo(() => {
+    const base = hasConversion ? 390 : 220;
+    if (windowWidth <= 1024 && hasConversion) return 350;
+    if (windowWidth <= 1024 && !hasConversion) return 200;
+    return base;
+  }, [hasConversion, windowWidth]);
+
   const scale = canvasWidth / 700;
   const barWidth = canvasWidth * 0.55;
   const barHeight = 32 * scale;
   const leftPad = (canvasWidth - barWidth) / 2;
-  const canvasHeight = hasConversion ? 390 * scale : 220 * scale;
 
   if (!currentProblem || !fraction1) {
     return (
@@ -188,109 +289,138 @@ function AddingFractions({ triggerNewProblem }) {
 
   return (
     <Wrapper>
-      {/* Hint button */}
-      {!showAnswer && !showHint && hint && (
-        <TopHintButton onClick={() => setShowHint(true)}>Need a hint?</TopHintButton>
-      )}
+      {/* Wrapper with slide animation (wraps canvas and button) */}
+      <CanvasWrapper $panelOpen={panelOpen} $slideDistance={slideDistance}>
+        {/* Level header */}
+        <LevelHeader>
+          <LevelBadge>Level {level}</LevelBadge>
+          <LevelTitle>{info.title}</LevelTitle>
+        </LevelHeader>
 
-      {/* Level header */}
-      <LevelHeader>
-        <LevelBadge>Level {level}</LevelBadge>
-        <LevelTitle>{info.title}</LevelTitle>
-      </LevelHeader>
+        <InstructionText>{info.instruction}</InstructionText>
 
-      <InstructionText>{info.instruction}</InstructionText>
+        {/* Question text */}
+        <QuestionText>{questionText}</QuestionText>
 
-      {/* Question text */}
-      <QuestionText>{questionText}</QuestionText>
+        {/* Konva fraction bars */}
+        <VisualSection>
+          <Stage width={canvasWidth} height={Math.max(canvasHeight, (bars[bars.length - 1]?.y || 0) + barHeight + 30 * scale)}>
+            <Layer>
+              {/* Background */}
+              <Rect x={0} y={0} width={canvasWidth} height={canvasHeight + 60 * scale} fill={konvaTheme.canvasBackground} />
 
-      {/* Konva fraction bars */}
-      <VisualSection>
-        <Stage width={canvasWidth} height={Math.max(canvasHeight, (bars[bars.length - 1]?.y || 0) + barHeight + 30 * scale)}>
-          <Layer>
-            {/* Background */}
-            <Rect x={0} y={0} width={canvasWidth} height={canvasHeight + 60 * scale} fill={konvaTheme.canvasBackground} />
+              {/* Conversion label */}
+              {hasConversion && bars.convertLabelY != null && (
+                <Text
+                  x={leftPad}
+                  y={bars.convertLabelY}
+                  text={`Convert to common denominator ${commonDenominator}:`}
+                  fontSize={13 * scale}
+                  fontStyle="italic"
+                  fill={konvaTheme.labelText}
+                  opacity={0.7}
+                />
+              )}
 
-            {/* Conversion label */}
-            {hasConversion && bars.convertLabelY != null && (
-              <Text
-                x={leftPad}
-                y={bars.convertLabelY}
-                text={`Convert to common denominator ${commonDenominator}:`}
-                fontSize={13 * scale}
-                fontStyle="italic"
-                fill={konvaTheme.labelText}
-                opacity={0.7}
+              {/* Bars */}
+              {bars.filter(b => b && typeof b === "object" && b.y != null).map((bar, i) => (
+                <Group key={i}>
+                  {/* + or = sign */}
+                  {bar.showPlus && (
+                    <Text
+                      x={leftPad - 30 * scale}
+                      y={bar.y + barHeight / 2 - 10 * scale}
+                      text="+"
+                      fontSize={20 * scale}
+                      fontStyle="bold"
+                      fill={konvaTheme.labelText}
+                    />
+                  )}
+                  {bar.showEquals && (
+                    <Text
+                      x={leftPad - 30 * scale}
+                      y={bar.y + barHeight / 2 - 10 * scale}
+                      text="="
+                      fontSize={20 * scale}
+                      fontStyle="bold"
+                      fill={konvaTheme.labelText}
+                    />
+                  )}
+                  <FractionBar
+                    x={leftPad}
+                    y={bar.y}
+                    barWidth={barWidth}
+                    barHeight={barHeight}
+                    numerator={bar.num}
+                    denominator={bar.den}
+                    color={bar.color}
+                    konvaTheme={konvaTheme}
+                    label={bar.label}
+                    scale={scale}
+                  />
+                </Group>
+              ))}
+            </Layer>
+          </Stage>
+        </VisualSection>
+
+        {/* Static button below canvas */}
+        {!panelOpen && (
+          <ButtonContainer>
+            {modalClosedWithX ? (
+              <TryAnotherButton onClick={handleTryAnother}>
+                Try Another Problem
+              </TryAnotherButton>
+            ) : (
+              <EnterAnswerButton
+                onClick={openPanel}
+                disabled={submitted && isCorrect}
+                variant="static"
               />
             )}
-
-            {/* Bars */}
-            {bars.filter(b => b && typeof b === "object" && b.y != null).map((bar, i) => (
-              <Group key={i}>
-                {/* + or = sign */}
-                {bar.showPlus && (
-                  <Text
-                    x={leftPad - 30 * scale}
-                    y={bar.y + barHeight / 2 - 10 * scale}
-                    text="+"
-                    fontSize={20 * scale}
-                    fontStyle="bold"
-                    fill={konvaTheme.labelText}
-                  />
-                )}
-                {bar.showEquals && (
-                  <Text
-                    x={leftPad - 30 * scale}
-                    y={bar.y + barHeight / 2 - 10 * scale}
-                    text="="
-                    fontSize={20 * scale}
-                    fontStyle="bold"
-                    fill={konvaTheme.labelText}
-                  />
-                )}
-                <FractionBar
-                  x={leftPad}
-                  y={bar.y}
-                  barWidth={barWidth}
-                  barHeight={barHeight}
-                  numerator={bar.num}
-                  denominator={bar.den}
-                  color={bar.color}
-                  konvaTheme={konvaTheme}
-                  label={bar.label}
-                  scale={scale}
-                />
-              </Group>
-            ))}
-          </Layer>
-        </Stage>
-      </VisualSection>
-
-      {/* Interaction Section */}
-      <InteractionSection>
-        {!showAnswer && showHint && <HintBox>{hint}</HintBox>}
-
-        {!showAnswer && (
-          <AnswerInput
-            correctAnswer={correctAnswer}
-            answerType="array"
-            onCorrect={revealAnswer}
-            onTryAnother={handleTryAnother}
-            disabled={showAnswer}
-            placeholder="Enter fraction (e.g. 3/4)"
-          />
+          </ButtonContainer>
         )}
-      </InteractionSection>
+      </CanvasWrapper>
 
-      {/* Explanation */}
-      {showAnswer && (
-        <ExplanationSection>
-          <ExplanationTitle>Explanation</ExplanationTitle>
-          <ExplanationText>{explanation}</ExplanationText>
-          <TryAnotherButton onClick={handleTryAnother}>
-            Try Another Problem
-          </TryAnotherButton>
-        </ExplanationSection>
+      {/* Input Overlay Panel */}
+      <InputOverlayPanel
+        visible={panelOpen}
+        onClose={closePanel}
+        title="Enter Your Answer"
+      >
+        <InputLabel>Answer (as a fraction):</InputLabel>
+        <FractionKeypad
+          value={inputValue}
+          onChange={setInputValue}
+          onSubmit={handleSubmit}
+          keepOpen={keepOpen}
+          onKeepOpenChange={setKeepOpen}
+        />
+
+        {submitted && (
+          <FeedbackSection $isCorrect={isCorrect}>
+            {isCorrect ? (
+              <FeedbackText>✓ Correct!</FeedbackText>
+            ) : (
+              <FeedbackText>Not quite. Try again!</FeedbackText>
+            )}
+          </FeedbackSection>
+        )}
+
+        <PanelButtonRow>
+          <ResetButton onClick={() => { setInputValue(''); setSubmitted(false); }}>
+            Clear
+          </ResetButton>
+        </PanelButtonRow>
+      </InputOverlayPanel>
+
+      {/* Explanation Modal */}
+      {isComplete && (
+        <ExplanationModal
+          explanation={explanation}
+          onClose={handleClose}
+          onTryAnother={handleTryAnother}
+        />
       )}
     </Wrapper>
   );
@@ -318,6 +448,35 @@ const Wrapper = styled.div`
 const LoadingText = styled.p`
   font-size: 16px;
   color: ${(props) => props.theme.colors.textSecondary};
+`;
+
+const CanvasWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  transition: transform 0.3s ease-in-out;
+
+  @media (min-width: 769px) {
+    transform: translateX(${props => props.$panelOpen ? `-${props.$slideDistance}px` : '0'});
+  }
+
+  @media (max-width: 768px) {
+    transform: translateX(0); // No slide on mobile
+  }
+`;
+
+const ButtonContainer = styled.div`
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+
+  @media (max-width: 768px) {
+    padding: 0 12px;
+  }
 `;
 
 const LevelHeader = styled.div`
@@ -385,98 +544,82 @@ const VisualSection = styled.div`
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 `;
 
-const InteractionSection = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
-`;
-
-const HintBox = styled.div`
-  width: 100%;
-  max-width: 650px;
-  background-color: ${(props) => props.theme.colors.cardBackground};
-  border-left: 4px solid ${(props) => props.theme.colors.warning || "#f6ad55"};
-  padding: 14px 16px;
-  border-radius: 4px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: ${(props) => props.theme.colors.textPrimary};
-`;
-
-const ExplanationSection = styled.div`
-  width: 100%;
-  background-color: ${(props) => props.theme.colors.cardBackground};
-  border: 2px solid ${(props) => props.theme.colors.buttonSuccess};
-  border-radius: 12px;
-  padding: 20px 24px;
-  margin-top: 4px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-`;
-
-const ExplanationTitle = styled.h3`
-  font-size: 19px;
-  font-weight: 700;
-  color: ${(props) => props.theme.colors.buttonSuccess};
-  margin: 0;
-`;
-
-const ExplanationText = styled.p`
-  font-size: 15px;
-  line-height: 1.6;
-  color: ${(props) => props.theme.colors.textPrimary};
-  margin: 0;
-  text-align: center;
-`;
-
-const TryAnotherButton = styled.button`
-  padding: 12px 28px;
+const InputLabel = styled.div`
   font-size: 16px;
-  font-weight: 600;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  background-color: ${(props) => props.theme.colors.buttonSuccess};
-  color: ${(props) => props.theme.colors.textInverted};
-  transition: opacity 0.2s;
-
-  &:hover {
-    opacity: 0.9;
-  }
+  font-weight: 500;
+  color: ${props => props.theme.colors.textPrimary};
+  margin-bottom: 12px;
 `;
 
-const TopHintButton = styled.button`
-  position: fixed;
-  top: 15px;
-  right: 20px;
-  z-index: 100;
-  background: ${(props) => props.theme.colors.cardBackground};
-  border: 2px solid ${(props) => props.theme.colors.border};
+const FeedbackSection = styled.div`
+  margin-top: 16px;
+  padding: 12px 16px;
   border-radius: 8px;
-  padding: 10px 20px;
+  background-color: ${props => props.$isCorrect
+    ? 'rgba(16, 185, 129, 0.1)'
+    : 'rgba(239, 68, 68, 0.1)'};
+  border: 2px solid ${props => props.$isCorrect
+    ? props.theme.colors.buttonSuccess
+    : props.theme.colors.buttonError || '#EF4444'};
+`;
+
+const FeedbackText = styled.div`
   font-size: 15px;
-  color: ${(props) => props.theme.colors.textSecondary};
+  font-weight: 500;
+  text-align: center;
+  color: ${props => props.theme.colors.textPrimary};
+`;
+
+const PanelButtonRow = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+`;
+
+const ResetButton = styled.button`
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 20px;
+  background-color: ${props => props.theme.colors.cardBackground};
+  color: ${props => props.theme.colors.textPrimary};
+  border: 2px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: ${(props) => props.theme.colors.hoverBackground};
+    background-color: ${props => props.theme.colors.cardBackgroundHover || props.theme.colors.cardBackground};
+    border-color: ${props => props.theme.colors.borderHover || props.theme.colors.border};
+  }
+`;
+
+const TryAnotherButton = styled.button`
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 32px;
+  background-color: ${props => props.theme.colors.info};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: ${props => props.theme.colors.infoHover || props.theme.colors.info};
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 
-  @media (max-width: 1024px) {
-    top: 12px;
-    right: 16px;
-    padding: 6px 12px;
-    font-size: 13px;
+  &:active {
+    transform: translateY(0);
   }
 
   @media (max-width: 768px) {
-    top: 10px;
-    right: 12px;
+    min-height: 48px;
+    font-size: 15px;
   }
 `;

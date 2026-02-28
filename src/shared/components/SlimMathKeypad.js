@@ -8,15 +8,27 @@ import styled from "styled-components";
  * - Basic number entry (whole numbers, decimals, negatives)
  * - Smaller footprint (3 columns vs 4) for side panel layout
  * - iPad-optimized touch targets (56px minimum)
+ * - "Keep this open" feature for rapid problem solving
  *
- * Layout (3 columns × 5 rows):
+ * Layout (3 columns × 5 rows + keep open):
  *   [ 7 ] [ 8 ] [ 9 ]
  *   [ 4 ] [ 5 ] [ 6 ]
  *   [ 1 ] [ 2 ] [ 3 ]
  *   [ 0 ] [ . ] [ ⌫ ]
- *   [ C ] [ - ] [Submit]
+ *   [ C ] [ - ] [Random]
+ *   ☐ Keep this open
+ *
+ * Optional 6th row for custom characters (e.g., coordinates):
+ *   extraButtons={["(", ",", ")"]} adds [ ( ] [ , ] [ ) ]
  */
-const SlimMathKeypad = ({ value = "", onChange, onSubmit }) => {
+const SlimMathKeypad = ({
+  value = "",
+  onChange,
+  onSubmit,
+  extraButtons = null,
+  keepOpen = false,
+  onKeepOpenChange = null
+}) => {
   const handleDigit = useCallback(
     (digit) => {
       onChange(value + digit);
@@ -39,22 +51,26 @@ const SlimMathKeypad = ({ value = "", onChange, onSubmit }) => {
   }, [onChange]);
 
   const handleMinus = useCallback(() => {
-    // Toggle negative sign at the beginning
-    if (value.startsWith("-")) {
-      onChange(value.slice(1));
+    // Insert minus at end, or remove if last character is already minus
+    if (value.endsWith("-")) {
+      onChange(value.slice(0, -1)); // Remove last character
     } else {
-      onChange("-" + value);
+      onChange(value + "-"); // Append minus at end
     }
   }, [value, onChange]);
 
-  const handleSubmit = useCallback(() => {
-    if (onSubmit) {
-      onSubmit();
-    }
-  }, [onSubmit]);
+  const handleRandom = useCallback(() => {
+    // Generate random number between 0 and 100
+    const randomNum = Math.floor(Math.random() * 101);
+    onChange(String(randomNum));
+  }, [onChange]);
+
+  const handleCharacter = useCallback((char) => {
+    onChange(value + char);
+  }, [value, onChange]);
 
   // Key definitions for 3-column layout
-  const keys = [
+  const baseKeys = [
     [
       { label: "7", action: () => handleDigit("7") },
       { label: "8", action: () => handleDigit("8") },
@@ -78,9 +94,21 @@ const SlimMathKeypad = ({ value = "", onChange, onSubmit }) => {
     [
       { label: "C", action: handleClear, type: "action" },
       { label: "\u2212", action: handleMinus, type: "action" },
-      { label: "Submit", action: handleSubmit, type: "submit" },
+      { label: "Random", action: handleRandom, type: "action" },
     ],
   ];
+
+  // Add extra buttons row if provided (e.g., for coordinates)
+  const keys = extraButtons
+    ? [
+        ...baseKeys,
+        extraButtons.map((char) => ({
+          label: char,
+          action: () => handleCharacter(char),
+          type: "action",
+        })),
+      ]
+    : baseKeys;
 
   return (
     <KeypadContainer>
@@ -106,6 +134,21 @@ const SlimMathKeypad = ({ value = "", onChange, onSubmit }) => {
           </KeyRow>
         ))}
       </KeyGrid>
+
+      {/* Keep this open checkbox */}
+      {onKeepOpenChange && (
+        <KeepOpenRow>
+          <KeepOpenCheckbox
+            type="checkbox"
+            id="keepOpen"
+            checked={keepOpen}
+            onChange={(e) => onKeepOpenChange(e.target.checked)}
+          />
+          <KeepOpenLabel htmlFor="keepOpen">
+            Keep this open
+          </KeepOpenLabel>
+        </KeepOpenRow>
+      )}
     </KeypadContainer>
   );
 };
@@ -204,5 +247,36 @@ const Key = styled.button`
   @media (max-width: 1024px) {
     min-height: 48px;
     font-size: ${(props) => (props.$type === "submit" ? "13px" : "20px")};
+  }
+`;
+
+const KeepOpenRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 4px 4px 4px;
+  justify-content: center;
+`;
+
+const KeepOpenCheckbox = styled.input`
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: ${(props) => props.theme.colors.info};
+
+  @media (max-width: 1024px) {
+    width: 18px;
+    height: 18px;
+  }
+`;
+
+const KeepOpenLabel = styled.label`
+  font-size: 14px;
+  color: ${(props) => props.theme.colors.textSecondary};
+  cursor: pointer;
+  user-select: none;
+
+  @media (max-width: 1024px) {
+    font-size: 13px;
   }
 `;

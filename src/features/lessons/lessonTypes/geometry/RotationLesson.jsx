@@ -284,7 +284,9 @@ function RotationLesson({ triggerNewProblem }) {
     setSubmitted,
     openPanel,
     closePanel,
-    resetAll
+    resetAll,
+    keepOpen,
+    setKeepOpen,
   } = useInputOverlay();
 
   // Get data from current problem (from backend) or generate fallback
@@ -402,8 +404,15 @@ function RotationLesson({ triggerNewProblem }) {
     setShowHint(false);
     setUserAnchor(null);
     setAnchorPlaced(false);
-    resetAll();
-  }, [questionIndex, level, resetAll]);
+    if (!keepOpen) {
+      // Normal mode: close panel and reset everything
+      resetAll();
+    } else {
+      // Keep Open mode: just reset input/state, keep panel open
+      setInputValue('');
+      setSubmitted(false);
+    }
+  }, [questionIndex, level, keepOpen, resetAll, setInputValue, setSubmitted]);
 
   // Debug: Log shape data
   useEffect(() => {
@@ -464,8 +473,19 @@ function RotationLesson({ triggerNewProblem }) {
 
     if (correct) {
       setCurrentRotation(targetAngle); // Apply rotation visually
-      setIsComplete(true);
-      // Close panel and show modal after delay
+
+      // Handle keepOpen mode
+      if (keepOpen) {
+        // Keep panel open, clear input, auto-advance after 1 second
+        setTimeout(() => {
+          setInputValue('');
+          setSubmitted(false);
+          triggerNewProblem();
+        }, 1000);
+      } else {
+        // Normal mode: close panel and show modal
+        setIsComplete(true);
+      }
     }
     // If wrong, panel stays open for retry
   };
@@ -761,6 +781,8 @@ function RotationLesson({ triggerNewProblem }) {
             value={inputValue}
             onChange={setInputValue}
             onSubmit={handleSubmit}
+            keepOpen={keepOpen}
+            onKeepOpenChange={setKeepOpen}
           />
 
           {submitted && (

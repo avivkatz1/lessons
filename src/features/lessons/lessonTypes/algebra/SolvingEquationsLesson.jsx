@@ -10,13 +10,17 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
-import { useLessonState } from '../../../../hooks';
+import { useLessonState, useWindowDimensions } from '../../../../hooks';
 import { setUserAnswer, setAnswerFeedback, recordAnswer } from '../../../../store/lessonSlice';
-import { AnswerInput, DrawingCanvas } from '../../../../shared/components';
+import { DrawingCanvas } from '../../../../shared/components';
+import InputOverlayPanel from '../../../../shared/components/InputOverlayPanel';
+import SlimMathKeypad from '../../../../shared/components/SlimMathKeypad';
+import EnterAnswerButton from '../../../../shared/components/EnterAnswerButton';
+import { useInputOverlay } from '../geometry/hooks/useInputOverlay';
 import { validateAnswer } from '../../../../shared/helpers/validateAnswer';
 
 // ==================== LEVEL CONFIG ====================
@@ -1168,6 +1172,34 @@ function SolvingEquationsLesson({ triggerNewProblem }) {
   const [resetKey, setResetKey] = useState(0);
   const [showCanvas, setShowCanvas] = useState(false);
 
+  // ========== InputOverlay State ==========
+  const { width: windowWidth } = useWindowDimensions();
+
+  const {
+    panelOpen,
+    inputValue,
+    submitted,
+    setInputValue,
+    setSubmitted,
+    openPanel,
+    closePanel,
+    resetAll,
+    keepOpen,
+    setKeepOpen,
+  } = useInputOverlay();
+
+  // Context tracking: 'main' (L3/L4/L5) or 'canvas' (L1/L2)
+  const [context, setContext] = useState('main');
+
+  // Calculate slide distance based on context
+  const slideDistance = useMemo(() => {
+    if (windowWidth <= 768) return 0; // Mobile: no slide
+    const panelWidth = Math.min(Math.max(windowWidth * 0.4, 360), 480);
+
+    // Canvas: 75% (fixed size), Main: 60% (flexible + scale)
+    return showCanvas ? panelWidth * 0.75 : panelWidth * 0.6;
+  }, [windowWidth, showCanvas]);
+
   // Reset operation selections when question changes
   useEffect(() => {
     setSelectedOperation(null);
@@ -1175,7 +1207,16 @@ function SolvingEquationsLesson({ triggerNewProblem }) {
     setStep2Selected(null);
     setShowHint(false);
     setShowCanvas(false);
-  }, [currentQuestionIndex]);
+    if (!keepOpen) {
+      // Normal mode: close panel and reset everything
+      resetAll();
+    } else {
+      // Keep Open mode: just reset input/state, keep panel open
+      setInputValue('');
+      setSubmitted(false);
+    }
+    setContext('main'); // Reset context
+  }, [currentQuestionIndex, keepOpen, resetAll, setInputValue, setSubmitted]);
 
   // Hide visual helper after question 8 (index 7) unless explicitly shown
   useEffect(() => {
@@ -1263,6 +1304,43 @@ function SolvingEquationsLesson({ triggerNewProblem }) {
     }
   };
 
+  // Handle panel submission
+  const handlePanelSubmit = () => {
+    if (inputValue.trim() === '') return;
+
+    const isCorrect = validateAnswer(inputValue, correctAnswer, 'array', lessonName);
+    setSubmitted(true);
+
+    dispatch(setAnswerFeedback(isCorrect ? 'correct' : 'incorrect'));
+
+    if (isUsingBatch) {
+      dispatch(recordAnswer({ isCorrect }));
+    }
+
+    if (isCorrect) {
+      if (keepOpen) {
+        // Keep Open mode: Clear input and auto-advance after 1 second
+        setTimeout(() => {
+          setInputValue('');
+          setSubmitted(false);
+          handleTryAnother();
+        }, 1000);
+      } else {
+        // Normal mode: Close panel and advance
+        closePanel();
+        setTimeout(() => {
+          handleTryAnother();
+        }, 500);
+      }
+    }
+  };
+
+  // Track if answer is correct for button disabled state
+  const isCorrect = useMemo(() => {
+    if (!submitted || inputValue.trim() === '') return false;
+    return validateAnswer(inputValue, correctAnswer, 'array', lessonName);
+  }, [submitted, inputValue, correctAnswer, lessonName]);
+
   const handleShowHint = () => {
     setShowHint(true);
     setShowVisualHelper(true); // Show visual helper when hint is requested
@@ -1299,95 +1377,102 @@ function SolvingEquationsLesson({ triggerNewProblem }) {
         </TopHintButton>
       )}
 
-      {/* Level header */}
-      <LevelHeader>
-        <LevelBadge>Level {levelNum}</LevelBadge>
-        <LevelTitle>{info.title}</LevelTitle>
-      </LevelHeader>
+      {/* ========== WRAPPER FOR SLIDE ANIMATION ========== */}
+      <SequenceWrapper
+        $panelOpen={panelOpen && context === 'main'}
+        $slideDistance={slideDistance}
+      >
+        {/* Level header */}
+        <LevelHeader>
+          <LevelBadge>Level {levelNum}</LevelBadge>
+          <LevelTitle>{info.title}</LevelTitle>
+        </LevelHeader>
 
-      <InstructionText>{info.instruction}</InstructionText>
+        <InstructionText>{info.instruction}</InstructionText>
 
-      {/* Question */}
-      <QuestionSection>
-        {levelNum === 5 ? (
-          <KeywordHighlighter
-            problemText={questionText}
-            keywords={visualData?.keywords || []}
+        {/* Question */}
+        <QuestionSection>
+          {levelNum === 5 ? (
+            <KeywordHighlighter
+              problemText={questionText}
+              keywords={visualData?.keywords || []}
+            />
+          ) : (
+            <QuestionTextKatex>
+              <InlineMath math={questionText} />
+            </QuestionTextKatex>
+          )}
+        </QuestionSection>
+
+        {/* Interactive components based on level */}
+        {levelNum === 1 && shouldShowVisual && (
+          <OneStepOperationSelector
+            key={currentQuestionIndex}
+            visualData={visualData}
+            onOperationSelect={handleOperationSelect}
+            selectedOperation={selectedOperation}
           />
-        ) : (
-          <QuestionTextKatex>
-            <InlineMath math={questionText} />
-          </QuestionTextKatex>
         )}
-      </QuestionSection>
 
-      {/* Interactive components based on level */}
-      {levelNum === 1 && shouldShowVisual && (
-        <OneStepOperationSelector
-          key={currentQuestionIndex}
-          visualData={visualData}
-          onOperationSelect={handleOperationSelect}
-          selectedOperation={selectedOperation}
-        />
-      )}
+        {levelNum === 2 && shouldShowVisual && (
+          <TwoStepSequentialButtons
+            key={currentQuestionIndex}
+            visualData={visualData}
+            onStep1Select={handleStep1Select}
+            onStep2Select={handleStep2Select}
+            step1Selected={step1Selected}
+            step2Selected={step2Selected}
+          />
+        )}
 
-      {levelNum === 2 && shouldShowVisual && (
-        <TwoStepSequentialButtons
-          key={currentQuestionIndex}
-          visualData={visualData}
-          onStep1Select={handleStep1Select}
-          onStep2Select={handleStep2Select}
-          step1Selected={step1Selected}
-          step2Selected={step2Selected}
-        />
-      )}
+        {(levelNum === 3 || levelNum === 4) && visualData?.tokenDisplay && (
+          <EquationTokenDisplay key={resetKey} visualData={visualData} />
+        )}
 
-      {(levelNum === 3 || levelNum === 4) && visualData?.tokenDisplay && (
-        <EquationTokenDisplay key={resetKey} visualData={visualData} />
-      )}
+        {/* Helper card for verification */}
+        {!showAnswer && levelNum >= 2 && (
+          <HelperSection>
+            <HelperCard>
+              <HelperTitle>Remember:</HelperTitle>
+              <HelperText>Always verify your answer by substituting x back into the original equation!</HelperText>
+            </HelperCard>
+          </HelperSection>
+        )}
 
-      {/* Helper card for verification */}
-      {!showAnswer && levelNum >= 2 && (
-        <HelperSection>
-          <HelperCard>
-            <HelperTitle>Remember:</HelperTitle>
-            <HelperText>Always verify your answer by substituting x back into the original equation!</HelperText>
-          </HelperCard>
-        </HelperSection>
-      )}
-
-      {/* Interaction Section */}
-      <InteractionSection>
+        {/* Hint */}
         {showHint && hint && (
           <HintBox>{hint}</HintBox>
         )}
 
-        {!showAnswer && (
-          <AnswerInputContainer>
-            <AnswerInput
-              correctAnswer={correctAnswer}
-              answerType="array"
-              onCorrect={handleCorrectAnswer}
-              onTryAnother={handleTryAnother}
-              disabled={showAnswer}
-              placeholder="Enter your answer (e.g., 5 or x = 5)"
+        {/* Static button - only show when panel closed and not on canvas */}
+        {!showAnswer && !panelOpen && !showCanvas && (
+          <ButtonContainer>
+            <EnterAnswerButton
+              onClick={() => {
+                setContext('main');
+                openPanel();
+              }}
+              disabled={submitted && isCorrect}
+              variant="static"
             />
-          </AnswerInputContainer>
+          </ButtonContainer>
         )}
+      </SequenceWrapper>
+      {/* ========== END WRAPPER ========== */}
 
-        {showAnswer && explanation && (
-          <ExplanationSection>
-            <ExplanationTitle>Explanation</ExplanationTitle>
-            <ExplanationText>{explanation}</ExplanationText>
-            {visualData?.verificationText && (
-              <VerificationText>{visualData.verificationText}</VerificationText>
-            )}
-            <TryAnotherButton onClick={handleTryAnother}>
-              Try Another Problem
-            </TryAnotherButton>
-          </ExplanationSection>
-        )}
-      </InteractionSection>
+      {/* Explanation - shown after correct answer */}
+      {showAnswer && !panelOpen && explanation && (
+        <ExplanationSection>
+          <ExplanationTitle>Explanation</ExplanationTitle>
+          <ExplanationText>{explanation}</ExplanationText>
+          {visualData?.verificationText && (
+            <VerificationText>{visualData.verificationText}</VerificationText>
+          )}
+          <TryAnotherButton onClick={handleTryAnother}>
+            Try Another Problem
+          </TryAnotherButton>
+        </ExplanationSection>
+      )}
 
       {/* Drawing Canvas - iPad overlay for Level 1 & 2 */}
       {showCanvas && (levelNum === 1 || levelNum === 2) && (
@@ -1397,12 +1482,47 @@ function SolvingEquationsLesson({ triggerNewProblem }) {
           visible={showCanvas}
           onClose={() => setShowCanvas(false)}
           disabled={showAnswer}
-          onAnswerRecognized={(text) => {
-            dispatch(setUserAnswer(text));
+          // NEW PROPS for panel integration
+          panelOpen={panelOpen && context === 'canvas'}
+          onOpenPanel={() => {
+            setContext('canvas');
+            openPanel();
           }}
-          onSubmit={handleCanvasSubmit}
+          slideDistance={slideDistance}
         />
       )}
+
+      {/* Shared InputOverlayPanel - works for both main page and canvas */}
+      <InputOverlayPanel
+        visible={panelOpen}
+        onClose={closePanel}
+        title="Enter Your Answer"
+      >
+        <InputLabel>
+          Answer (x = ?):
+          {submitted && (isCorrect ? ' ✓' : ' ✗')}
+        </InputLabel>
+
+        <SlimMathKeypad
+          value={inputValue}
+          onChange={setInputValue}
+          onSubmit={handlePanelSubmit}
+          keepOpen={keepOpen}
+          onKeepOpenChange={setKeepOpen}
+        />
+
+        {submitted && !isCorrect && (
+          <FeedbackSection $isWrong>
+            Not quite — try again!
+          </FeedbackSection>
+        )}
+
+        <PanelButtonRow>
+          <SubmitButton onClick={handlePanelSubmit} disabled={!inputValue.trim()}>
+            Submit Answer
+          </SubmitButton>
+        </PanelButtonRow>
+      </InputOverlayPanel>
     </Wrapper>
   );
 }
@@ -1427,6 +1547,108 @@ const Wrapper = styled.div`
 
   @media (max-width: 1024px) {
     padding: 16px;
+  }
+`;
+
+const SequenceWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+
+  transition: transform 0.3s ease-in-out;
+
+  /* Desktop + iPad: Slide left and scale when panel opens */
+  @media (min-width: 769px) {
+    ${props => props.$panelOpen ? css`
+      transform: translateX(-${props.$slideDistance}px) scale(0.95);
+      transform-origin: left center;
+    ` : css`
+      transform: translateX(0) scale(1);
+      transform-origin: center center;
+    `}
+  }
+
+  @media (max-width: 768px) {
+    transform: translateX(0);
+  }
+
+  @media (max-width: 1024px) {
+    gap: 16px;
+  }
+`;
+
+const ButtonContainer = styled.div`
+  width: 100%;
+  max-width: 500px;
+  margin-top: 16px;
+`;
+
+const InputLabel = styled.label`
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: ${props => props.theme.colors.textPrimary};
+  margin-bottom: 12px;
+
+  @media (max-width: 1024px) {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+`;
+
+const FeedbackSection = styled.div`
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+
+  ${props => props.$isWrong && css`
+    background-color: ${props.theme.colors.danger || '#E53E3E'}15;
+    color: ${props.theme.colors.danger || '#E53E3E'};
+    border: 1px solid ${props.theme.colors.danger || '#E53E3E'};
+  `}
+
+  @media (max-width: 1024px) {
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+`;
+
+const PanelButtonRow = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  width: 100%;
+`;
+
+const SubmitButton = styled.button`
+  flex: 1;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: ${props => props.theme.colors.buttonSuccess};
+  color: ${props => props.theme.colors.textInverted};
+  transition: opacity 0.2s;
+  opacity: ${props => props.disabled ? 0.5 : 1};
+  touch-action: manipulation;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 12px 20px;
+    font-size: 15px;
   }
 `;
 
@@ -1580,19 +1802,6 @@ const HelperText = styled.p`
   line-height: 1.5;
 `;
 
-const InteractionSection = styled.div`
-  width: 100%;
-  max-width: 650px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-
-  @media (max-width: 1024px) {
-    gap: 16px;
-  }
-`;
-
 const HintBox = styled.div`
   width: 100%;
   background-color: ${props => props.theme.colors.warning}18;
@@ -1606,13 +1815,6 @@ const HintBox = styled.div`
     padding: 12px;
     font-size: 14px;
   }
-`;
-
-const AnswerInputContainer = styled.div`
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  justify-content: center;
 `;
 
 const ExplanationSection = styled.div`

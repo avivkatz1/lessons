@@ -1,7 +1,11 @@
 import React, { useState, useMemo, useCallback } from "react";
 import styled, { keyframes, css } from "styled-components";
-import { useLessonState, useIsTouchDevice } from "../../../../hooks";
-import { AnswerInput } from "../../../../shared/components";
+import { useLessonState, useIsTouchDevice, useWindowDimensions } from "../../../../hooks";
+import { useInputOverlay } from "../geometry/hooks/useInputOverlay";
+import InputOverlayPanel from "../../../../shared/components/InputOverlayPanel";
+import SlimMathKeypad from "../../../../shared/components/SlimMathKeypad";
+import EnterAnswerButton from "../../../../shared/components/EnterAnswerButton";
+import ExplanationModal from "../geometry/ExplanationModal";
 
 // ==================== LEVEL CONFIG ====================
 
@@ -139,6 +143,37 @@ function PatternsLesson({ triggerNewProblem }) {
   const [wrongAttempts, setWrongAttempts] = useState(0);
   const [shakingIdx, setShakingIdx] = useState(null);
 
+  // InputOverlay hook for panel management
+  const {
+    panelOpen,
+    inputValue,
+    submitted,
+    setInputValue,
+    setSubmitted,
+    openPanel,
+    closePanel,
+    resetAll,
+    keepOpen,
+    setKeepOpen,
+  } = useInputOverlay();
+
+  // Modal close tracking
+  const [modalClosedWithX, setModalClosedWithX] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
+
+  // Window dimensions for responsive slide animation
+  const { width: windowWidth } = useWindowDimensions();
+
+  // Calculate slide distance (60% of panel width) for desktop/iPad
+  const slideDistance = useMemo(() => {
+    // Mobile: No slide animation
+    if (windowWidth <= 768) return 0;
+
+    // Desktop/iPad: Calculate panel width, then slide distance
+    const panelWidth = Math.min(Math.max(windowWidth * 0.4, 360), 480);
+    return panelWidth * 0.6; // Slide by 60% of panel width (reduced from 75%)
+  }, [windowWidth]);
+
   const currentProblem = questionAnswerArray?.[currentQuestionIndex] || lessonProps;
   const visualData = currentProblem?.visualData || {};
   const {
@@ -177,6 +212,16 @@ function PatternsLesson({ triggerNewProblem }) {
     setWrongAttempts(0);
     setShakingIdx(null);
     setShowHint(false);
+    if (!keepOpen) {
+      // Normal mode: close panel and reset everything
+      resetAll();
+    } else {
+      // Keep Open mode: just reset input/state, keep panel open
+      setInputValue('');
+      setSubmitted(false);
+    }
+    setModalClosedWithX(false);
+    setIsComplete(false);
   }
 
   const handleTryAnother = useCallback(() => {
@@ -185,9 +230,12 @@ function PatternsLesson({ triggerNewProblem }) {
     setSelectedChoice(null);
     setWrongAttempts(0);
     setShakingIdx(null);
+    setIsComplete(false);
+    setModalClosedWithX(false);
+    resetAll();
     hideAnswer();
     triggerNewProblem();
-  }, [hideAnswer, triggerNewProblem]);
+  }, [hideAnswer, triggerNewProblem, resetAll]);
 
   const handleChoiceClick = useCallback((choice, idx) => {
     if (phase !== "choose" || shakingIdx !== null) return;
@@ -206,10 +254,53 @@ function PatternsLesson({ triggerNewProblem }) {
     }
   }, [phase, shakingIdx]);
 
-  const handleCorrectAnswer = useCallback(() => {
-    setPhase("complete");
-    revealAnswer();
-  }, [revealAnswer]);
+  const handleSubmit = useCallback(() => {
+    if (inputValue.trim() === '') return;
+
+    setSubmitted(true);
+
+    // Check if answer is correct
+    const enteredValue = inputValue.trim();
+    const isCorrect = correctAnswer.some(ans => String(ans) === enteredValue);
+
+    if (isCorrect) {
+      if (keepOpen) {
+        // Keep Open mode: Clear input and auto-advance after 1 second
+        setTimeout(() => {
+          setInputValue('');
+          setSubmitted(false);
+          setPhase("choose");
+          setSelectedChoice(null);
+          setWrongAttempts(0);
+          setShakingIdx(null);
+          setShowHint(false);
+          triggerNewProblem();
+        }, 1000);
+      } else {
+        // Normal mode: Close panel and show modal
+        closePanel();
+        const timer = setTimeout(() => {
+          if (!modalClosedWithX) {
+            setPhase("complete");
+            setIsComplete(true);
+          }
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+    // If wrong, panel stays open with feedback shown
+  }, [inputValue, correctAnswer, closePanel, modalClosedWithX, keepOpen, setInputValue, setSubmitted, triggerNewProblem]);
+
+  // Track if answer is correct for button disabled state
+  const isCorrect = useMemo(() => {
+    if (!submitted || inputValue.trim() === '') return false;
+    return correctAnswer.some(ans => String(ans) === inputValue.trim());
+  }, [submitted, inputValue, correctAnswer]);
+
+  const handleClose = useCallback(() => {
+    setIsComplete(false);
+    setModalClosedWithX(true);
+  }, []);
 
   if (sequence.length === 0) {
     return <Wrapper><LoadingText>Loading...</LoadingText></Wrapper>;
@@ -231,112 +322,161 @@ function PatternsLesson({ triggerNewProblem }) {
       </LevelHeader>
       <InstructionText>{levelInfo.instruction}</InstructionText>
 
-      {/* Sequence Display */}
-      <SequenceContainer>
-        {isVisual ? (
-          <VisualSequence
-            sequence={sequence}
-            nextValue={nextValue}
-            showNext={phase === "complete"}
-            phase={phase}
-          />
-        ) : (
-          <NumericSequence
-            sequence={sequence}
-            nextValue={nextValue}
-            showNext={phase === "complete"}
-          />
+      {/* ========== WRAPPER FOR SLIDE ANIMATION ========== */}
+      <SequenceWrapper
+        $panelOpen={phase === "type" && panelOpen}
+        $slideDistance={slideDistance}
+      >
+        {/* Sequence Display */}
+        <SequenceContainer>
+          {isVisual ? (
+            <VisualSequence
+              sequence={sequence}
+              nextValue={nextValue}
+              showNext={phase === "complete"}
+              phase={phase}
+            />
+          ) : (
+            <NumericSequence
+              sequence={sequence}
+              nextValue={nextValue}
+              showNext={phase === "complete"}
+            />
+          )}
+        </SequenceContainer>
+
+        {/* Phase 1: Choose the pattern rule */}
+        {phase === "choose" && (
+          <ChooseSection>
+            {showHint && hint && (
+              <HintBox>{hint}</HintBox>
+            )}
+
+            <ChoosePrompt>What's the pattern?</ChoosePrompt>
+
+            {wrongAttempts > 0 && shakingIdx === null && (
+              <FeedbackText $isWrong>Not quite — try again!</FeedbackText>
+            )}
+
+            <ChoiceGrid>
+              {choices.map((choice, idx) => {
+                const isSelected = selectedChoice === idx;
+                const isCorrectSelected = isSelected && choice.correct;
+                const isShaking = shakingIdx === idx;
+                const isFaded = selectedChoice !== null && !isSelected;
+
+                return (
+                  <ChoiceButton
+                    key={idx}
+                    $correct={isCorrectSelected}
+                    $wrong={isShaking}
+                    $fadeOut={isFaded}
+                    $isTouchDevice={isTouchDevice}
+                    onClick={() => handleChoiceClick(choice, idx)}
+                    disabled={selectedChoice !== null || isShaking}
+                  >
+                    {choice.text}
+                    {isCorrectSelected && " ✓"}
+                  </ChoiceButton>
+                );
+              })}
+            </ChoiceGrid>
+          </ChooseSection>
         )}
-      </SequenceContainer>
 
-      {/* Phase 1: Choose the pattern rule */}
-      {phase === "choose" && (
-        <ChooseSection>
-          {showHint && hint && (
-            <HintBox>{hint}</HintBox>
-          )}
+        {/* Phase 2: Type the next number - content section */}
+        {phase === "type" && (
+          <>
+            <StepDisplay>
+              <StepLabel>Pattern found:</StepLabel>
+              <StepEquation>{ruleText}</StepEquation>
+            </StepDisplay>
 
-          <ChoosePrompt>What's the pattern?</ChoosePrompt>
+            <SimplifiedDisplay>
+              What comes next?
+            </SimplifiedDisplay>
 
-          {wrongAttempts > 0 && shakingIdx === null && (
-            <FeedbackText $isWrong>Not quite — try again!</FeedbackText>
-          )}
+            {/* Static button below pattern display */}
+            {!panelOpen && (
+              <ButtonContainer>
+                {modalClosedWithX ? (
+                  <TryAnotherButton onClick={handleTryAnother}>
+                    Try Another Problem
+                  </TryAnotherButton>
+                ) : (
+                  <EnterAnswerButton
+                    onClick={openPanel}
+                    disabled={submitted && isCorrect}
+                    variant="static"
+                  />
+                )}
+              </ButtonContainer>
+            )}
+          </>
+        )}
+      </SequenceWrapper>
+      {/* ========== END WRAPPER ========== */}
 
-          <ChoiceGrid>
-            {choices.map((choice, idx) => {
-              const isSelected = selectedChoice === idx;
-              const isCorrectSelected = isSelected && choice.correct;
-              const isShaking = shakingIdx === idx;
-              const isFaded = selectedChoice !== null && !isSelected;
-
-              return (
-                <ChoiceButton
-                  key={idx}
-                  $correct={isCorrectSelected}
-                  $wrong={isShaking}
-                  $fadeOut={isFaded}
-                  $isTouchDevice={isTouchDevice}
-                  onClick={() => handleChoiceClick(choice, idx)}
-                  disabled={selectedChoice !== null || isShaking}
-                >
-                  {choice.text}
-                  {isCorrectSelected && " ✓"}
-                </ChoiceButton>
-              );
-            })}
-          </ChoiceGrid>
-        </ChooseSection>
-      )}
-
-      {/* Phase 2: Type the next number */}
+      {/* Phase 2: Type the next number - panel (stays outside wrapper) */}
       {phase === "type" && (
-        <TypeSection>
-          <StepDisplay>
-            <StepLabel>Pattern found:</StepLabel>
-            <StepEquation>{ruleText}</StepEquation>
-          </StepDisplay>
+        <InputOverlayPanel
+          visible={panelOpen}
+          onClose={closePanel}
+          title="Enter the Next Number"
+        >
+          <InputLabel>
+            Next number in pattern:
+            {submitted && (isCorrect ? ' ✓' : ' ✗')}
+          </InputLabel>
 
-          <SimplifiedDisplay>
-            What comes next?
-          </SimplifiedDisplay>
-
-          <AnswerInput
-            correctAnswer={correctAnswer}
-            answerType="array"
-            onCorrect={handleCorrectAnswer}
-            onTryAnother={handleTryAnother}
-            disabled={showAnswer}
-            placeholder="Enter the next number"
+          <SlimMathKeypad
+            value={inputValue}
+            onChange={setInputValue}
+            onSubmit={handleSubmit}
+            keepOpen={keepOpen}
+            onKeepOpenChange={setKeepOpen}
           />
-        </TypeSection>
+
+          {submitted && !isCorrect && (
+            <FeedbackSection $isWrong>
+              Not quite — try again!
+            </FeedbackSection>
+          )}
+
+          <PanelButtonRow>
+            <SubmitButton onClick={handleSubmit} disabled={!inputValue.trim()}>
+              Submit Answer
+            </SubmitButton>
+          </PanelButtonRow>
+        </InputOverlayPanel>
       )}
 
-      {/* Phase 3: Complete — explanation */}
-      {phase === "complete" && (
-        <ExplanationSection>
-          <ExplanationTitle>Correct!</ExplanationTitle>
+      {/* Phase 3: Complete — explanation modal */}
+      {isComplete && (
+        <ExplanationModal
+          explanation={
+            <div>
+              <RuleDisplay>
+                Pattern: <strong>{ruleText}</strong>
+              </RuleDisplay>
 
-          <RuleDisplay>
-            Pattern: <strong>{ruleText}</strong>
-          </RuleDisplay>
+              <StepByStep>
+                {steps.map((step, i) => (
+                  <StepRow key={i}>
+                    <StepNum>{i + 1}</StepNum>
+                    <StepContent>{step}</StepContent>
+                  </StepRow>
+                ))}
+              </StepByStep>
 
-          <StepByStep>
-            {steps.map((step, i) => (
-              <StepRow key={i}>
-                <StepNum>{i + 1}</StepNum>
-                <StepContent>{step}</StepContent>
-              </StepRow>
-            ))}
-          </StepByStep>
-
-          <VerificationBox>
-            {verification}
-          </VerificationBox>
-
-          <TryAnotherButton onClick={handleTryAnother}>
-            Try Another Pattern
-          </TryAnotherButton>
-        </ExplanationSection>
+              <VerificationBox>
+                {verification}
+              </VerificationBox>
+            </div>
+          }
+          onClose={handleClose}
+          onTryAnother={handleTryAnother}
+        />
       )}
     </Wrapper>
   );
@@ -405,6 +545,37 @@ const InstructionText = styled.p`
 `;
 
 // ==================== SEQUENCE DISPLAY ====================
+
+const SequenceWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+
+  /* Smooth slide transition */
+  transition: transform 0.3s ease-in-out;
+
+  /* Desktop + iPad: Slide left and scale down when panel opens */
+  @media (min-width: 769px) {
+    ${props => props.$panelOpen ? css`
+      transform: translateX(-${props.$slideDistance}px) scale(0.95);
+      transform-origin: left center;
+    ` : css`
+      transform: translateX(0) scale(1);
+      transform-origin: center center;
+    `}
+  }
+
+  /* Mobile: No slide */
+  @media (max-width: 768px) {
+    transform: translateX(0);
+  }
+
+  @media (max-width: 1024px) {
+    gap: 16px;
+  }
+`;
 
 const SequenceContainer = styled.div`
   width: 100%;
@@ -651,15 +822,6 @@ const FeedbackText = styled.p`
   margin: 0;
 `;
 
-const TypeSection = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  animation: ${fadeInAnim} 0.4s ease;
-`;
-
 const StepDisplay = styled.div`
   width: 100%;
   max-width: 500px;
@@ -701,24 +863,77 @@ const SimplifiedDisplay = styled.div`
   }
 `;
 
-const ExplanationSection = styled.div`
+const ButtonContainer = styled.div`
   width: 100%;
-  background-color: ${(props) => props.theme.colors.cardBackground};
-  border: 2px solid ${(props) => props.theme.colors.buttonSuccess};
-  border-radius: 12px;
-  padding: 20px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  animation: ${fadeInAnim} 0.4s ease;
+  max-width: 500px;
+  margin-top: 16px;
 `;
 
-const ExplanationTitle = styled.h3`
-  font-size: 20px;
-  font-weight: 700;
-  color: ${(props) => props.theme.colors.buttonSuccess};
-  margin: 0;
+const InputLabel = styled.label`
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: ${props => props.theme.colors.textPrimary};
+  margin-bottom: 12px;
+
+  @media (max-width: 1024px) {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+`;
+
+const FeedbackSection = styled.div`
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+
+  ${props => props.$isWrong && css`
+    background-color: ${props.theme.colors.danger || '#E53E3E'}15;
+    color: ${props.theme.colors.danger || '#E53E3E'};
+    border: 1px solid ${props.theme.colors.danger || '#E53E3E'};
+  `}
+
+  @media (max-width: 1024px) {
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+`;
+
+const PanelButtonRow = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  width: 100%;
+`;
+
+const SubmitButton = styled.button`
+  flex: 1;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: ${props => props.theme.colors.buttonSuccess};
+  color: ${props => props.theme.colors.textInverted};
+  transition: opacity 0.2s;
+  opacity: ${props => props.disabled ? 0.5 : 1};
+  touch-action: manipulation;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 12px 20px;
+    font-size: 15px;
+  }
 `;
 
 const RuleDisplay = styled.div`
@@ -782,19 +997,27 @@ const VerificationBox = styled.div`
 `;
 
 const TryAnotherButton = styled.button`
-  padding: 12px 28px;
-  font-size: 16px;
+  width: 100%;
+  padding: 14px 32px;
+  font-size: 17px;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 12px;
   border: none;
   cursor: pointer;
-  background-color: ${(props) => props.theme.colors.buttonSuccess};
-  color: ${(props) => props.theme.colors.textInverted};
-  transition: opacity 0.2s;
+  background-color: ${props => props.theme.colors.info || '#3B82F6'};
+  color: ${props => props.theme.colors.textInverted || '#FFFFFF'};
+  transition: all 0.2s;
+  min-height: 56px;
   touch-action: manipulation;
 
   &:hover {
     opacity: 0.9;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 12px 28px;
+    font-size: 16px;
+    min-height: 48px;
   }
 `;
 
