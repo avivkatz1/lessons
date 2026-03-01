@@ -46,7 +46,7 @@ const LEVEL_INFO = {
   4: { title: "Identify Y-Intercept", instruction: "What is the y-intercept?" },
   5: { title: "Write Slope as Fraction", instruction: "Write the slope as a fraction." },
   6: { title: "Match the Equation", instruction: "Which line matches the given equation?" },
-  7: { title: "Write the Equation", instruction: "Write the equation in slope-intercept form: y = mx + b" },
+  // Level 7 intentionally skipped in backend (levels are 1-6, 8)
   8: { title: "Plot the Line", instruction: "Place two points on the grid that satisfy the equation." },
 };
 
@@ -549,8 +549,8 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
 
       <InstructionText>{info.instruction}</InstructionText>
 
-      {/* Question text / Equation for L8 */}
-      {mode === "plot" && equationText ? (
+      {/* Question text / Equation for L6 & L8 */}
+      {(level === 6 || mode === "plot") && equationText ? (
         <EquationDisplay>{equationText}</EquationDisplay>
       ) : (
         <QuestionText>{questionText}</QuestionText>
