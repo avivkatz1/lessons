@@ -561,19 +561,7 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
         {level === 6 ? (
           <Level6Container>
             <VisualSection>
-              <Stage
-                width={canvasSize}
-                height={canvasSize}
-              >
-        ) : (
-          <VisualSection>
-            <Stage
-              width={canvasSize}
-              height={canvasSize}
-              onClick={level === 7 ? handleCanvasClick : undefined}
-              onTap={level === 7 ? handleCanvasClick : undefined}
-            >
-        )}
+              <Stage width={canvasSize} height={canvasSize}>
             <Layer>
               {/* Background */}
               <Rect x={0} y={0} width={canvasSize} height={canvasSize} fill={konvaTheme.canvasBackground} />
@@ -803,25 +791,234 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
           </Stage>
         </VisualSection>
 
-        {/* L6: Line selection buttons (right side) */}
-        {level === 6 && !showAnswer && lines && (
-          <Level6ButtonColumn>
-            {lines.map((line, idx) => (
-              <ChoiceButton
-                key={idx}
-                onClick={() => handleLineClick(idx)}
-                disabled={phase === "complete"}
-                $shake={flashLine === idx}
-                $borderColor={line.color}
-                $selected={selectedLine === idx}
-              >
-                Line {line.label}
-              </ChoiceButton>
-            ))}
-          </Level6ButtonColumn>
-        )}
+            {/* L6: Line selection buttons (right side) */}
+            {!showAnswer && lines && (
+              <Level6ButtonColumn>
+                {lines.map((line, idx) => (
+                  <ChoiceButton
+                    key={idx}
+                    onClick={() => handleLineClick(idx)}
+                    disabled={phase === "complete"}
+                    $shake={flashLine === idx}
+                    $borderColor={line.color}
+                    $selected={selectedLine === idx}
+                  >
+                    Line {line.label}
+                  </ChoiceButton>
+                ))}
+              </Level6ButtonColumn>
+            )}
+          </Level6Container>
+        ) : (
+          <VisualSection>
+            <Stage
+              width={canvasSize}
+              height={canvasSize}
+              onClick={level === 7 ? handleCanvasClick : undefined}
+              onTap={level === 7 ? handleCanvasClick : undefined}
+            >
+            <Layer>
+              {/* Background */}
+              <Rect x={0} y={0} width={canvasSize} height={canvasSize} fill={konvaTheme.canvasBackground} />
 
-        {level === 6 && </Level6Container>}
+              {/* Grid lines */}
+              {[...Array(gridSize)].map((_, i) => {
+                const isOriginRow = i === originGridY;
+                return (
+                  <Line
+                    key={`h${i}`}
+                    points={[0, i * spacing, canvasSize, i * spacing]}
+                    stroke={isOriginRow ? konvaTheme.gridOrigin : konvaTheme.gridRegular}
+                    strokeWidth={isOriginRow ? 2.5 : 0.5}
+                  />
+                );
+              })}
+
+              {[...Array(gridSize)].map((_, i) => {
+                const isOriginCol = i === originGridX;
+                return (
+                  <Line
+                    key={`v${i}`}
+                    points={[i * spacing, 0, i * spacing, canvasSize]}
+                    stroke={isOriginCol ? konvaTheme.gridOrigin : konvaTheme.gridRegular}
+                    strokeWidth={isOriginCol ? 2.5 : 0.5}
+                  />
+                );
+              })}
+
+              {/* Axis labels */}
+              {[...Array(gridSize)].map((_, i) => {
+                const xValue = i - originGridX;
+                if (xValue === 0 || i % 2 !== 0 || i < 1 || i > gridSize - 2) return null;
+                const labelFontSize = Math.max(9, Math.round(spacing * 0.35));
+                return (
+                  <Text
+                    key={`xl${i}`}
+                    x={i * spacing - labelFontSize * 0.3 * String(xValue).length}
+                    y={originGridY * spacing + 4}
+                    text={String(xValue)}
+                    fontSize={labelFontSize}
+                    fill={konvaTheme.coordinateText || konvaTheme.labelText}
+                  />
+                );
+              })}
+
+              {[...Array(gridSize)].map((_, i) => {
+                const yValue = originGridY - i;
+                if (yValue === 0 || i % 2 !== 0 || i < 1 || i > gridSize - 2) return null;
+                const labelFontSize = Math.max(9, Math.round(spacing * 0.35));
+                return (
+                  <Text
+                    key={`yl${i}`}
+                    x={originGridX * spacing + 4}
+                    y={i * spacing - labelFontSize * 0.45}
+                    text={String(yValue)}
+                    fontSize={labelFontSize}
+                    fill={konvaTheme.coordinateText || konvaTheme.labelText}
+                  />
+                );
+              })}
+
+              {/* Origin label */}
+              <Text
+                x={originGridX * spacing + 4}
+                y={originGridY * spacing + 4}
+                text="0"
+                fontSize={Math.max(9, Math.round(spacing * 0.35))}
+                fill={konvaTheme.coordinateText || konvaTheme.labelText}
+              />
+
+              {/* Origin dot */}
+              <Circle
+                x={originGridX * spacing}
+                y={originGridY * spacing}
+                radius={4}
+                fill={konvaTheme.shapeStroke}
+              />
+            </Layer>
+
+            {/* Content layer */}
+            <Layer>
+              {/* L1-5, L7: Single line */}
+              {mode === "identify" && level !== 6 && (
+                <>
+                  <Line
+                    points={linePoints}
+                    stroke={konvaTheme.info || "#3B82F6"}
+                    strokeWidth={3}
+                    lineCap="round"
+                  />
+                  {/* Y-intercept dot (L1, L4) */}
+                  {(level === 1 || level === 4) && (
+                    <Circle
+                      x={yIntPxX}
+                      y={yIntPxY}
+                      radius={8}
+                      fill={konvaTheme.point || "#EF4444"}
+                      stroke={konvaTheme.shapeStroke}
+                      strokeWidth={1.5}
+                    />
+                  )}
+                </>
+              )}
+
+              {/* L2-3: Rise/run arrows (skip for vertical/horizontal lines) */}
+              {(level === 2 || level === 3) && !isVerticalLine && rise !== 0 && (
+                <Group>
+                  {/* Horizontal arrow (run) */}
+                  <Arrow
+                    points={[
+                      (originGridX + arrowStartX) * spacing,
+                      (originGridY - arrowStartY) * spacing,
+                      (originGridX + arrowEndX) * spacing,
+                      (originGridY - arrowStartY) * spacing,
+                    ]}
+                    stroke={konvaTheme.warning || "#F59E0B"}
+                    strokeWidth={3}
+                    fill={konvaTheme.warning || "#F59E0B"}
+                    pointerLength={8}
+                    pointerWidth={8}
+                  />
+                  <Text
+                    x={(originGridX + arrowStartX + run / 2) * spacing - 20}
+                    y={(originGridY - arrowStartY) * spacing + 10}
+                    text={`run: ${Math.abs(run)}`}
+                    fontSize={Math.max(12, Math.round(spacing * 0.45))}
+                    fontStyle="bold"
+                    fill={konvaTheme.warning || "#F59E0B"}
+                  />
+
+                  {/* Vertical arrow (rise) */}
+                  <Arrow
+                    points={[
+                      (originGridX + arrowEndX) * spacing,
+                      (originGridY - arrowStartY) * spacing,
+                      (originGridX + arrowEndX) * spacing,
+                      (originGridY - arrowEndY) * spacing,
+                    ]}
+                    stroke={konvaTheme.success || "#10B981"}
+                    strokeWidth={3}
+                    fill={konvaTheme.success || "#10B981"}
+                    pointerLength={8}
+                    pointerWidth={8}
+                  />
+                  <Text
+                    x={(originGridX + arrowEndX) * spacing + 10}
+                    y={(originGridY - (arrowStartY + arrowEndY) / 2) * spacing - 10}
+                    text={`rise: ${rise}`}
+                    fontSize={Math.max(12, Math.round(spacing * 0.45))}
+                    fontStyle="bold"
+                    fill={konvaTheme.success || "#10B981"}
+                  />
+
+                  {/* Second point dot */}
+                  <Circle
+                    x={(originGridX + arrowEndX) * spacing}
+                    y={(originGridY - arrowEndY) * spacing}
+                    radius={7}
+                    fill={konvaTheme.info || "#3B82F6"}
+                    stroke={konvaTheme.shapeStroke}
+                    strokeWidth={1.5}
+                  />
+                </Group>
+              )}
+
+              {/* L7: Placed points */}
+              {level === 7 && mode === "plot" && placedPoints.map((pt, i) => (
+                <Circle
+                  key={`placed-${i}`}
+                  x={pt.pixelX}
+                  y={pt.pixelY}
+                  radius={9}
+                  fill={plotFeedback === "correct" ? (konvaTheme.success || "#10B981") : (konvaTheme.point || "#EF4444")}
+                  stroke={konvaTheme.shapeStroke}
+                  strokeWidth={1.5}
+                />
+              ))}
+
+              {/* L7: Line through placed points */}
+              {level === 7 && mode === "plot" && placedLinePoints && (
+                <Line
+                  points={placedLinePoints}
+                  stroke={plotFeedback === "correct" ? (konvaTheme.success || "#10B981") : (konvaTheme.info || "#3B82F6")}
+                  strokeWidth={3}
+                  lineCap="round"
+                />
+              )}
+
+              {/* Answer reveal for L7 */}
+              {showAnswer && level === 7 && mode === "plot" && plotFeedback === "correct" && (
+                <Line
+                  points={linePoints}
+                  stroke={konvaTheme.success || "#10B981"}
+                  strokeWidth={3}
+                  lineCap="round"
+                />
+              )}
+            </Layer>
+            </Stage>
+          </VisualSection>
+        )}
 
         {/* Level-specific interaction UI */}
         <InteractionSection>
