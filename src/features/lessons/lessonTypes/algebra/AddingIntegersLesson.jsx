@@ -10,9 +10,9 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { Stage, Layer, Rect, Circle, Line, Text, Arrow } from 'react-konva';
-import { useLessonState, useKonvaTheme, useWindowDimensions } from '../../../../hooks';
+import { useLessonState, useKonvaTheme, useWindowDimensions, useOrientation } from '../../../../hooks';
 import { AnswerInput } from '../../../../shared/components';
 
 // ==================== NUMBER LINE COMPONENT ====================
@@ -361,6 +361,7 @@ function AddingIntegersLesson({ triggerNewProblem }) {
 
   const konvaTheme = useKonvaTheme();
   const { width: windowWidth } = useWindowDimensions();
+  const { isPortrait, isLandscape } = useOrientation();
   const [showHint, setShowHint] = useState(false);
 
   // Current problem
@@ -401,11 +402,11 @@ function AddingIntegersLesson({ triggerNewProblem }) {
 
   return (
     <Wrapper>
-      {/* Hint button - fixed top right */}
-      {!showAnswer && !showHint && hint && (
-        <TopHintButton onClick={() => setShowHint(true)}>
+      {/* Hint button - LANDSCAPE: fixed top right */}
+      {!showAnswer && !showHint && hint && isLandscape && (
+        <HintButton $isLandscape={isLandscape} onClick={() => setShowHint(true)}>
           Need a hint?
-        </TopHintButton>
+        </HintButton>
       )}
 
       {/* Level header */}
@@ -475,6 +476,13 @@ function AddingIntegersLesson({ triggerNewProblem }) {
                 placeholder="Enter your answer"
               />
             </AnswerInputContainer>
+
+            {/* Hint button - PORTRAIT: below AnswerInput */}
+            {!showHint && hint && isPortrait && (
+              <HintButton $isPortrait={isPortrait} onClick={() => setShowHint(true)}>
+                Need a hint?
+              </HintButton>
+            )}
           </>
         )}
 
@@ -592,11 +600,7 @@ const InteractionSection = styled.div`
   }
 `;
 
-const TopHintButton = styled.button`
-  position: fixed;
-  top: 15px;
-  right: 20px;
-  z-index: 100;
+const HintButton = styled.button`
   background: ${props => props.theme.colors.cardBackground};
   border: 2px solid ${props => props.theme.colors.border};
   border-radius: 8px;
@@ -604,18 +608,40 @@ const TopHintButton = styled.button`
   font-size: 15px;
   color: ${props => props.theme.colors.textSecondary};
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease-in-out;
 
   &:hover {
     background: ${props => props.theme.colors.hoverBackground};
   }
 
-  @media (max-width: 1024px) {
-    top: 12px;
-    right: 16px;
-    padding: 6px 12px;
-    font-size: 13px;
-  }
+  /* LANDSCAPE: Fixed top-right (original behavior) */
+  ${props => props.$isLandscape && css`
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    z-index: 100;
+
+    @media (max-width: 1024px) {
+      top: 12px;
+      right: 16px;
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+  `}
+
+  /* PORTRAIT: Static below AnswerInput */
+  ${props => props.$isPortrait && css`
+    position: static;
+    width: 100%;
+    max-width: 400px;
+    margin-top: 16px;
+
+    @media (max-width: 1024px) {
+      padding: 8px 16px;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+  `}
 `;
 
 const HintBox = styled.div`

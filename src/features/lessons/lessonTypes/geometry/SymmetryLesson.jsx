@@ -789,8 +789,8 @@ function SymmetryLesson({ triggerNewProblem }) {
       </InteractionSection>
       </ContentWrapper>
 
-      {/* InputOverlayPanel (Level 4 only) - Multi-Input */}
-      {isPlottingLevel && (
+      {/* InputOverlayPanel (Level 4 only) - Always rendered for this level */}
+      {level === 4 && (
         <InputOverlayPanel
           visible={panelOpen}
           onClose={closePanel}

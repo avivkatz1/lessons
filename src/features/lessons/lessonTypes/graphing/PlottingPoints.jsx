@@ -714,7 +714,7 @@ const PlottingPoints = ({ triggerNewProblem }) => {
         )}
       </CanvasWrapper>
 
-      {/* InputOverlayPanel for Read/Reflect modes */}
+      {/* InputOverlayPanel for Read/Reflect modes - Conditional OK since mode doesn't change within level */}
       {(mode === 'read' || mode === 'reflect') && (
         <InputOverlayPanel visible={panelOpen} onClose={closePanel} title="Enter Coordinates">
           <InputLabel>Coordinates (x, y):</InputLabel>

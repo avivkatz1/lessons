@@ -21,6 +21,7 @@
 |----------|---------|-----------|
 | **MULTI_BOT_SYSTEM.md** | Workflow orchestration, bot roles, lesson creation process | Starting any task |
 | **LESSON_DEVELOPMENT_CHECKLIST.md** | Step-by-step lesson creation guide | Planning a new lesson |
+| **DESIGN_CHOICES.md** | ⭐ UI/UX design decisions and patterns | Making design decisions |
 | **VISUAL_DESIGN_RULES.md** | Design standards and theming | Styling components |
 | **LESSON_TESTING_PROTOCOL.md** | Testing procedures and QA | Before deployment |
 
@@ -304,6 +305,13 @@
 ---
 
 ## 🎉 Recent Wins
+
+**2026-03-01: Design Choices Documentation + First Orientation Feature**
+- Created DESIGN_CHOICES.md - living document for UI/UX decisions
+- Implemented first orientation-based feature (AddingIntegersLesson)
+- "Need help" button adapts: top-right (landscape) vs below input (portrait)
+- Smooth 300ms transitions between orientations
+- Impact: Template for future orientation-aware UI patterns
 
 **2026-02-24: Interactive Lesson Patterns Documentation**
 - Created comprehensive INTERACTIVE_LESSON_PATTERNS.md guide

@@ -768,8 +768,8 @@ function RotationLesson({ triggerNewProblem }) {
         </>
       )}
 
-      {/* Input Overlay Panel (Levels 4-5) */}
-      {interactionMode === 'input' && (
+      {/* Input Overlay Panel (Levels 4-5) - Always rendered for these levels */}
+      {level >= 4 && (
         <InputOverlayPanel
           visible={panelOpen}
           onClose={closePanel}

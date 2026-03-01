@@ -1128,7 +1128,7 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
         </InteractionSection>
       </CanvasWrapper>
 
-      {/* L3: Rise & Run panel with single keypad and two output fields */}
+      {/* L3: Rise & Run panel - Conditional OK since level doesn't change within level */}
       {level === 3 && (
         <InputOverlayPanel
           visible={panelOpen}
@@ -1184,7 +1184,7 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
         </InputOverlayPanel>
       )}
 
-      {/* L4: Y-intercept input panel */}
+      {/* L4: Y-intercept panel - Conditional OK since level doesn't change within level */}
       {level === 4 && (
         <InputOverlayPanel
           visible={panelOpen}
@@ -1223,7 +1223,7 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
         </InputOverlayPanel>
       )}
 
-      {/* L5: Slope equation panel with fraction bar, y, x, = buttons */}
+      {/* L5: Slope equation panel - Conditional OK since level doesn't change within level */}
       {level === 5 && (
         <InputOverlayPanel
           visible={panelOpen}
