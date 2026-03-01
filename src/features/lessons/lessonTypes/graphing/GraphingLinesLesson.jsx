@@ -738,13 +738,13 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
                   originGridX, originGridY, gridSize, spacing
                 );
                 return (
-                  <Group key={idx} onClick={() => handleLineClick(idx)}>
+                  <Group key={idx}>
                     <Line
                       points={lPoints}
-                      stroke={flashLine === idx ? "#EF4444" : line.color}
+                      stroke={line.color}
                       strokeWidth={selectedLine === idx ? 6 : 4}
-                      opacity={flashLine === idx ? 1 : 0.8}
-                      listening={true}
+                      opacity={selectedLine === idx ? 1 : 0.7}
+                      listening={false}
                     />
                     <Text
                       x={lPoints[2] + 10}
@@ -877,9 +877,22 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
             />
           )}
 
-          {/* L6: Tap instruction */}
-          {level === 6 && !showAnswer && (
-            <TapInstructionText>Tap a line to select it</TapInstructionText>
+          {/* L6: Line selection buttons */}
+          {level === 6 && !showAnswer && lines && (
+            <ChoiceButtonRow>
+              {lines.map((line, idx) => (
+                <ChoiceButton
+                  key={idx}
+                  onClick={() => handleLineClick(idx)}
+                  disabled={phase === "complete"}
+                  $shake={flashLine === idx}
+                  $borderColor={line.color}
+                  $selected={selectedLine === idx}
+                >
+                  Line {line.label}
+                </ChoiceButton>
+              ))}
+            </ChoiceButtonRow>
           )}
 
           {/* L8: Plot controls */}
@@ -1212,8 +1225,8 @@ const ChoiceButton = styled.button`
   font-weight: 700;
   border-radius: 10px;
   border: 3px solid ${props => props.$borderColor};
-  background-color: transparent;
-  color: ${props => props.$borderColor};
+  background-color: ${props => props.$selected ? props.$borderColor : 'transparent'};
+  color: ${props => props.$selected ? 'white' : props.$borderColor};
   cursor: pointer;
   transition: all 0.2s;
   animation: ${props => props.$shake ? shakeAnim : 'none'} 0.6s;
