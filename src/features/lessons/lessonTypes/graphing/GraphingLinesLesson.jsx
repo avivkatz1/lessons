@@ -558,13 +558,23 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
 
       {/* Canvas wrapper (slides for L3-5) */}
       <CanvasWrapper $panelOpen={panelOpen && (level >= 3 && level <= 5)} $slideDistance={slideDistance}>
-        <VisualSection>
-          <Stage
-            width={canvasSize}
-            height={canvasSize}
-            onClick={level === 8 ? handleCanvasClick : undefined}
-            onTap={level === 8 ? handleCanvasClick : undefined}
-          >
+        {/* L6: Side-by-side layout for canvas and buttons */}
+        {level === 6 ? (
+          <Level6Container>
+            <VisualSection>
+              <Stage
+                width={canvasSize}
+                height={canvasSize}
+              >
+        ) : (
+          <VisualSection>
+            <Stage
+              width={canvasSize}
+              height={canvasSize}
+              onClick={level === 8 ? handleCanvasClick : undefined}
+              onTap={level === 8 ? handleCanvasClick : undefined}
+            >
+        )}
             <Layer>
               {/* Background */}
               <Rect x={0} y={0} width={canvasSize} height={canvasSize} fill={konvaTheme.canvasBackground} />
@@ -794,6 +804,26 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
           </Stage>
         </VisualSection>
 
+        {/* L6: Line selection buttons (right side) */}
+        {level === 6 && !showAnswer && lines && (
+          <Level6ButtonColumn>
+            {lines.map((line, idx) => (
+              <ChoiceButton
+                key={idx}
+                onClick={() => handleLineClick(idx)}
+                disabled={phase === "complete"}
+                $shake={flashLine === idx}
+                $borderColor={line.color}
+                $selected={selectedLine === idx}
+              >
+                Line {line.label}
+              </ChoiceButton>
+            ))}
+          </Level6ButtonColumn>
+        )}
+
+        {level === 6 && </Level6Container>}
+
         {/* Level-specific interaction UI */}
         <InteractionSection>
           {/* L1: Y-intercept sign (3 buttons) */}
@@ -877,23 +907,6 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
             />
           )}
 
-          {/* L6: Line selection buttons */}
-          {level === 6 && !showAnswer && lines && (
-            <ChoiceButtonRow>
-              {lines.map((line, idx) => (
-                <ChoiceButton
-                  key={idx}
-                  onClick={() => handleLineClick(idx)}
-                  disabled={phase === "complete"}
-                  $shake={flashLine === idx}
-                  $borderColor={line.color}
-                  $selected={selectedLine === idx}
-                >
-                  Line {line.label}
-                </ChoiceButton>
-              ))}
-            </ChoiceButtonRow>
-          )}
 
           {/* L8: Plot controls */}
           {level === 8 && mode === "plot" && !showAnswer && (
@@ -1428,5 +1441,34 @@ const PanelSubmitButton = styled.button`
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+`;
+
+// Level 6: Side-by-side layout for canvas and buttons
+const Level6Container = styled.div`
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 16px;
+  }
+`;
+
+const Level6ButtonColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 160px;
+
+  @media (max-width: 768px) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-width: unset;
+    width: 100%;
   }
 `;
