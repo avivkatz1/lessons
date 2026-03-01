@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import styled, { keyframes, css } from "styled-components";
 import { useLessonState, useIsTouchDevice, useWindowDimensions } from "../../../../hooks";
 import { useInputOverlay } from "../geometry/hooks/useInputOverlay";
@@ -202,16 +202,14 @@ function PatternsLesson({ triggerNewProblem }) {
 
   const levelInfo = LEVEL_INFO[level] || LEVEL_INFO[1];
 
-  // Reset on problem change
-  const problemKey = `${sequence.join(",")}-${level}-${currentQuestionIndex}`;
-  const [lastProblemKey, setLastProblemKey] = useState(null);
-  if (problemKey !== lastProblemKey) {
-    setLastProblemKey(problemKey);
+  // Reset on problem change - useEffect ensures proper sequencing
+  useEffect(() => {
     setPhase("choose");
     setSelectedChoice(null);
     setWrongAttempts(0);
     setShakingIdx(null);
     setShowHint(false);
+
     if (!keepOpen) {
       // Normal mode: close panel and reset everything
       resetAll();
@@ -220,9 +218,10 @@ function PatternsLesson({ triggerNewProblem }) {
       setInputValue('');
       setSubmitted(false);
     }
+
     setModalClosedWithX(false);
     setIsComplete(false);
-  }
+  }, [currentQuestionIndex, keepOpen, resetAll, setInputValue, setSubmitted]);
 
   const handleTryAnother = useCallback(() => {
     setShowHint(false);
@@ -265,15 +264,9 @@ function PatternsLesson({ triggerNewProblem }) {
 
     if (isCorrect) {
       if (keepOpen) {
-        // Keep Open mode: Clear input and auto-advance after 1 second
+        // Keep Open mode: Auto-advance after 1 second
+        // useEffect will handle state reset when currentQuestionIndex changes
         setTimeout(() => {
-          setInputValue('');
-          setSubmitted(false);
-          setPhase("choose");
-          setSelectedChoice(null);
-          setWrongAttempts(0);
-          setShakingIdx(null);
-          setShowHint(false);
           triggerNewProblem();
         }, 1000);
       } else {
