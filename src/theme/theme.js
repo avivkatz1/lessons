@@ -84,6 +84,21 @@ export const lightTheme = {
       coordinateText: '#000000',     // Coordinate labels
       tickMark: '#6b7280',           // Axis tick marks
     }
+  },
+
+  // Orientation-specific layout overrides (Phase 2+)
+  // Currently unused, structure for future
+  layout: {
+    portrait: {
+      wrapperPadding: '20px',
+      canvasMaxHeight: '600px',
+      buttonPlacement: 'below', // below canvas
+    },
+    landscape: {
+      wrapperPadding: '16px',
+      canvasMaxHeight: '500px',
+      buttonPlacement: 'side', // beside canvas (future)
+    }
   }
 };
 
@@ -171,5 +186,8 @@ export const darkTheme = {
       coordinateText: '#e2e8f0',     // Light coordinate labels
       tickMark: '#94a3b8',           // Visible tick marks
     }
-  }
+  },
+
+  // Same layout structure as light theme
+  layout: lightTheme.layout
 };

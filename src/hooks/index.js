@@ -5,3 +5,4 @@ export { useWindowDimensions } from './useWindowDimensions';
 export { useTheme } from './useTheme';
 export { useKonvaTheme } from './useKonvaTheme';
 export { useIsTouchDevice } from './useIsTouchDevice';
+export { useOrientation } from './useOrientation';

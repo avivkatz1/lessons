@@ -511,6 +511,35 @@ When designing a new lesson, choose patterns based on your learning objectives:
 
 ## iPad Optimization Requirements
 
+### 0. Orientation Support (Phase 1 - Foundation)
+
+**Current Status:** Orientation detection infrastructure is available but all lessons remain portrait-optimized.
+
+**Phase 1 (Active):** Foundation infrastructure
+- Hook available: `useOrientation()`
+- Analytics tracking enabled
+- **All lessons remain portrait-optimized**
+- No layout changes required
+
+**For new lessons:**
+1. Continue optimizing for **portrait iPad** (810×1080)
+2. Optionally use `useOrientation()` for analytics logging
+3. **Do not** implement landscape-specific layouts yet (Phase 2+)
+4. Follow existing width-based responsive patterns
+
+**Testing checklist:**
+- [ ] Portrait iPad 10.2" (810×1080) - Primary target ✅
+- [ ] Landscape iPad 10.2" (1080×810) - Works via width-based layout ⚠️
+- [ ] iPad Pro 11" both orientations
+
+**See:** `docs/guides/ORIENTATION_SUPPORT.md` for detailed guide and future roadmap.
+
+**Future Phases:**
+- **Phase 2:** Opt-in landscape optimization (portrait-fallback mode)
+- **Phase 3:** Full dual-orientation support for all lessons
+
+---
+
 ### 1. Universal Spacing Reduction
 
 All spacing MUST use iPad-specific media queries:
