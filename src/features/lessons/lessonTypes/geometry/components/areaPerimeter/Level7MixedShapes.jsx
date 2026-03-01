@@ -5,7 +5,7 @@ import GridBackground from './GridBackground';
 import DimensionLabel from './DimensionLabel';
 import { useWindowDimensions, useKonvaTheme } from '../../../../../../hooks';
 import { useSmartPositioning } from '../../hooks/useSmartPositioning';
-import { InputOverlayPanel, SlimMathKeypad, EnterAnswerButton } from '../../../../../../shared/components';
+import { InputOverlayPanel, UnifiedMathKeypad, EnterAnswerButton } from '../../../../../../shared/components';
 import { useInputOverlay } from '../../hooks/useInputOverlay';
 
 /**
@@ -332,27 +332,6 @@ function Level7MixedShapes({ visualData, onComplete, onNextProblem, questionInde
 
   const isCorrect = parseInt(inputValue) === area;
 
-  // Auto-trigger success modal when goal is reached
-  useEffect(() => {
-    if (isCorrect && submitted && onComplete) {
-      if (keepOpen) {
-        // Keep Open mode: skip modal, auto-advance after 1 second
-        const timer = setTimeout(() => {
-          setInputValue('');
-          setSubmitted(false);
-          onNextProblem?.();
-        }, 1000);
-        return () => clearTimeout(timer);
-      } else {
-        // Normal mode: close panel and show modal
-        closePanel();
-        const timer = setTimeout(() => {
-          onComplete(true);
-        }, 500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [isCorrect, submitted, onComplete, keepOpen, closePanel, setInputValue, setSubmitted, onNextProblem]);
 
   // Reset state when problem changes
   useEffect(() => {
@@ -372,11 +351,34 @@ function Level7MixedShapes({ visualData, onComplete, onNextProblem, questionInde
 
     setSubmitted(true);
 
-    if (!isCorrect) {
-      // Show error feedback in panel, keep panel open
-      // User can try again
+    // Check correctness
+    const isCorrect = parseInt(inputValue) === area;
+
+    if (isCorrect) {
+      if (keepOpen) {
+        // Keep Open mode: auto-advance after 1 second
+        setTimeout(() => {
+          setInputValue('');
+          setSubmitted(false);
+          onNextProblem?.();
+        }, 1000);
+      } else {
+        // Normal mode: close panel and show modal
+        closePanel();
+        setTimeout(() => {
+          onComplete?.(true);
+        }, 500);
+      }
     }
-    // If correct, useEffect above will trigger modal
+    // If wrong, panel stays open with feedback
+  };
+
+  // Handle input change - reset submitted state to allow re-submission
+  const handleInputChange = (value) => {
+    setInputValue(value);
+    if (submitted) {
+      setSubmitted(false);
+    }
   };
 
   // Handle next problem
@@ -446,10 +448,13 @@ function Level7MixedShapes({ visualData, onComplete, onNextProblem, questionInde
         <InputLabel>Area (cm²):</InputLabel>
 
         {/* Slim Math Keypad */}
-        <SlimMathKeypad
+        <UnifiedMathKeypad
           value={inputValue}
-          onChange={setInputValue}
+          onChange={handleInputChange}
           onSubmit={handleSubmit}
+          layout="inline"
+          buttonSet="basic"
+          showKeepOpen={true}
           keepOpen={keepOpen}
           onKeepOpenChange={setKeepOpen}
         />
@@ -474,7 +479,14 @@ function Level7MixedShapes({ visualData, onComplete, onNextProblem, questionInde
           <ResetButton onClick={() => { setInputValue(''); setSubmitted(false); }}>
             Clear
           </ResetButton>
-          {submitted && isCorrect && (
+          {!submitted || !isCorrect ? (
+            <SubmitButton
+              onClick={handleSubmit}
+              disabled={!inputValue.trim()}
+            >
+              Submit
+            </SubmitButton>
+          ) : (
             <NextButton onClick={handleNextProblem}>
               Next Problem
             </NextButton>
@@ -618,6 +630,34 @@ const ResetButton = styled.button`
 
   @media (max-width: 1024px) {
     padding: 10px 24px;
+    font-size: 15px;
+  }
+`;
+
+const SubmitButton = styled.button`
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: ${props => props.theme.colors.info || '#3b82f6'};
+  color: ${props => props.theme.colors.textInverted || '#FFFFFF'};
+  transition: all 0.2s;
+  min-height: 44px;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 10px 28px;
     font-size: 15px;
   }
 `;

@@ -4,7 +4,7 @@ import { Stage, Layer, Rect } from 'react-konva';
 import GridBackground from './GridBackground';
 import DimensionLabel from './DimensionLabel';
 import { useWindowDimensions, useKonvaTheme } from '../../../../../../hooks';
-import { InputOverlayPanel, SlimMathKeypad, EnterAnswerButton } from '../../../../../../shared/components';
+import { InputOverlayPanel, UnifiedMathKeypad, EnterAnswerButton } from '../../../../../../shared/components';
 import { useInputOverlay } from '../../hooks/useInputOverlay';
 
 /**
@@ -80,28 +80,6 @@ function Level3CalculateRectangle({ visualData, onComplete, onNextProblem, quest
                      askingFor === 'perimeter' ? perimeterCorrect :
                      areaCorrect && perimeterCorrect;
 
-  // Auto-trigger success modal when goal is reached OR auto-advance if keepOpen
-  useEffect(() => {
-    if (allCorrect && submitted && onComplete) {
-      if (keepOpen) {
-        // Keep Open mode: skip modal, auto-advance after 1 second
-        const timer = setTimeout(() => {
-          setInputValue('');
-          setPerimeterInput('');
-          setSubmitted(false);
-          onNextProblem?.();
-        }, 1000);
-        return () => clearTimeout(timer);
-      } else {
-        // Normal mode: close panel and show modal
-        closePanel();
-        const timer = setTimeout(() => {
-          onComplete(true);
-        }, 500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [allCorrect, submitted, onComplete, keepOpen, closePanel, setInputValue, setSubmitted, onNextProblem]);
 
   // Reset state when problem changes
   useEffect(() => {
@@ -125,11 +103,46 @@ function Level3CalculateRectangle({ visualData, onComplete, onNextProblem, quest
 
     setSubmitted(true);
 
-    if (!allCorrect) {
-      // Show error feedback in panel, keep panel open
-      // User can try again
+    // Check correctness
+    const areaCorrect = parseInt(inputValue) === area;
+    const perimeterCorrect = parseInt(perimeterInput) === perimeter;
+    const isCorrect = askingFor === 'area' ? areaCorrect :
+                      askingFor === 'perimeter' ? perimeterCorrect :
+                      areaCorrect && perimeterCorrect;
+
+    if (isCorrect) {
+      if (keepOpen) {
+        // Keep Open mode: auto-advance after 1 second
+        setTimeout(() => {
+          setInputValue('');
+          setPerimeterInput('');
+          setSubmitted(false);
+          onNextProblem?.();
+        }, 1000);
+      } else {
+        // Normal mode: close panel and show modal
+        closePanel();
+        setTimeout(() => {
+          onComplete?.(true);
+        }, 500);
+      }
     }
-    // If correct, useEffect above will trigger modal
+    // If wrong, panel stays open with feedback
+  };
+
+  // Handle input change - reset submitted state to allow re-submission
+  const handleAreaChange = (value) => {
+    setInputValue(value);
+    if (submitted) {
+      setSubmitted(false);
+    }
+  };
+
+  const handlePerimeterChange = (value) => {
+    setPerimeterInput(value);
+    if (submitted) {
+      setSubmitted(false);
+    }
   };
 
   // Handle next problem
@@ -240,10 +253,13 @@ function Level3CalculateRectangle({ visualData, onComplete, onNextProblem, quest
               Area (cm²):
               {submitted && (areaCorrect ? ' ✓' : ' ✗')}
             </InputLabel>
-            <SlimMathKeypad
+            <UnifiedMathKeypad
               value={inputValue}
-              onChange={setInputValue}
+              onChange={handleAreaChange}
               onSubmit={askingFor === 'area' ? handleSubmit : undefined}
+              layout="inline"
+              buttonSet="basic"
+              showKeepOpen={askingFor === 'area'}
               keepOpen={keepOpen}
               onKeepOpenChange={askingFor === 'area' ? setKeepOpen : null}
             />
@@ -258,10 +274,13 @@ function Level3CalculateRectangle({ visualData, onComplete, onNextProblem, quest
               Perimeter (cm):
               {submitted && (perimeterCorrect ? ' ✓' : ' ✗')}
             </InputLabel>
-            <SlimMathKeypad
+            <UnifiedMathKeypad
               value={perimeterInput}
-              onChange={setPerimeterInput}
+              onChange={handlePerimeterChange}
               onSubmit={handleSubmit}
+              layout="inline"
+              buttonSet="basic"
+              showKeepOpen={true}
               keepOpen={keepOpen}
               onKeepOpenChange={setKeepOpen}
             />
@@ -290,7 +309,18 @@ function Level3CalculateRectangle({ visualData, onComplete, onNextProblem, quest
           <ResetButton onClick={() => { setInputValue(''); setPerimeterInput(''); setSubmitted(false); }}>
             Clear
           </ResetButton>
-          {submitted && allCorrect && (
+          {!submitted || !allCorrect ? (
+            <SubmitButton
+              onClick={handleSubmit}
+              disabled={
+                askingFor === 'area' ? !inputValue.trim() :
+                askingFor === 'perimeter' ? !perimeterInput.trim() :
+                !inputValue.trim() || !perimeterInput.trim()
+              }
+            >
+              Submit
+            </SubmitButton>
+          ) : (
             <NextButton onClick={handleNextProblem}>
               Next Problem
             </NextButton>
@@ -441,6 +471,34 @@ const ResetButton = styled.button`
 
   @media (max-width: 1024px) {
     padding: 10px 24px;
+    font-size: 15px;
+  }
+`;
+
+const SubmitButton = styled.button`
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: ${props => props.theme.colors.info || '#3b82f6'};
+  color: ${props => props.theme.colors.textInverted || '#FFFFFF'};
+  transition: all 0.2s;
+  min-height: 44px;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 10px 28px;
     font-size: 15px;
   }
 `;
