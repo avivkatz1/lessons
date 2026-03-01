@@ -46,8 +46,7 @@ const LEVEL_INFO = {
   4: { title: "Identify Y-Intercept", instruction: "What is the y-intercept?" },
   5: { title: "Write Slope as Fraction", instruction: "Write the slope as a fraction." },
   6: { title: "Match the Equation", instruction: "Which line matches the given equation?" },
-  // Level 7 intentionally skipped in backend (levels are 1-6, 8)
-  8: { title: "Plot the Line", instruction: "Place two points on the grid that satisfy the equation." },
+  7: { title: "Plot the Line", instruction: "Place two points on the grid that satisfy the equation." },
 };
 
 // ==================== ANIMATIONS ====================
@@ -549,7 +548,7 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
 
       <InstructionText>{info.instruction}</InstructionText>
 
-      {/* Question text / Equation for L6 & L8 */}
+      {/* Question text / Equation for L6 & L7 */}
       {(level === 6 || mode === "plot") && equationText ? (
         <EquationDisplay>{equationText}</EquationDisplay>
       ) : (
@@ -571,8 +570,8 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
             <Stage
               width={canvasSize}
               height={canvasSize}
-              onClick={level === 8 ? handleCanvasClick : undefined}
-              onTap={level === 8 ? handleCanvasClick : undefined}
+              onClick={level === 7 ? handleCanvasClick : undefined}
+              onTap={level === 7 ? handleCanvasClick : undefined}
             >
         )}
             <Layer>
@@ -768,8 +767,8 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
                 );
               })}
 
-              {/* L8: Placed points */}
-              {level === 8 && mode === "plot" && placedPoints.map((pt, i) => (
+              {/* L7: Placed points */}
+              {level === 7 && mode === "plot" && placedPoints.map((pt, i) => (
                 <Circle
                   key={`placed-${i}`}
                   x={pt.pixelX}
@@ -781,8 +780,8 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
                 />
               ))}
 
-              {/* L8: Line through placed points */}
-              {level === 8 && mode === "plot" && placedLinePoints && (
+              {/* L7: Line through placed points */}
+              {level === 7 && mode === "plot" && placedLinePoints && (
                 <Line
                   points={placedLinePoints}
                   stroke={plotFeedback === "correct" ? (konvaTheme.success || "#10B981") : (konvaTheme.info || "#3B82F6")}
@@ -792,7 +791,7 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
               )}
 
               {/* Answer reveal for L8 */}
-              {showAnswer && level === 8 && mode === "plot" && plotFeedback === "correct" && (
+              {showAnswer && level === 7 && mode === "plot" && plotFeedback === "correct" && (
                 <Line
                   points={linePoints}
                   stroke={konvaTheme.success || "#10B981"}
@@ -908,8 +907,8 @@ const GraphingLinesLesson = ({ triggerNewProblem }) => {
           )}
 
 
-          {/* L8: Plot controls */}
-          {level === 8 && mode === "plot" && !showAnswer && (
+          {/* L7: Plot controls */}
+          {level === 7 && mode === "plot" && !showAnswer && (
             <>
               <PlotStatus>
                 {placedPoints.length === 0 && "Tap two points on the grid that satisfy the equation"}
