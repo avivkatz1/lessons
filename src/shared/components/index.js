@@ -19,8 +19,11 @@ import LessonErrorBoundary from "./LessonErrorBoundary";
 import DrawingCanvas from "./DrawingCanvas";
 // Input Overlay System (Phase 1 - Foundation)
 import InputOverlayPanel from "./InputOverlayPanel";
-import SlimMathKeypad from "./SlimMathKeypad";
 import EnterAnswerButton from "./EnterAnswerButton";
+// Unified Math Keypad (consolidates MathKeypad, SlimMathKeypad, FractionKeypad)
+import UnifiedMathKeypad from "./UnifiedMathKeypad";
+import TwoFieldScreen from "./screens/TwoFieldScreen";
+import FractionScreen from "./screens/FractionScreen";
 
 export {
   Header,
@@ -44,6 +47,9 @@ export {
   DrawingCanvas,
   // Input Overlay System (Phase 1 - Foundation)
   InputOverlayPanel,
-  SlimMathKeypad,
   EnterAnswerButton,
+  // Unified Math Keypad (consolidates MathKeypad, SlimMathKeypad, FractionKeypad)
+  UnifiedMathKeypad,
+  TwoFieldScreen,
+  FractionScreen,
 };

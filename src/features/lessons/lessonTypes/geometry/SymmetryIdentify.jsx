@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import { useLessonState, useWindowDimensions, useKonvaTheme } from "../../../../hooks";
 import { AnswerInput } from "../../../../shared/components";
 import InputOverlayPanel from "../../../../shared/components/InputOverlayPanel";
-import SlimMathKeypad from "../../../../shared/components/SlimMathKeypad";
+import { UnifiedMathKeypad } from "../../../../shared/components";
 import EnterAnswerButton from "../../../../shared/components/EnterAnswerButton";
 import { useInputOverlay } from "../geometry/hooks/useInputOverlay";
 import styled, { css } from "styled-components";
@@ -697,10 +697,13 @@ function CountLevel({ visualData, problem, konvaTheme, width, explanation, showA
           {submitted && (isCorrect ? ' ✓' : ' ✗')}
         </InputLabel>
 
-        <SlimMathKeypad
+        <UnifiedMathKeypad
           value={inputValue}
           onChange={setInputValue}
           onSubmit={handlePanelSubmit}
+          layout="inline"
+          buttonSet="basic"
+          showKeepOpen={true}
           keepOpen={keepOpen}
           onKeepOpenChange={setKeepOpen}
         />

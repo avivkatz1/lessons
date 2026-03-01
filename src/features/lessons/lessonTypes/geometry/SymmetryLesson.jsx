@@ -36,7 +36,7 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useLessonState, useWindowDimensions, useKonvaTheme } from "../../../../hooks";
 import { AnswerInput } from "../../../../shared/components";
 import InputOverlayPanel from "../../../../shared/components/InputOverlayPanel";
-import SlimMathKeypad from "../../../../shared/components/SlimMathKeypad";
+import { UnifiedMathKeypad } from "../../../../shared/components";
 import EnterAnswerButton from "../../../../shared/components/EnterAnswerButton";
 import { useInputOverlay } from "./hooks/useInputOverlay";
 import styled, { css } from "styled-components";
@@ -856,11 +856,14 @@ function SymmetryLesson({ triggerNewProblem }) {
           ))}
 
           {/* Shared Keypad */}
-          <SlimMathKeypad
+          <UnifiedMathKeypad
             value={coordinates[focusedPoint].value}
             onChange={handleKeypadChange}
             onSubmit={() => handleSubmitCoordinate(focusedPoint)}
+            layout="inline"
+            buttonSet="basic"
             extraButtons={["(", ",", ")"]}
+            showKeepOpen={true}
             keepOpen={keepOpen}
             onKeepOpenChange={setKeepOpen}
           />

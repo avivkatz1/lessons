@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { setUserAnswer, setAnswerFeedback, recordAnswer } from "../../store/lessonSlice";
 import { validateAnswer } from "../helpers/validateAnswer";
 import { useIsTouchDevice } from "../../hooks";
-import MathKeypad from "./MathKeypad";
+import UnifiedMathKeypad from "./UnifiedMathKeypad";
 
 const AnswerInput = ({
   correctAnswer,
@@ -193,13 +193,13 @@ const AnswerInput = ({
           Correct! {attempts > 1 ? `(${attempts} attempts)` : "(1st try!)"}
         </div>
       )}
-      {isTouchDevice && (
-        <MathKeypad
-          visible={keypadOpen && !disabled && answerFeedback !== "correct"}
+      {isTouchDevice && keypadOpen && !disabled && answerFeedback !== "correct" && (
+        <UnifiedMathKeypad
           value={localInput}
           onChange={handleKeypadChange}
           onSubmit={handleSubmit}
-          onClose={() => setKeypadOpen(false)}
+          layout="inline"
+          buttonSet="full"
         />
       )}
     </Wrapper>

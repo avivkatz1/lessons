@@ -25,7 +25,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useLessonState, useWindowDimensions, useKonvaTheme } from "../../../../hooks";
 import InputOverlayPanel from "../../../../shared/components/InputOverlayPanel";
-import SlimMathKeypad from "../../../../shared/components/SlimMathKeypad";
+import { UnifiedMathKeypad } from "../../../../shared/components";
 import EnterAnswerButton from "../../../../shared/components/EnterAnswerButton";
 import ExplanationModal from "../geometry/ExplanationModal";
 import { useInputOverlay } from "../geometry/hooks/useInputOverlay";
@@ -722,10 +722,13 @@ const PlottingPoints = ({ triggerNewProblem }) => {
             {inputValue || '( __, __ )'}
           </CoordinateDisplay>
 
-          <SlimMathKeypad
+          <UnifiedMathKeypad
             value={inputValue}
             onChange={setInputValue}
+            layout="inline"
+            buttonSet="basic"
             extraButtons={["(", ",", ")"]}
+            showKeepOpen={true}
             keepOpen={keepOpen}
             onKeepOpenChange={setKeepOpen}
           />

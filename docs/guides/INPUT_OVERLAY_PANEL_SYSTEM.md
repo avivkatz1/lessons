@@ -1,9 +1,9 @@
 # Input Overlay Panel System Guide
 
-**Version:** 2.0
+**Version:** 2.1
 **Last Updated:** February 26, 2026
 **Status:** Production-Ready - iPad Standard
-**Implemented In:** Geometry Area/Perimeter Lessons (Levels 3-7), All Congruent Triangles Lessons, SymmetryLesson
+**Implemented In:** Geometry Area/Perimeter Lessons (Levels 3-7), All Congruent Triangles Lessons, SymmetryLesson, PatternsLesson (Algebra)
 
 ---
 
@@ -984,6 +984,286 @@ const CanvasWrapper = styled.div`
 **Device-Specific Behavior:**
 - **Desktop/iPad (>768px):** Canvas slides left, figure stays visible
 - **Mobile (≤768px):** Panel is full-screen overlay, no slide needed
+
+---
+
+### 2a. Enhanced Slide + Scale for Flexible Layouts (v2.1 - NEW)
+
+**NEW STANDARD for non-canvas lessons** (e.g., PatternsLesson, algebra lessons with flexible content)
+
+**Problem:** Canvas-based lessons have fixed dimensions (400px × responsive width), but some lessons use flexible layouts (flex boxes, dynamic content width). When these slide left by 75% of panel width, content can go off-screen.
+
+**Solution:** Combine reduced slide distance (60% instead of 75%) with scale transformation (95%) to keep content visible.
+
+**Use this pattern for:**
+- Lessons with flexible/responsive content (not fixed-size canvas)
+- Sequence displays (number patterns, visual blocks)
+- List-based layouts
+- Any lesson where content width varies based on problem complexity
+
+**Implementation:**
+
+```javascript
+// 1. Calculate slide distance (60% instead of 75%)
+const slideDistance = useMemo(() => {
+  if (windowWidth <= 768) return 0; // Mobile: No slide
+  const panelWidth = Math.min(Math.max(windowWidth * 0.4, 360), 480);
+  return panelWidth * 0.6; // 60% of panel width (vs 75% for canvas)
+}, [windowWidth]);
+
+// 2. Wrapper with slide + scale transformation
+const SequenceWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+
+  /* Smooth slide transition */
+  transition: transform 0.3s ease-in-out;
+
+  /* Desktop + iPad: Slide left and scale down when panel opens */
+  @media (min-width: 769px) {
+    ${props => props.$panelOpen ? css`
+      transform: translateX(-${props.$slideDistance}px) scale(0.95);
+      transform-origin: left center;
+    ` : css`
+      transform: translateX(0) scale(1);
+      transform-origin: center center;
+    `}
+  }
+
+  /* Mobile: No slide */
+  @media (max-width: 768px) {
+    transform: translateX(0);
+  }
+
+  @media (max-width: 1024px) {
+    gap: 16px;
+  }
+`;
+```
+
+**Key Differences from Canvas Pattern:**
+
+| Aspect | Canvas (v2.0) | Flexible Layout (v2.1) |
+|--------|---------------|------------------------|
+| **Slide Distance** | 75% of panel width | **60% of panel width** |
+| **Scale Transform** | None | **scale(0.95)** |
+| **Transform Origin** | Default (center) | **left center** |
+| **Content Type** | Fixed-size canvas | Flexible/responsive |
+| **Slide Distance** | 270-360px | **216-288px** |
+| **Visual Shrink** | None | **5% reduction** |
+
+**Why 60% + scale(0.95)?**
+
+1. **60% slide distance:**
+   - Less aggressive than 75% (54-72px less shift)
+   - More margin for content to stay visible
+   - Flexible content needs more buffer
+
+2. **scale(0.95):**
+   - 5% shrink creates additional space
+   - Subtle enough to maintain readability
+   - Fonts still readable (e.g., 32px → 30.4px)
+   - Combined with reduced slide = optimal viewport fit
+
+3. **transform-origin: left center:**
+   - Scale happens from left edge, not center
+   - Prevents content from expanding rightward
+   - Keeps left edge stable during scale
+   - Right edge moves inward (more space for panel)
+
+**Math Example (1440px Desktop):**
+
+**Canvas Pattern (75% slide):**
+```
+Panel: 480px (40% of 1440px)
+Slide: 360px left (75% of 480px)
+Content: No scale
+Result: Borderline visible
+```
+
+**Flexible Layout Pattern (60% slide + scale):**
+```
+Panel: 480px (40% of 1440px)
+Slide: 288px left (60% of 480px)  ← 72px less shift
+Content: scale(0.95)                ← 5% smaller
+Result: Clearly visible ✅
+```
+
+**Usage in JSX:**
+
+```javascript
+<SequenceWrapper
+  $panelOpen={phase === "type" && panelOpen}
+  $slideDistance={slideDistance}
+>
+  {/* Content that slides + scales */}
+  <SequenceContainer>
+    {/* Dynamic width content */}
+  </SequenceContainer>
+
+  <StepDisplay>...</StepDisplay>
+  <SimplifiedDisplay>...</SimplifiedDisplay>
+
+  {!panelOpen && (
+    <ButtonContainer>
+      <EnterAnswerButton onClick={openPanel} variant="static" />
+    </ButtonContainer>
+  )}
+</SequenceWrapper>
+
+{/* Panel stays outside wrapper */}
+<InputOverlayPanel visible={panelOpen} onClose={closePanel}>
+  <SlimMathKeypad ... />
+</InputOverlayPanel>
+```
+
+**Transform Order (Critical):**
+
+CSS applies transforms **left to right**:
+```css
+transform: translateX(-240px) scale(0.95);
+```
+
+1. **First:** `translateX(-240px)` - moves content 240px LEFT
+2. **Then:** `scale(0.95)` - shrinks to 95% FROM its new position
+
+**Why transform-origin matters:**
+
+**With default `center center`:**
+```
+Original: |---[300px content]---|  (centered)
+Scaled:   |--[285px content]--|   (shrinks from center, both edges move inward)
+```
+
+**With `left center`:**
+```
+Original: |---[300px content]---|  (left-aligned for scale)
+Scaled:   |--[285px content]      (shrinks from left, right edge moves inward)
+```
+
+Using `left center` prevents the left edge from shifting during scale, reducing risk of off-screen clipping.
+
+**Real-World Example: PatternsLesson**
+
+```javascript
+// PatternsLesson.jsx
+const slideDistance = useMemo(() => {
+  if (windowWidth <= 768) return 0;
+  const panelWidth = Math.min(Math.max(windowWidth * 0.4, 360), 480);
+  return panelWidth * 0.6; // 60% for flexible sequence display
+}, [windowWidth]);
+
+<SequenceWrapper
+  $panelOpen={phase === "type" && panelOpen}
+  $slideDistance={slideDistance}
+>
+  {/* Sequence Display (flexible width) */}
+  <SequenceContainer>
+    {isVisual ? (
+      <VisualSequence ... />  // Visual blocks (L1-2)
+    ) : (
+      <NumericSequence ... />  // Numbers (L3-5)
+    )}
+  </SequenceContainer>
+
+  {/* Phase content */}
+  {phase === "choose" && <ChooseSection>...</ChooseSection>}
+
+  {phase === "type" && (
+    <>
+      <StepDisplay>Pattern found: Add 2</StepDisplay>
+      <SimplifiedDisplay>What comes next?</SimplifiedDisplay>
+      {!panelOpen && (
+        <ButtonContainer>
+          <EnterAnswerButton onClick={openPanel} variant="static" />
+        </ButtonContainer>
+      )}
+    </>
+  )}
+</SequenceWrapper>
+
+{/* Panel outside wrapper */}
+{phase === "type" && (
+  <InputOverlayPanel visible={panelOpen} onClose={closePanel}>
+    <SlimMathKeypad ... />
+  </InputOverlayPanel>
+)}
+```
+
+**Visual Flow:**
+
+```
+1. Panel Closed (Initial State)
+   ┌─────────────────────────────────────┐
+   │     Pattern: 2, 4, 6, 8, ?          │  ← Centered
+   │     Pattern found: Add 2            │
+   │     What comes next?                │
+   │   ┌──────────────────┐              │
+   │   │  Enter Answer    │              │  ← Static button
+   │   └──────────────────┘              │
+   └─────────────────────────────────────┘
+
+2. Panel Opens → Slide Left + Scale Down
+   ┌─────────────┬─────────────────────┐
+   │ Pattern:    │ ┌─────────────────┐ │
+   │ 2,4,6,8,?   │ │ Next number:    │ │  ← Panel slides in
+   │ (scaled 95%)│ │ [SlimMathKeypad]│ │
+   │             │ │ [Submit]        │ │
+   └─────────────┴─└─────────────────┘─┘
+   ↑ Slide 240px left + scale to 95%
+
+3. Correct Answer → Panel Closes, Content Returns
+   ┌─────────────────────────────────────┐
+   │     Pattern: 2, 4, 6, 8, 10         │  ← Back to center, 100% size
+   │                                     │
+   │      ┌─────────────────┐            │
+   │      │  ✓ Correct!     │            │  ← Modal after 500ms
+   │      │  [Explanation]  │            │
+   │      └─────────────────┘            │
+   └─────────────────────────────────────┘
+```
+
+**Responsive Behavior:**
+
+| Screen Width | Panel Width | Slide Distance | Scale | Result |
+|--------------|-------------|----------------|-------|--------|
+| 375px (mobile) | N/A | 0px | 1 (100%) | No slide, full screen panel |
+| 768px (tablet) | 360px | 0px | 1 (100%) | No slide (breakpoint) |
+| 1024px (iPad) | 365px | 219px | 0.95 | Slide + scale |
+| 1440px (desktop) | 480px | 288px | 0.95 | Slide + scale |
+| 1920px (large) | 480px | 288px | 0.95 | Slide + scale |
+
+**When to Use This Pattern:**
+
+✅ **Use 60% + scale(0.95) for:**
+- Sequence displays (patterns, lists)
+- Flexible layouts (flex boxes, auto-width content)
+- Content width varies by problem complexity
+- Non-canvas visual content
+- Algebra lessons with dynamic layouts
+
+❌ **Don't use for:**
+- Fixed-size canvas lessons (use 75% slide, no scale)
+- Content that's already very small (scale makes it smaller)
+- Lessons where text readability is critical at current size
+
+**Testing Checklist:**
+
+- [ ] Desktop 1440px: Content stays visible, panel visible
+- [ ] iPad 1024px: No left-edge clipping
+- [ ] Mobile 768px: No slide, no scale (full-screen panel)
+- [ ] Text readable after 5% scale (min 14-16px fonts)
+- [ ] Smooth 0.3s transition for slide + scale
+- [ ] Content slides back and scales up when panel closes
+- [ ] Window resize recalculates slide distance
+- [ ] All visual elements fit in viewport
+
+**Implemented In:**
+- **PatternsLesson.jsx** (algebra) - First implementation
+- More lessons to follow this pattern
 
 ---
 

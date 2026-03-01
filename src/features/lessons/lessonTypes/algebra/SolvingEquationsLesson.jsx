@@ -18,7 +18,7 @@ import { useLessonState, useWindowDimensions } from '../../../../hooks';
 import { setUserAnswer, setAnswerFeedback, recordAnswer } from '../../../../store/lessonSlice';
 import { DrawingCanvas } from '../../../../shared/components';
 import InputOverlayPanel from '../../../../shared/components/InputOverlayPanel';
-import SlimMathKeypad from '../../../../shared/components/SlimMathKeypad';
+import { UnifiedMathKeypad } from '../../../../shared/components';
 import EnterAnswerButton from '../../../../shared/components/EnterAnswerButton';
 import { useInputOverlay } from '../geometry/hooks/useInputOverlay';
 import { validateAnswer } from '../../../../shared/helpers/validateAnswer';
@@ -1503,10 +1503,13 @@ function SolvingEquationsLesson({ triggerNewProblem }) {
           {submitted && (isCorrect ? ' ✓' : ' ✗')}
         </InputLabel>
 
-        <SlimMathKeypad
+        <UnifiedMathKeypad
           value={inputValue}
           onChange={setInputValue}
           onSubmit={handlePanelSubmit}
+          layout="inline"
+          buttonSet="basic"
+          showKeepOpen={true}
           keepOpen={keepOpen}
           onKeepOpenChange={setKeepOpen}
         />

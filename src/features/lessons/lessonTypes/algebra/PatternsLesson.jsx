@@ -3,7 +3,7 @@ import styled, { keyframes, css } from "styled-components";
 import { useLessonState, useIsTouchDevice, useWindowDimensions } from "../../../../hooks";
 import { useInputOverlay } from "../geometry/hooks/useInputOverlay";
 import InputOverlayPanel from "../../../../shared/components/InputOverlayPanel";
-import SlimMathKeypad from "../../../../shared/components/SlimMathKeypad";
+import { UnifiedMathKeypad } from "../../../../shared/components";
 import EnterAnswerButton from "../../../../shared/components/EnterAnswerButton";
 import ExplanationModal from "../geometry/ExplanationModal";
 
@@ -429,10 +429,13 @@ function PatternsLesson({ triggerNewProblem }) {
             {submitted && (isCorrect ? ' ✓' : ' ✗')}
           </InputLabel>
 
-          <SlimMathKeypad
+          <UnifiedMathKeypad
             value={inputValue}
             onChange={setInputValue}
             onSubmit={handleSubmit}
+            layout="inline"
+            buttonSet="basic"
+            showKeepOpen={true}
             keepOpen={keepOpen}
             onKeepOpenChange={setKeepOpen}
           />

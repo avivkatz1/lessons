@@ -13,7 +13,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import { Stage, Layer, Rect, Line, Text, Transformer } from 'react-konva';
 import { useLessonState, useKonvaTheme, useWindowDimensions } from '../../../../hooks';
-import { InputOverlayPanel, SlimMathKeypad, EnterAnswerButton } from '../../../../shared/components';
+import { InputOverlayPanel, UnifiedMathKeypad, EnterAnswerButton } from '../../../../shared/components';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { useKeepChangeChangeValidation } from './hooks/useKeepChangeChangeValidation';
@@ -435,10 +435,13 @@ function SubtractingIntegersLesson({ triggerNewProblem }) {
           isCorrect={submitted && correctAnswer.includes(inputValue.trim())}
           isIncorrect={submitted && !correctAnswer.includes(inputValue.trim())}
         >
-          <SlimMathKeypad
+          <UnifiedMathKeypad
             value={inputValue}
             onChange={setInputValue}
             onSubmit={handleSubmitAnswer}
+            layout="inline"
+            buttonSet="basic"
+            showKeepOpen={true}
             keepOpen={keepOpen}
             onKeepOpenChange={setKeepOpen}
           />

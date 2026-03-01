@@ -18,6 +18,7 @@ import styled, { keyframes } from 'styled-components';
 import { Stage, Layer, Rect, Line } from 'react-konva';
 import { InlineMath } from 'react-katex';
 import { useKonvaTheme, useWindowDimensions } from '../../hooks';
+import EnterAnswerButton from './EnterAnswerButton';
 
 // localStorage helper
 const STORAGE_PREFIX = 'canvas_solving_equations_';
@@ -58,12 +59,24 @@ function loadDrawing(questionIndex) {
   }
 }
 
-function DrawingCanvas({ equation, questionIndex, visible, onClose, disabled, onAnswerRecognized, onSubmit }) {
+function DrawingCanvas({
+  equation,
+  questionIndex,
+  visible,
+  onClose,
+  disabled,
+  onAnswerRecognized,  // Keep but won't be used
+  onSubmit,            // Keep but won't be used
+  // NEW PROPS
+  panelOpen = false,       // From parent - is InputOverlayPanel open?
+  onOpenPanel = () => {},  // Callback to parent to open panel
+  slideDistance = 0,       // From parent - how far to slide
+}) {
   const konvaTheme = useKonvaTheme();
   const { width: windowWidth } = useWindowDimensions();
   const [strokes, setStrokes] = useState([]);
   const [tool, setTool] = useState('marker');
-  const [answerText, setAnswerText] = useState('');
+  // Answer handling now delegated to parent's InputOverlayPanel
   const isDrawing = useRef(false);
 
   // Canvas dimensions
@@ -82,7 +95,6 @@ function DrawingCanvas({ equation, questionIndex, visible, onClose, disabled, on
   useEffect(() => {
     if (visible) {
       setStrokes([]); // Start with blank canvas
-      setAnswerText('');
     }
   }, [visible, questionIndex]);
 
@@ -173,29 +185,13 @@ function DrawingCanvas({ equation, questionIndex, visible, onClose, disabled, on
   }, [onClose, questionIndex, strokes]);
 
   // Handle answer input change
-  const handleAnswerChange = useCallback((e) => {
-    const value = e.target.value;
-    setAnswerText(value);
-    // Auto-populate AnswerInput as user types
-    if (onAnswerRecognized && value.trim()) {
-      onAnswerRecognized(value.trim());
-    }
-  }, [onAnswerRecognized]);
-
-  // Handle submit from canvas
-  const handleSubmit = useCallback(() => {
-    if (!answerText.trim()) return;
-    if (onSubmit) {
-      onSubmit();
-    }
-    onClose();
-  }, [answerText, onSubmit, onClose]);
+  // Answer handling removed - now uses parent's InputOverlayPanel
 
   if (!visible) return null;
 
   return (
-    <Overlay>
-      <CanvasContainer>
+    <Overlay $panelOpen={panelOpen}>
+      <CanvasContainer $panelOpen={panelOpen} $slideDistance={slideDistance}>
         {/* Skip button for accessibility */}
         <SkipButton onClick={handleClose}>
           Skip Drawing (Enter Answer Directly)
@@ -245,34 +241,21 @@ function DrawingCanvas({ equation, questionIndex, visible, onClose, disabled, on
             </Layer>
           </Stage>
 
-          {/* Answer input overlay */}
-          <AnswerInputOverlay
-            style={{
-              left: `${answerBoxBounds.x + 16}px`,
-              top: `${answerBoxBounds.y + 16}px`,
-              width: `${answerBoxBounds.width - 32}px`,
-            }}
-          >
-            <AnswerLabel>Write Answer:</AnswerLabel>
-            <AnswerInputRow>
-              <AnswerInput
-                type="text"
-                value={answerText}
-                onChange={handleAnswerChange}
-                onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
-                placeholder="Type your answer..."
+          {/* Enter answer button - opens parent's InputOverlayPanel */}
+          {!panelOpen && (
+            <AnswerButtonOverlay
+              style={{
+                left: `${answerBoxBounds.x + 16}px`,
+                top: `${answerBoxBounds.y + 16}px`,
+              }}
+            >
+              <EnterAnswerButton
+                onClick={onOpenPanel}
                 disabled={disabled}
-                autoComplete="off"
+                variant="static"
               />
-              <SubmitButton
-                onClick={handleSubmit}
-                disabled={disabled || !answerText.trim()}
-                title="Submit answer and close canvas"
-              >
-                Submit
-              </SubmitButton>
-            </AnswerInputRow>
-          </AnswerInputOverlay>
+            </AnswerButtonOverlay>
+          )}
         </VisualSection>
 
         {/* Toolbar matching symmetry lesson style */}
@@ -352,6 +335,9 @@ const Overlay = styled.div`
   animation: ${fadeIn} 0.3s ease-out;
   padding: 20px;
 
+  /* Allow clicks to pass through to InputOverlayPanel when panel is open */
+  pointer-events: ${props => props.$panelOpen ? 'none' : 'auto'};
+
   @media (max-width: 1024px) {
     padding: 12px;
   }
@@ -369,6 +355,20 @@ const CanvasContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
+
+  /* Ensure canvas remains clickable even when Overlay has pointer-events: none */
+  pointer-events: auto;
+
+  /* NEW: Slide animation when InputOverlayPanel opens */
+  transition: transform 0.3s ease-in-out;
+
+  @media (min-width: 769px) {
+    transform: translateX(${props => props.$panelOpen ? `-${props.$slideDistance}px` : '0'});
+  }
+
+  @media (max-width: 768px) {
+    transform: translateX(0); /* Mobile: no slide */
+  }
 
   @media (max-width: 1024px) {
     max-width: 95vw;
@@ -541,90 +541,10 @@ const SrOnly = styled.div`
   border: 0;
 `;
 
-const AnswerInputOverlay = styled.div`
+const AnswerButtonOverlay = styled.div`
   position: absolute;
   z-index: 20;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  justify-content: center;
   pointer-events: auto;
-`;
-
-const AnswerLabel = styled.label`
-  font-size: 12px;
-  font-weight: 600;
-  color: ${props => props.theme.colors.textSecondary};
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-`;
-
-const AnswerInputRow = styled.div`
-  display: flex;
-  gap: 8px;
-  align-items: center;
-`;
-
-const AnswerInput = styled.input`
-  flex: 1;
-  padding: 8px 12px;
-  font-size: 18px;
-  font-weight: 500;
-  border: 2px solid ${props => props.theme.colors.border};
-  border-radius: 8px;
-  background: ${props => props.theme.colors.inputBackground};
-  color: ${props => props.theme.colors.textPrimary};
-  outline: none;
-  transition: all 0.2s;
-
-  &:focus {
-    border-color: ${props => props.theme.colors.primary};
-    box-shadow: 0 0 0 3px ${props => props.theme.colors.primary}20;
-  }
-
-  &::placeholder {
-    color: ${props => props.theme.colors.textSecondary};
-    opacity: 0.5;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  @media (max-width: 768px) {
-    font-size: 16px;
-    padding: 6px 10px;
-  }
-`;
-
-const SubmitButton = styled.button`
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 8px;
-  border: none;
-  background: #10B981;
-  color: white;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-
-  &:hover:not(:disabled) {
-    background: #059669;
-    transform: translateY(-1px);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  @media (max-width: 768px) {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
 `;

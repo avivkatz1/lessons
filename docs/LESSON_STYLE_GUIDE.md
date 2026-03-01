@@ -36,20 +36,21 @@
 
 When creating new lessons, study these existing implementations for specific patterns and techniques:
 
-### ⭐ **NEW STANDARD: InputOverlayPanel Pattern** (v2.0)
+### ⭐ **NEW STANDARD: InputOverlayPanel Pattern** (v2.1)
 **Path:** `src/features/lessons/lessonTypes/geometry/components/areaPerimeter/Level3-7.jsx`
 **Full Documentation:** `docs/guides/INPUT_OVERLAY_PANEL_SYSTEM.md`
 
 **🎯 USE THIS FOR ALL NEW LESSONS WITH NUMERIC INPUT**
 
 **Use this for:**
-- ✅ **iPad optimization** - Canvas + button slide left, figure stays visible when panel opens
+- ✅ **iPad optimization** - Canvas/content + button slide left, figure stays visible when panel opens
 - ✅ **SlimMathKeypad integration** - Touch-optimized numeric input
-- ✅ **Static button placement** - Below canvas, slides with it
+- ✅ **Static button placement** - Below canvas/content, slides with it
 - ✅ **Modal close tracking** - Button changes to "Try Another Problem" after modal X click
-- ✅ **Smooth animations** - 300ms slide, unified canvas+button motion
+- ✅ **Smooth animations** - 300ms slide, unified motion
 - ✅ **No canvas resize** - Overlay panel doesn't force canvas to shrink
 - ✅ **Touch targets** - 56px minimum (exceeds WCAG 44px)
+- ✅ **NEW: Flexible layout support** - Slide + scale for non-canvas content (60% slide + scale(0.95))
 
 **Key Features:**
 ```javascript
@@ -89,9 +90,10 @@ const handleComplete = (success) => {
 > "I really like this new style to work with the math pad and how to enter answers while still seeing the problem. I want this to be a standard for using the math pad so that everything can stay on the ipad page."
 
 **Implemented In:**
-- AreaPerimeterLesson (Levels 3-7)
-- All Congruent Triangles lessons (SSS, SAS, ASA, AAS)
-- SymmetryLesson
+- AreaPerimeterLesson (Levels 3-7) - Canvas with 75% slide
+- All Congruent Triangles lessons (SSS, SAS, ASA, AAS) - Canvas with 75% slide
+- SymmetryLesson - Canvas with 75% slide
+- **PatternsLesson (Algebra)** - Flexible layout with 60% slide + scale(0.95) ⭐ NEW
 
 ---
 
@@ -875,6 +877,229 @@ const handleTryAnother = () => {
   triggerNewProblem(); // Get new problem from backend
 };
 ```
+
+---
+
+### 🎯 **ShapesLesson.jsx - Binary Choice Button Pattern** ⭐ STANDARD
+
+**Path:** `src/features/lessons/lessonTypes/geometry/ShapesLesson.jsx`
+
+**🚨 CRITICAL: This is the STANDARD button style for ALL binary/multiple choice questions.**
+
+**Use this pattern for:**
+- ✅ Yes/No questions
+- ✅ Positive/Negative/Zero choices
+- ✅ Any multiple choice with 2-4 options
+- ✅ Classification questions (e.g., shape types, slope types)
+
+**Reference Implementation:** ShapesLesson Level 1 (`YesButton` and `NoButton`)
+
+**Required Button Styling:**
+
+```javascript
+// Example: Positive/Negative/Zero buttons (like ShapesLesson L1)
+const ChoiceButton = styled.button`
+  flex: 1;
+  min-width: 140px;
+  min-height: 56px;
+  padding: 14px 40px;
+  font-size: 18px;
+  font-weight: 700;                          // Bold text
+  border-radius: 10px;
+  border: 3px solid ${props => props.$borderColor};  // 3px solid border
+  background-color: transparent;             // ← CRITICAL: Transparent background
+  color: ${props => props.$borderColor};     // ← Text matches border color
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: ${props => props.$borderColor};  // ← Fill on hover
+    color: white;                                       // ← Text becomes white
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  // Responsive scaling
+  @media (max-width: 1024px) {
+    min-width: 120px;
+    padding: 12px 24px;
+    font-size: 17px;
+  }
+
+  @media (max-width: 768px) {
+    min-height: 48px;
+    font-size: 16px;
+    min-width: 100px;
+    padding: 12px 20px;
+  }
+`;
+```
+
+**Usage Example:**
+
+```javascript
+// Level with binary choice (e.g., GraphingLines L1: Y-Intercept Sign)
+<ChoiceButtonRow>
+  <ChoiceButton
+    onClick={() => handleChoiceClick("positive", 0, correctAnswer)}
+    disabled={phase === "complete"}
+    $borderColor="#10B981"  // Green
+  >
+    Positive
+  </ChoiceButton>
+  <ChoiceButton
+    onClick={() => handleChoiceClick("negative", 1, correctAnswer)}
+    disabled={phase === "complete"}
+    $borderColor="#EF4444"  // Red
+  >
+    Negative
+  </ChoiceButton>
+  <ChoiceButton
+    onClick={() => handleChoiceClick("zero", 2, correctAnswer)}
+    disabled={phase === "complete"}
+    $borderColor="#6B7280"  // Gray
+  >
+    Zero
+  </ChoiceButton>
+</ChoiceButtonRow>
+```
+
+**Standard Colors for Common Choices:**
+
+| Choice Type | Color | Hex Code | Usage |
+|-------------|-------|----------|-------|
+| **Yes / Positive / Correct** | Green | `#10B981` | Affirmative choices |
+| **No / Negative / Incorrect** | Red | `#EF4444` | Negative choices |
+| **Zero / Neutral** | Gray | `#6B7280` | Neutral/zero values |
+| **Undefined / Special** | Purple | `#8B5CF6` | Edge cases (e.g., undefined slope) |
+| **Alternative option** | Blue | `#3B82F6` | Third/fourth options |
+| **Warning option** | Orange | `#F59E0B` | Caution choices |
+
+**Key Design Principles:**
+
+1. **Transparent Background**: Buttons start with transparent background, NOT filled
+2. **Colored Border**: 3px solid border in the choice color
+3. **Matching Text**: Text color matches border color
+4. **Hover Fill**: On hover, background fills with border color and text becomes white
+5. **Bold Weight**: Font weight 700 for emphasis
+6. **Touch Targets**: Minimum 56px height (desktop/tablet), 48px (mobile)
+
+**Visual Flow:**
+
+```
+Default State:
+┌─────────────────┐
+│   Positive      │  ← Transparent background
+└─────────────────┘     Green border (#10B981)
+                        Green text
+
+Hover State:
+┌─────────────────┐
+│   Positive      │  ← GREEN FILLED background
+└─────────────────┘     Green border
+                        WHITE text
+
+Disabled State (after selection):
+┌─────────────────┐
+│   Positive      │  ← 50% opacity
+└─────────────────┘     Grayed out
+```
+
+**Common Mistakes to Avoid:**
+
+❌ **DON'T**: Use filled background initially
+```javascript
+background-color: #10B981;  // WRONG - breaks the pattern
+color: white;
+```
+
+❌ **DON'T**: Skip the hover effect
+```javascript
+// WRONG - no hover state defined
+```
+
+❌ **DON'T**: Use different border widths
+```javascript
+border: 2px solid #10B981;  // WRONG - should be 3px
+```
+
+✅ **DO**: Follow ShapesLesson pattern exactly
+```javascript
+background-color: transparent;       // Correct
+border: 3px solid ${borderColor};    // Correct
+color: ${borderColor};               // Correct
+
+&:hover:not(:disabled) {
+  background-color: ${borderColor};  // Fills on hover
+  color: white;                      // Text becomes white
+}
+```
+
+**Animation Pattern (Wrong Answer):**
+
+```javascript
+const shakeAnim = keyframes`
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+  20%, 40%, 60%, 80% { transform: translateX(10px); }
+`;
+
+const ChoiceButton = styled.button`
+  // ... other styles
+  animation: ${props => props.$shake ? shakeAnim : 'none'} 0.6s;
+`;
+```
+
+**Handler Pattern:**
+
+```javascript
+const handleChoiceClick = (choice, index, correctChoice) => {
+  if (phase !== "interact" || shakingIdx !== null) return;
+
+  if (choice === correctChoice) {
+    setSelectedChoice(index);
+    setTimeout(() => {
+      setPhase("complete");
+      setShowModal(true);  // Show ExplanationModal
+      revealAnswer();
+    }, 800);  // 800ms celebration delay
+  } else {
+    setShakingIdx(index);
+    setWrongAttempts(prev => prev + 1);
+    setTimeout(() => setShakingIdx(null), 600);  // 600ms shake duration
+  }
+};
+```
+
+**Required Features:**
+
+- [ ] Transparent background initially
+- [ ] 3px solid border
+- [ ] Text color matches border color
+- [ ] Hover fills background, text becomes white
+- [ ] 800ms delay before showing ExplanationModal on correct answer
+- [ ] 600ms shake animation on wrong answer
+- [ ] Disabled state (50% opacity) after selection
+- [ ] Responsive sizing (56px → 48px on mobile)
+- [ ] Font weight 700 (bold)
+
+**Lessons Using This Pattern:**
+
+- ShapesLesson Level 1 (YesButton/NoButton) - **CANONICAL REFERENCE**
+- SidesAndAnglesLesson Level 1 (Side/Angle binary choice)
+- GraphingLinesLesson Level 1-2 (Y-intercept sign, Slope sign)
+- Any lesson with binary/multiple choice questions
+
+**When Creating New Lessons:**
+
+If your lesson has binary or multiple choice questions, **YOU MUST USE THIS BUTTON STYLE**. Copy the styled component from ShapesLesson.jsx and adapt the colors to your specific choices.
 
 ---
 

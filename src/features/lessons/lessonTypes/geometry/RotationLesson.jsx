@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { Stage, Layer, Rect, Line, Circle, Text } from 'react-konva';
 import { useSelector } from 'react-redux';
 import { useWindowDimensions, useKonvaTheme } from '../../../../hooks';
-import { InputOverlayPanel, SlimMathKeypad, EnterAnswerButton } from '../../../../shared/components';
+import { InputOverlayPanel, UnifiedMathKeypad, EnterAnswerButton } from '../../../../shared/components';
 import { useInputOverlay } from './hooks/useInputOverlay';
 import GridBackground from './components/areaPerimeter/GridBackground';
 import ExplanationModal from './ExplanationModal';
@@ -777,10 +777,13 @@ function RotationLesson({ triggerNewProblem }) {
         >
           <InputLabel>Rotation angle (degrees):</InputLabel>
 
-          <SlimMathKeypad
+          <UnifiedMathKeypad
             value={inputValue}
             onChange={setInputValue}
             onSubmit={handleSubmit}
+            layout="inline"
+            buttonSet="basic"
+            showKeepOpen={true}
             keepOpen={keepOpen}
             onKeepOpenChange={setKeepOpen}
           />

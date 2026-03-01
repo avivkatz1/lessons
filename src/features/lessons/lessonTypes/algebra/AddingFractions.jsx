@@ -1,10 +1,9 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useWindowDimensions, useKonvaTheme } from "../../../../hooks";
 import { useLessonState } from "../../../../hooks";
-import { InputOverlayPanel, EnterAnswerButton } from "../../../../shared/components";
+import { InputOverlayPanel, EnterAnswerButton, UnifiedMathKeypad } from "../../../../shared/components";
 import ExplanationModal from "../geometry/ExplanationModal";
 import { useInputOverlay } from "../geometry/hooks/useInputOverlay";
-import FractionKeypad from "./components/FractionKeypad";
 import styled from "styled-components";
 import { Stage, Layer, Rect, Text, Line, Group } from "react-konva";
 
@@ -389,10 +388,14 @@ function AddingFractions({ triggerNewProblem }) {
         title="Enter Your Answer"
       >
         <InputLabel>Answer (as a fraction):</InputLabel>
-        <FractionKeypad
+        <UnifiedMathKeypad
           value={inputValue}
           onChange={setInputValue}
           onSubmit={handleSubmit}
+          layout="inline"
+          buttonSet="fraction"
+          enableSubmit={true}
+          showKeepOpen={true}
           keepOpen={keepOpen}
           onKeepOpenChange={setKeepOpen}
         />
