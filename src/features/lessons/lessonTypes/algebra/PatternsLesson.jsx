@@ -204,11 +204,13 @@ function PatternsLesson({ triggerNewProblem }) {
 
   // Reset on problem change - useEffect ensures proper sequencing
   useEffect(() => {
-    setPhase("choose");
+    // Reset selection state
     setSelectedChoice(null);
     setWrongAttempts(0);
     setShakingIdx(null);
     setShowHint(false);
+    setModalClosedWithX(false);
+    setIsComplete(false);
 
     if (!keepOpen) {
       // Normal mode: close panel and reset everything
@@ -218,9 +220,6 @@ function PatternsLesson({ triggerNewProblem }) {
       setInputValue('');
       setSubmitted(false);
     }
-
-    setModalClosedWithX(false);
-    setIsComplete(false);
   }, [currentQuestionIndex, keepOpen, resetAll, setInputValue, setSubmitted]);
 
   const handleTryAnother = useCallback(() => {
@@ -237,13 +236,12 @@ function PatternsLesson({ triggerNewProblem }) {
   }, [hideAnswer, triggerNewProblem, resetAll]);
 
   const handleChoiceClick = useCallback((choice, idx) => {
-    if (phase !== "choose" || shakingIdx !== null) return;
+    if (selectedChoice !== null || shakingIdx !== null) return;
 
     if (choice.correct) {
       setSelectedChoice(idx);
-      setTimeout(() => {
-        setPhase("type");
-      }, 800);
+      // Panel will be shown via the "Enter Answer" button in normal mode
+      // In keepOpen mode, panel stays open from previous problem
     } else {
       setShakingIdx(idx);
       setWrongAttempts((prev) => prev + 1);
@@ -251,7 +249,7 @@ function PatternsLesson({ triggerNewProblem }) {
         setShakingIdx(null);
       }, 600);
     }
-  }, [phase, shakingIdx]);
+  }, [selectedChoice, shakingIdx]);
 
   const handleSubmit = useCallback(() => {
     if (inputValue.trim() === '') return;
@@ -302,7 +300,7 @@ function PatternsLesson({ triggerNewProblem }) {
   return (
     <Wrapper>
       {/* Hint Button */}
-      {phase === "choose" && !showHint && hint && (
+      {selectedChoice === null && !showHint && hint && (
         <TopHintButton onClick={() => setShowHint(true)}>
           Need a hint?
         </TopHintButton>
@@ -317,7 +315,7 @@ function PatternsLesson({ triggerNewProblem }) {
 
       {/* ========== WRAPPER FOR SLIDE ANIMATION ========== */}
       <SequenceWrapper
-        $panelOpen={phase === "type" && panelOpen}
+        $panelOpen={selectedChoice !== null && panelOpen}
         $slideDistance={slideDistance}
       >
         {/* Sequence Display */}
@@ -339,7 +337,7 @@ function PatternsLesson({ triggerNewProblem }) {
         </SequenceContainer>
 
         {/* Phase 1: Choose the pattern rule */}
-        {phase === "choose" && (
+        {selectedChoice === null && (
           <ChooseSection>
             {showHint && hint && (
               <HintBox>{hint}</HintBox>
@@ -378,7 +376,7 @@ function PatternsLesson({ triggerNewProblem }) {
         )}
 
         {/* Phase 2: Type the next number - content section */}
-        {phase === "type" && (
+        {selectedChoice !== null && (
           <>
             <StepDisplay>
               <StepLabel>Pattern found:</StepLabel>
@@ -410,42 +408,40 @@ function PatternsLesson({ triggerNewProblem }) {
       </SequenceWrapper>
       {/* ========== END WRAPPER ========== */}
 
-      {/* Phase 2: Type the next number - panel (stays outside wrapper) */}
-      {phase === "type" && (
-        <InputOverlayPanel
-          visible={panelOpen}
-          onClose={closePanel}
-          title="Enter the Next Number"
-        >
-          <InputLabel>
-            Next number in pattern:
-            {submitted && (isCorrect ? ' ✓' : ' ✗')}
-          </InputLabel>
+      {/* Input panel - always rendered, visibility controlled by panelOpen state */}
+      <InputOverlayPanel
+        visible={panelOpen}
+        onClose={closePanel}
+        title="Enter the Next Number"
+      >
+        <InputLabel>
+          Next number in pattern:
+          {submitted && (isCorrect ? ' ✓' : ' ✗')}
+        </InputLabel>
 
-          <UnifiedMathKeypad
-            value={inputValue}
-            onChange={setInputValue}
-            onSubmit={handleSubmit}
-            layout="inline"
-            buttonSet="basic"
-            showKeepOpen={true}
-            keepOpen={keepOpen}
-            onKeepOpenChange={setKeepOpen}
-          />
+        <UnifiedMathKeypad
+          value={inputValue}
+          onChange={setInputValue}
+          onSubmit={handleSubmit}
+          layout="inline"
+          buttonSet="basic"
+          showKeepOpen={true}
+          keepOpen={keepOpen}
+          onKeepOpenChange={setKeepOpen}
+        />
 
-          {submitted && !isCorrect && (
-            <FeedbackSection $isWrong>
-              Not quite — try again!
-            </FeedbackSection>
-          )}
+        {submitted && !isCorrect && (
+          <FeedbackSection $isWrong>
+            Not quite — try again!
+          </FeedbackSection>
+        )}
 
-          <PanelButtonRow>
-            <SubmitButton onClick={handleSubmit} disabled={!inputValue.trim()}>
-              Submit Answer
-            </SubmitButton>
-          </PanelButtonRow>
-        </InputOverlayPanel>
-      )}
+        <PanelButtonRow>
+          <SubmitButton onClick={handleSubmit} disabled={!inputValue.trim()}>
+            Submit Answer
+          </SubmitButton>
+        </PanelButtonRow>
+      </InputOverlayPanel>
 
       {/* Phase 3: Complete — explanation modal */}
       {isComplete && (
